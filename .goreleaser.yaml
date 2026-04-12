@@ -24,7 +24,7 @@ checksum:
 publishers:
   - name: Hex
     # Use a custom publish command since goreleaser doesn't have built-in support for publishing to Hex.
-    cmd: hack/gleam_publish.sh {{ .ArtifactName }}
+    cmd: hack/gleam_publish.sh {{ .ArtifactPath }}
     env:
       - HEXPM_API_KEY={{ .Env.HEXPM_API_KEY }}
 
