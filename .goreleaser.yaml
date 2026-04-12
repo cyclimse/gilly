@@ -15,7 +15,7 @@ publishers:
     cmd: |
       echo 'I am not using semantic versioning' | gleam publish -y
     env:
-      - HEXPM_API_KEY=${{ .Env.HEXPM_API_KEY }}
+      - HEXPM_API_KEY={{ .Env.HEXPM_API_KEY }}
 
 archives:
   - formats: [tar.gz]
