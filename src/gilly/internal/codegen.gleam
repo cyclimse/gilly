@@ -209,8 +209,15 @@ fn object_type_doc(
       let in_required = list.contains(object_schema.required, prop_name)
       let optional =
         is_field_optional(prop_schema, in_required, config.optionality)
+      let enum_hint = type_name <> to_type_name(prop_name)
       let #(state, field_type) =
-        schema_to_gleam_type(state, prop_schema, !optional, all_schemas)
+        schema_to_gleam_type(
+          state,
+          prop_schema,
+          !optional,
+          all_schemas,
+          enum_hint,
+        )
 
       let field_line =
         doc.concat([
@@ -273,7 +280,7 @@ fn simple_type_doc(
   config: Config,
 ) -> #(State, Document) {
   let #(state, gleam_type) =
-    schema_to_gleam_type(state, schema, True, all_schemas)
+    schema_to_gleam_type(state, schema, True, all_schemas, type_name)
   let result =
     doc.concat([
       doc.from_string("pub type " <> type_name <> " ="),
@@ -290,15 +297,17 @@ fn schema_to_gleam_type(
   schema: Schema,
   required: Bool,
   all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
 ) -> #(State, Document) {
   let #(state, inner) = case schema {
     schema.Ref(ref:) -> #(state, doc.from_string(ref_to_type_name(ref)))
-    schema.String(_, string_schema) -> string_type(state, string_schema)
+    schema.String(_, string_schema) ->
+      string_type(state, string_schema, enum_name_hint)
     schema.Integer(_, _) -> #(state, doc.from_string("Int"))
     schema.Number(_) -> #(state, doc.from_string("Float"))
     schema.Boolean(_) -> #(state, doc.from_string("Bool"))
     schema.Array(_, array_schema) ->
-      array_type(state, array_schema, all_schemas)
+      array_type(state, array_schema, all_schemas, enum_name_hint)
     schema.Object(_, object_schema) ->
       inline_object_type(state, object_schema, all_schemas)
   }
@@ -309,10 +318,14 @@ fn schema_to_gleam_type(
   }
 }
 
-fn string_type(state: State, string_schema: StringSchema) -> #(State, Document) {
+fn string_type(
+  state: State,
+  string_schema: StringSchema,
+  enum_name_hint: String,
+) -> #(State, Document) {
   case string_schema.enum {
     Some(variants) -> {
-      let type_name = enum_type_name(variants)
+      let type_name = to_type_name(enum_name_hint)
       let state = register_enum(state, type_name, variants)
       #(state, doc.from_string(type_name))
     }
@@ -329,9 +342,16 @@ fn array_type(
   state: State,
   array_schema: ArraySchema,
   all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
 ) -> #(State, Document) {
   let #(state, items_type) =
-    schema_to_gleam_type(state, array_schema.items, True, all_schemas)
+    schema_to_gleam_type(
+      state,
+      array_schema.items,
+      True,
+      all_schemas,
+      enum_name_hint,
+    )
   #(
     state,
     doc.concat([
@@ -447,16 +467,10 @@ fn ref_to_type_name(ref: String) -> String {
   }
 }
 
-/// Derive a PascalCase enum type name from the variant strings.
-/// e.g. ["pending", "approved", "delivered"] -> "PendingApprovedDelivered"
-fn enum_type_name(variants: List(String)) -> String {
-  list.map(variants, justin.pascal_case)
-  |> string.join("")
-}
-
-/// Convert a variant string to a PascalCase constructor name.
-fn enum_variant_name(variant: String) -> String {
-  justin.pascal_case(variant)
+/// Convert a variant string to a namespaced PascalCase constructor name.
+/// Prefixed with the type name to avoid conflicts across enums.
+fn enum_variant_name(type_name: String, variant: String) -> String {
+  type_name <> justin.pascal_case(variant)
 }
 
 fn enum_decoder_name(type_name: String) -> String {
@@ -492,7 +506,9 @@ fn enum_type_doc(
   indent: Int,
 ) -> Document {
   let variant_docs =
-    list.map(variants, fn(v) { doc.from_string(enum_variant_name(v)) })
+    list.map(variants, fn(v) {
+      doc.from_string(enum_variant_name(type_name, v))
+    })
 
   doc.concat([
     doc.from_string("pub type " <> type_name <> " {"),
@@ -516,12 +532,14 @@ fn enum_decoder_doc(
     list.map(variants, fn(v) {
       doc.concat([
         doc.from_string("\"" <> v <> "\" -> "),
-        doc.from_string("decode.success(" <> enum_variant_name(v) <> ")"),
+        doc.from_string(
+          "decode.success(" <> enum_variant_name(type_name, v) <> ")",
+        ),
       ])
     })
 
   let first_variant = case variants {
-    [first, ..] -> enum_variant_name(first)
+    [first, ..] -> enum_variant_name(type_name, first)
     [] -> "Nil"
   }
 

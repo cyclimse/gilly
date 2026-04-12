@@ -3,8 +3,8 @@
 // To regenerate, run: gilly <path_to_openapi_spec.json>
 
 
-import gleam/dynamic/decode
 import gleam/dynamic.{type Dynamic}
+import gleam/dynamic/decode
 import gleam/option.{type Option}
 
 pub type GoogleProtobufStringValue =
@@ -36,7 +36,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Possible values:
     /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
     /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: String,
+    http_option: ScalewayContainersV1beta1ContainerHttpOption,
     /// UUID of the container.
     id: String,
     /// Local storage limit of the container (in MB).
@@ -56,12 +56,12 @@ pub type ScalewayContainersV1beta1Container {
     /// Port the container listens on.
     port: Int,
     /// Privacy setting of the container.
-    privacy: String,
+    privacy: ScalewayContainersV1beta1ContainerPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
     private_network_id: Option(String),
     /// Protocol the container uses.
-    protocol: String,
+    protocol: ScalewayContainersV1beta1ContainerProtocol,
     /// Last date when the container was successfully deployed and set to ready. (RFC 3339 format)
     ready_at: Option(String),
     /// Region in which the container will be deployed.
@@ -69,7 +69,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
     registry_image: String,
     /// Execution environment of the container.
-    sandbox: String,
+    sandbox: ScalewayContainersV1beta1ContainerSandbox,
     /// Configuration used to decide when to scale up or down.
     /// Possible values:
     /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
@@ -79,7 +79,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Secret environment variables of the container.
     secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the container.
-    status: String,
+    status: ScalewayContainersV1beta1ContainerStatus,
     /// List of tags applied to the Serverless Container.
     tags: List(String),
     /// Processing time limit for the container. (in seconds)
@@ -102,7 +102,7 @@ pub type ScalewayContainersV1beta1Cron {
     /// UNIX cron schedule.
     schedule: String,
     /// Status of the cron.
-    status: String,
+    status: ScalewayContainersV1beta1CronStatus,
   )
 }
 
@@ -117,7 +117,7 @@ pub type ScalewayContainersV1beta1Domain {
     /// UUID of the domain.
     id: String,
     /// Status of the domain.
-    status: String,
+    status: ScalewayContainersV1beta1DomainStatus,
     /// URL (TBD).
     url: String,
   )
@@ -202,7 +202,7 @@ pub type ScalewayContainersV1beta1Namespace {
     /// Secret environment variables of the namespace.
     secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the namespace.
-    status: String,
+    status: ScalewayContainersV1beta1NamespaceStatus,
     /// List of tags applied to the Serverless Container Namespace.
     tags: List(String),
     /// Last update date of the namespace. (RFC 3339 format)
@@ -242,7 +242,7 @@ pub type ScalewayContainersV1beta1Token {
     /// Public key of the token.
     public_key: String,
     /// Status of the token.
-    status: String,
+    status: ScalewayContainersV1beta1TokenStatus,
     /// Identifier of the token.
     token: String,
   )
@@ -259,7 +259,7 @@ pub type ScalewayContainersV1beta1Trigger {
     /// ID of the trigger.
     id: String,
     /// Type of the input.
-    input_type: String,
+    input_type: ScalewayContainersV1beta1TriggerInputType,
     /// Name of the trigger.
     name: String,
     /// Configuration for a Scaleway Messaging and Queuing NATS subject.
@@ -267,6 +267,257 @@ pub type ScalewayContainersV1beta1Trigger {
     /// Configuration for a Scaleway Messaging and Queuing SQS queue.
     scw_sqs_config: Option(Dynamic),
     /// Status of the trigger.
-    status: String,
+    status: ScalewayContainersV1beta1TriggerStatus,
   )
+}
+
+
+// --- Enums -------------------------------------------------------------------
+
+pub type ScalewayContainersV1beta1ContainerHttpOption {
+  ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption
+  ScalewayContainersV1beta1ContainerHttpOptionEnabled
+  ScalewayContainersV1beta1ContainerHttpOptionRedirected
+}
+
+pub fn scaleway_containers_v1beta1_container_http_option_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerHttpOption) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_http_option" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption)
+    "enabled" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionEnabled)
+    "redirected" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionRedirected)
+    _ -> decode.failure(ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption, "ScalewayContainersV1beta1ContainerHttpOption")
+  }
+}
+
+pub type ScalewayContainersV1beta1ContainerPrivacy {
+  ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy
+  ScalewayContainersV1beta1ContainerPrivacyPublic
+  ScalewayContainersV1beta1ContainerPrivacyPrivate
+}
+
+pub fn scaleway_containers_v1beta1_container_privacy_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerPrivacy) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_privacy" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy)
+    "public" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyPublic)
+    "private" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyPrivate)
+    _ -> decode.failure(ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy, "ScalewayContainersV1beta1ContainerPrivacy")
+  }
+}
+
+pub type ScalewayContainersV1beta1ContainerProtocol {
+  ScalewayContainersV1beta1ContainerProtocolUnknownProtocol
+  ScalewayContainersV1beta1ContainerProtocolHttp1
+  ScalewayContainersV1beta1ContainerProtocolH2c
+}
+
+pub fn scaleway_containers_v1beta1_container_protocol_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerProtocol) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_protocol" -> decode.success(ScalewayContainersV1beta1ContainerProtocolUnknownProtocol)
+    "http1" -> decode.success(ScalewayContainersV1beta1ContainerProtocolHttp1)
+    "h2c" -> decode.success(ScalewayContainersV1beta1ContainerProtocolH2c)
+    _ -> decode.failure(ScalewayContainersV1beta1ContainerProtocolUnknownProtocol, "ScalewayContainersV1beta1ContainerProtocol")
+  }
+}
+
+pub type ScalewayContainersV1beta1ContainerSandbox {
+  ScalewayContainersV1beta1ContainerSandboxUnknownSandbox
+  ScalewayContainersV1beta1ContainerSandboxV1
+  ScalewayContainersV1beta1ContainerSandboxV2
+}
+
+pub fn scaleway_containers_v1beta1_container_sandbox_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerSandbox) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_sandbox" -> decode.success(ScalewayContainersV1beta1ContainerSandboxUnknownSandbox)
+    "v1" -> decode.success(ScalewayContainersV1beta1ContainerSandboxV1)
+    "v2" -> decode.success(ScalewayContainersV1beta1ContainerSandboxV2)
+    _ -> decode.failure(ScalewayContainersV1beta1ContainerSandboxUnknownSandbox, "ScalewayContainersV1beta1ContainerSandbox")
+  }
+}
+
+pub type ScalewayContainersV1beta1ContainerStatus {
+  ScalewayContainersV1beta1ContainerStatusUnknown
+  ScalewayContainersV1beta1ContainerStatusReady
+  ScalewayContainersV1beta1ContainerStatusDeleting
+  ScalewayContainersV1beta1ContainerStatusError
+  ScalewayContainersV1beta1ContainerStatusLocked
+  ScalewayContainersV1beta1ContainerStatusCreating
+  ScalewayContainersV1beta1ContainerStatusPending
+  ScalewayContainersV1beta1ContainerStatusCreated
+  ScalewayContainersV1beta1ContainerStatusLocking
+  ScalewayContainersV1beta1ContainerStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_container_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(ScalewayContainersV1beta1ContainerStatusUnknown)
+    "ready" -> decode.success(ScalewayContainersV1beta1ContainerStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1ContainerStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1ContainerStatusError)
+    "locked" -> decode.success(ScalewayContainersV1beta1ContainerStatusLocked)
+    "creating" -> decode.success(ScalewayContainersV1beta1ContainerStatusCreating)
+    "pending" -> decode.success(ScalewayContainersV1beta1ContainerStatusPending)
+    "created" -> decode.success(ScalewayContainersV1beta1ContainerStatusCreated)
+    "locking" -> decode.success(ScalewayContainersV1beta1ContainerStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1beta1ContainerStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1beta1ContainerStatusUnknown, "ScalewayContainersV1beta1ContainerStatus")
+  }
+}
+
+pub type ScalewayContainersV1beta1CronStatus {
+  ScalewayContainersV1beta1CronStatusUnknown
+  ScalewayContainersV1beta1CronStatusReady
+  ScalewayContainersV1beta1CronStatusDeleting
+  ScalewayContainersV1beta1CronStatusError
+  ScalewayContainersV1beta1CronStatusLocked
+  ScalewayContainersV1beta1CronStatusCreating
+  ScalewayContainersV1beta1CronStatusPending
+  ScalewayContainersV1beta1CronStatusLocking
+  ScalewayContainersV1beta1CronStatusUpgrading
+  ScalewayContainersV1beta1CronStatusRebalancing
+}
+
+pub fn scaleway_containers_v1beta1_cron_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1CronStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(ScalewayContainersV1beta1CronStatusUnknown)
+    "ready" -> decode.success(ScalewayContainersV1beta1CronStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1CronStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1CronStatusError)
+    "locked" -> decode.success(ScalewayContainersV1beta1CronStatusLocked)
+    "creating" -> decode.success(ScalewayContainersV1beta1CronStatusCreating)
+    "pending" -> decode.success(ScalewayContainersV1beta1CronStatusPending)
+    "locking" -> decode.success(ScalewayContainersV1beta1CronStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1beta1CronStatusUpgrading)
+    "rebalancing" -> decode.success(ScalewayContainersV1beta1CronStatusRebalancing)
+    _ -> decode.failure(ScalewayContainersV1beta1CronStatusUnknown, "ScalewayContainersV1beta1CronStatus")
+  }
+}
+
+pub type ScalewayContainersV1beta1DomainStatus {
+  ScalewayContainersV1beta1DomainStatusUnknown
+  ScalewayContainersV1beta1DomainStatusReady
+  ScalewayContainersV1beta1DomainStatusDeleting
+  ScalewayContainersV1beta1DomainStatusError
+  ScalewayContainersV1beta1DomainStatusCreating
+  ScalewayContainersV1beta1DomainStatusPending
+  ScalewayContainersV1beta1DomainStatusLocked
+  ScalewayContainersV1beta1DomainStatusLocking
+  ScalewayContainersV1beta1DomainStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_domain_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1DomainStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(ScalewayContainersV1beta1DomainStatusUnknown)
+    "ready" -> decode.success(ScalewayContainersV1beta1DomainStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1DomainStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1DomainStatusError)
+    "creating" -> decode.success(ScalewayContainersV1beta1DomainStatusCreating)
+    "pending" -> decode.success(ScalewayContainersV1beta1DomainStatusPending)
+    "locked" -> decode.success(ScalewayContainersV1beta1DomainStatusLocked)
+    "locking" -> decode.success(ScalewayContainersV1beta1DomainStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1beta1DomainStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1beta1DomainStatusUnknown, "ScalewayContainersV1beta1DomainStatus")
+  }
+}
+
+pub type ScalewayContainersV1beta1NamespaceStatus {
+  ScalewayContainersV1beta1NamespaceStatusUnknown
+  ScalewayContainersV1beta1NamespaceStatusReady
+  ScalewayContainersV1beta1NamespaceStatusDeleting
+  ScalewayContainersV1beta1NamespaceStatusError
+  ScalewayContainersV1beta1NamespaceStatusLocked
+  ScalewayContainersV1beta1NamespaceStatusCreating
+  ScalewayContainersV1beta1NamespaceStatusPending
+  ScalewayContainersV1beta1NamespaceStatusLocking
+  ScalewayContainersV1beta1NamespaceStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_namespace_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1NamespaceStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(ScalewayContainersV1beta1NamespaceStatusUnknown)
+    "ready" -> decode.success(ScalewayContainersV1beta1NamespaceStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1NamespaceStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1NamespaceStatusError)
+    "locked" -> decode.success(ScalewayContainersV1beta1NamespaceStatusLocked)
+    "creating" -> decode.success(ScalewayContainersV1beta1NamespaceStatusCreating)
+    "pending" -> decode.success(ScalewayContainersV1beta1NamespaceStatusPending)
+    "locking" -> decode.success(ScalewayContainersV1beta1NamespaceStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1beta1NamespaceStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1beta1NamespaceStatusUnknown, "ScalewayContainersV1beta1NamespaceStatus")
+  }
+}
+
+pub type ScalewayContainersV1beta1TokenStatus {
+  ScalewayContainersV1beta1TokenStatusUnknown
+  ScalewayContainersV1beta1TokenStatusReady
+  ScalewayContainersV1beta1TokenStatusDeleting
+  ScalewayContainersV1beta1TokenStatusError
+  ScalewayContainersV1beta1TokenStatusCreating
+}
+
+pub fn scaleway_containers_v1beta1_token_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TokenStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(ScalewayContainersV1beta1TokenStatusUnknown)
+    "ready" -> decode.success(ScalewayContainersV1beta1TokenStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1TokenStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1TokenStatusError)
+    "creating" -> decode.success(ScalewayContainersV1beta1TokenStatusCreating)
+    _ -> decode.failure(ScalewayContainersV1beta1TokenStatusUnknown, "ScalewayContainersV1beta1TokenStatus")
+  }
+}
+
+pub type ScalewayContainersV1beta1TriggerInputType {
+  ScalewayContainersV1beta1TriggerInputTypeUnknownInputType
+  ScalewayContainersV1beta1TriggerInputTypeSqs
+  ScalewayContainersV1beta1TriggerInputTypeScwSqs
+  ScalewayContainersV1beta1TriggerInputTypeNats
+  ScalewayContainersV1beta1TriggerInputTypeScwNats
+}
+
+pub fn scaleway_containers_v1beta1_trigger_input_type_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerInputType) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_input_type" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeUnknownInputType)
+    "sqs" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeSqs)
+    "scw_sqs" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeScwSqs)
+    "nats" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeNats)
+    "scw_nats" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeScwNats)
+    _ -> decode.failure(ScalewayContainersV1beta1TriggerInputTypeUnknownInputType, "ScalewayContainersV1beta1TriggerInputType")
+  }
+}
+
+pub type ScalewayContainersV1beta1TriggerStatus {
+  ScalewayContainersV1beta1TriggerStatusUnknownStatus
+  ScalewayContainersV1beta1TriggerStatusReady
+  ScalewayContainersV1beta1TriggerStatusDeleting
+  ScalewayContainersV1beta1TriggerStatusError
+  ScalewayContainersV1beta1TriggerStatusCreating
+  ScalewayContainersV1beta1TriggerStatusPending
+  ScalewayContainersV1beta1TriggerStatusLocked
+  ScalewayContainersV1beta1TriggerStatusLocking
+  ScalewayContainersV1beta1TriggerStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_trigger_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_status" -> decode.success(ScalewayContainersV1beta1TriggerStatusUnknownStatus)
+    "ready" -> decode.success(ScalewayContainersV1beta1TriggerStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1beta1TriggerStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1beta1TriggerStatusError)
+    "creating" -> decode.success(ScalewayContainersV1beta1TriggerStatusCreating)
+    "pending" -> decode.success(ScalewayContainersV1beta1TriggerStatusPending)
+    "locked" -> decode.success(ScalewayContainersV1beta1TriggerStatusLocked)
+    "locking" -> decode.success(ScalewayContainersV1beta1TriggerStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1beta1TriggerStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1beta1TriggerStatusUnknownStatus, "ScalewayContainersV1beta1TriggerStatus")
+  }
 }

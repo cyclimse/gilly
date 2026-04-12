@@ -8,40 +8,40 @@ import gleam/dynamic/decode
 
 pub type Pet {
   Pet(
-    status: AvailableSold,
-    size: SmallMediumLarge,
+    status: PetStatus,
+    size: PetSize,
   )
 }
 
 
 // --- Enums -------------------------------------------------------------------
 
-pub type AvailableSold {
-  Available
-  Sold
+pub type PetSize {
+  PetSizeSmall
+  PetSizeMedium
+  PetSizeLarge
 }
 
-pub fn available_sold_decoder() -> decode.Decoder(AvailableSold) {
+pub fn pet_size_decoder() -> decode.Decoder(PetSize) {
   use value <- decode.then(decode.string)
   case value {
-    "available" -> decode.success(Available)
-    "sold" -> decode.success(Sold)
-    _ -> decode.failure(Available, "AvailableSold")
+    "small" -> decode.success(PetSizeSmall)
+    "medium" -> decode.success(PetSizeMedium)
+    "large" -> decode.success(PetSizeLarge)
+    _ -> decode.failure(PetSizeSmall, "PetSize")
   }
 }
 
-pub type SmallMediumLarge {
-  Small
-  Medium
-  Large
+pub type PetStatus {
+  PetStatusAvailable
+  PetStatusSold
 }
 
-pub fn small_medium_large_decoder() -> decode.Decoder(SmallMediumLarge) {
+pub fn pet_status_decoder() -> decode.Decoder(PetStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "small" -> decode.success(Small)
-    "medium" -> decode.success(Medium)
-    "large" -> decode.success(Large)
-    _ -> decode.failure(Small, "SmallMediumLarge")
+    "available" -> decode.success(PetStatusAvailable)
+    "sold" -> decode.success(PetStatusSold)
+    _ -> decode.failure(PetStatusAvailable, "PetStatus")
   }
 }

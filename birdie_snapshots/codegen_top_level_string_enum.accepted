@@ -7,23 +7,23 @@ test_name: top_level_string_enum_test
 import gleam/dynamic/decode
 
 pub type OrderStatus =
-  PendingApprovedDelivered
+  OrderStatus
 
 
 // --- Enums -------------------------------------------------------------------
 
-pub type PendingApprovedDelivered {
-  Pending
-  Approved
-  Delivered
+pub type OrderStatus {
+  OrderStatusPending
+  OrderStatusApproved
+  OrderStatusDelivered
 }
 
-pub fn pending_approved_delivered_decoder() -> decode.Decoder(PendingApprovedDelivered) {
+pub fn order_status_decoder() -> decode.Decoder(OrderStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "pending" -> decode.success(Pending)
-    "approved" -> decode.success(Approved)
-    "delivered" -> decode.success(Delivered)
-    _ -> decode.failure(Pending, "PendingApprovedDelivered")
+    "pending" -> decode.success(OrderStatusPending)
+    "approved" -> decode.success(OrderStatusApproved)
+    "delivered" -> decode.success(OrderStatusDelivered)
+    _ -> decode.failure(OrderStatusPending, "OrderStatus")
   }
 }

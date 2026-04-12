@@ -28,7 +28,7 @@ pub type Order {
     quantity: Option(Int),
     ship_date: Option(String),
     /// Order Status
-    status: Option(PlacedApprovedDelivered),
+    status: Option(OrderStatus),
   )
 }
 
@@ -39,7 +39,7 @@ pub type Pet {
     name: String,
     photo_urls: List(String),
     /// pet status in the store
-    status: Option(AvailablePendingSold),
+    status: Option(PetStatus),
     tags: Option(List(Tag)),
   )
 }
@@ -68,34 +68,34 @@ pub type User {
 
 // --- Enums -------------------------------------------------------------------
 
-pub type AvailablePendingSold {
-  Available
-  Pending
-  Sold
+pub type OrderStatus {
+  OrderStatusPlaced
+  OrderStatusApproved
+  OrderStatusDelivered
 }
 
-pub fn available_pending_sold_decoder() -> decode.Decoder(AvailablePendingSold) {
+pub fn order_status_decoder() -> decode.Decoder(OrderStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "available" -> decode.success(Available)
-    "pending" -> decode.success(Pending)
-    "sold" -> decode.success(Sold)
-    _ -> decode.failure(Available, "AvailablePendingSold")
+    "placed" -> decode.success(OrderStatusPlaced)
+    "approved" -> decode.success(OrderStatusApproved)
+    "delivered" -> decode.success(OrderStatusDelivered)
+    _ -> decode.failure(OrderStatusPlaced, "OrderStatus")
   }
 }
 
-pub type PlacedApprovedDelivered {
-  Placed
-  Approved
-  Delivered
+pub type PetStatus {
+  PetStatusAvailable
+  PetStatusPending
+  PetStatusSold
 }
 
-pub fn placed_approved_delivered_decoder() -> decode.Decoder(PlacedApprovedDelivered) {
+pub fn pet_status_decoder() -> decode.Decoder(PetStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "placed" -> decode.success(Placed)
-    "approved" -> decode.success(Approved)
-    "delivered" -> decode.success(Delivered)
-    _ -> decode.failure(Placed, "PlacedApprovedDelivered")
+    "available" -> decode.success(PetStatusAvailable)
+    "pending" -> decode.success(PetStatusPending)
+    "sold" -> decode.success(PetStatusSold)
+    _ -> decode.failure(PetStatusAvailable, "PetStatus")
   }
 }
