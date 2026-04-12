@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish to Hex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "28"
+          gleam-version: "1.15.2"
+          rebar3-version: "3"
+
+      - run: gleam deps download
+
+      - run: gleam build
+
+      - run: echo 'I am not using semantic versioning' | gleam publish -y
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+
+  # In the future, it would be good to figure out how to publish to Hex using goreleaser.
+  # ...But for now, this is okay :davidgoodenough:
+  goreleaser:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: nightly
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/attest@v4
+        with:
+          subject-checksums: ./dist/checksums.txt
