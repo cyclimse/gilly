@@ -269,6 +269,10 @@ fn object_type_doc(
     None -> body
   }
 
+  let #(state, decoder) =
+    record_decoder_doc(state, type_name, object_schema, all_schemas, config)
+  let result = doc.concat([result, doc.lines(2), decoder])
+
   #(state, result)
 }
 
@@ -384,6 +388,93 @@ fn wrap_optional(state: State, inner: Document) -> #(State, Document) {
   )
 }
 
+// --- Decoder mapping ---------------------------------------------------------
+
+fn schema_to_inner_decoder(
+  state: State,
+  schema: Schema,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case schema {
+    schema.Ref(ref:) -> ref_to_decoder(state, ref, all_schemas)
+    schema.String(_, string_schema) ->
+      string_decoder(state, string_schema, enum_name_hint)
+    schema.Integer(_, _) -> #(state, doc.from_string("decode.int"))
+    schema.Number(_) -> #(state, doc.from_string("decode.float"))
+    schema.Boolean(_) -> #(state, doc.from_string("decode.bool"))
+    schema.Array(_, array_schema) ->
+      array_decoder(state, array_schema, all_schemas, enum_name_hint)
+    schema.Object(_, _) -> #(state, doc.from_string("decode.dynamic"))
+  }
+}
+
+fn string_decoder(
+  state: State,
+  string_schema: StringSchema,
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case string_schema.enum {
+    Some(variants) -> {
+      let type_name = to_type_name(enum_name_hint)
+      let _ = variants
+      let decoder_name = enum_decoder_name(type_name)
+      #(state, doc.from_string(decoder_name <> "()"))
+    }
+    None ->
+      case string_schema.format {
+        Some("binary") -> #(state, doc.from_string("decode.bit_array"))
+        _ -> #(state, doc.from_string("decode.string"))
+      }
+  }
+}
+
+fn array_decoder(
+  state: State,
+  array_schema: ArraySchema,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+) -> #(State, Document) {
+  let #(state, items_decoder) =
+    schema_to_inner_decoder(
+      state,
+      array_schema.items,
+      all_schemas,
+      enum_name_hint,
+    )
+  #(
+    state,
+    doc.concat([
+      doc.from_string("decode.list("),
+      items_decoder,
+      doc.from_string(")"),
+    ]),
+  )
+}
+
+fn ref_to_decoder(
+  state: State,
+  ref: String,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Document) {
+  let raw_name = case string.split(ref, "/") {
+    [_, _, _, name, ..] -> name
+    _ -> ref
+  }
+  let type_name = to_type_name(raw_name)
+  case list.key_find(all_schemas, raw_name) {
+    // Object types have their own decoder function
+    Ok(schema.Object(_, _)) -> {
+      let decoder_name = justin.snake_case(type_name) <> "_decoder()"
+      #(state, doc.from_string(decoder_name))
+    }
+    // Other types: resolve the decoder inline
+    Ok(schema) -> schema_to_inner_decoder(state, schema, all_schemas, type_name)
+    // Unknown ref: dynamic fallback
+    Error(_) -> #(state, doc.from_string("decode.dynamic"))
+  }
+}
+
 // --- Optionality logic -------------------------------------------------------
 
 fn is_field_optional(
@@ -475,6 +566,100 @@ fn enum_variant_name(type_name: String, variant: String) -> String {
 
 fn enum_decoder_name(type_name: String) -> String {
   justin.snake_case(type_name) <> "_decoder"
+}
+
+// --- Record decoder codegen --------------------------------------------------
+
+fn record_decoder_doc(
+  state: State,
+  type_name: String,
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, Document) {
+  let state = import_module(state, "gleam/dynamic/decode")
+  let decoder_name = justin.snake_case(type_name) <> "_decoder"
+  let indent = config.indent
+
+  let #(state, field_lines) =
+    list.fold(object_schema.properties, #(state, []), fn(acc, prop) {
+      let #(state, lines) = acc
+      let #(prop_name, prop_schema) = prop
+      let field_name = to_field_name(prop_name)
+      let in_required = list.contains(object_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      let enum_hint = type_name <> to_type_name(prop_name)
+      let #(state, inner_decoder) =
+        schema_to_inner_decoder(state, prop_schema, all_schemas, enum_hint)
+
+      let #(state, line) = case optional {
+        False -> #(
+          state,
+          doc.concat([
+            doc.from_string(
+              "use "
+              <> field_name
+              <> " <- decode.field(\""
+              <> prop_name
+              <> "\", ",
+            ),
+            inner_decoder,
+            doc.from_string(")"),
+          ]),
+        )
+        True -> {
+          let state = import_qualified(state, "gleam/option", "None")
+          #(
+            state,
+            doc.concat([
+              doc.from_string(
+                "use "
+                <> field_name
+                <> " <- decode.optional_field(\""
+                <> prop_name
+                <> "\", None, decode.optional(",
+              ),
+              inner_decoder,
+              doc.from_string("))"),
+            ]),
+          )
+        }
+      }
+
+      #(state, [line, ..lines])
+    })
+  let field_lines = list.reverse(field_lines)
+
+  let labels =
+    list.map(object_schema.properties, fn(prop) { to_field_name(prop.0) <> ":" })
+  let success_line = case labels {
+    [] -> doc.from_string("decode.success(" <> type_name <> ")")
+    _ ->
+      doc.from_string(
+        "decode.success("
+        <> type_name
+        <> "("
+        <> string.join(labels, ", ")
+        <> "))",
+      )
+  }
+
+  let body_lines = list.append(field_lines, [success_line])
+  let return_type = doc.from_string("decode.Decoder(" <> type_name <> ")")
+
+  let result =
+    doc.concat([
+      doc.from_string("pub fn " <> decoder_name <> "() -> "),
+      return_type,
+      doc.from_string(" {"),
+      doc.line |> doc.nest(by: indent),
+      doc.join(body_lines, with: doc.line) |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+
+  #(state, result)
 }
 
 // --- Enum codegen ------------------------------------------------------------

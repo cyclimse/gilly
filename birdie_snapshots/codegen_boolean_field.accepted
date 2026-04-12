@@ -4,9 +4,16 @@ title: codegen boolean field
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: boolean_field_test
 ---
+import gleam/dynamic/decode
+
 pub type Feature {
   Feature(
     enabled: Bool,
   )
+}
+
+pub fn feature_decoder() -> decode.Decoder(Feature) {
+  use enabled <- decode.field("enabled", decode.bool)
+  decode.success(Feature(enabled:))
 }
 

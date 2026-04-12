@@ -4,7 +4,13 @@ title: codegen empty object
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: empty_object_test
 ---
+import gleam/dynamic/decode
+
 pub type EmptyRecord {
   EmptyRecord
+}
+
+pub fn empty_record_decoder() -> decode.Decoder(EmptyRecord) {
+  decode.success(EmptyRecord)
 }
 

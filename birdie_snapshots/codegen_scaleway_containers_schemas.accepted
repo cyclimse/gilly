@@ -4,7 +4,7 @@ title: Codegen Scaleway Containers Schemas
 ---
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
-import gleam/option.{type Option}
+import gleam/option.{None, type Option}
 
 pub type GoogleProtobufStringValue =
   String
@@ -88,6 +88,42 @@ pub type ScalewayContainersV1beta1Container {
   )
 }
 
+pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(ScalewayContainersV1beta1Container) {
+  use args <- decode.optional_field("args", None, decode.optional(decode.list(decode.string)))
+  use command <- decode.optional_field("command", None, decode.optional(decode.list(decode.string)))
+  use cpu_limit <- decode.optional_field("cpu_limit", None, decode.optional(decode.int))
+  use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
+  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use domain_name <- decode.optional_field("domain_name", None, decode.optional(decode.string))
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
+  use health_check <- decode.optional_field("health_check", None, decode.optional(decode.dynamic))
+  use http_option <- decode.optional_field("http_option", None, decode.optional(scaleway_containers_v1beta1_container_http_option_decoder()))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use local_storage_limit <- decode.optional_field("local_storage_limit", None, decode.optional(decode.int))
+  use max_concurrency <- decode.optional_field("max_concurrency", None, decode.optional(decode.int))
+  use max_scale <- decode.optional_field("max_scale", None, decode.optional(decode.int))
+  use memory_limit <- decode.optional_field("memory_limit", None, decode.optional(decode.int))
+  use min_scale <- decode.optional_field("min_scale", None, decode.optional(decode.int))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  use namespace_id <- decode.optional_field("namespace_id", None, decode.optional(decode.string))
+  use port <- decode.optional_field("port", None, decode.optional(decode.int))
+  use privacy <- decode.optional_field("privacy", None, decode.optional(scaleway_containers_v1beta1_container_privacy_decoder()))
+  use private_network_id <- decode.optional_field("private_network_id", None, decode.optional(decode.string))
+  use protocol <- decode.optional_field("protocol", None, decode.optional(scaleway_containers_v1beta1_container_protocol_decoder()))
+  use ready_at <- decode.optional_field("ready_at", None, decode.optional(decode.string))
+  use region <- decode.optional_field("region", None, decode.optional(decode.string))
+  use registry_image <- decode.optional_field("registry_image", None, decode.optional(decode.string))
+  use sandbox <- decode.optional_field("sandbox", None, decode.optional(scaleway_containers_v1beta1_container_sandbox_decoder()))
+  use scaling_option <- decode.optional_field("scaling_option", None, decode.optional(decode.dynamic))
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_hashed_value_decoder())))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_container_status_decoder()))
+  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
+  use timeout <- decode.optional_field("timeout", None, decode.optional(decode.string))
+  use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at:, description:, domain_name:, environment_variables:, error_message:, health_check:, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, ready_at:, region:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, status:, tags:, timeout:, updated_at:))
+}
+
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
@@ -103,6 +139,16 @@ pub type ScalewayContainersV1beta1Cron {
     /// Status of the cron.
     status: Option(ScalewayContainersV1beta1CronStatus),
   )
+}
+
+pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayContainersV1beta1Cron) {
+  use args <- decode.optional_field("args", None, decode.optional(decode.dynamic))
+  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  use schedule <- decode.optional_field("schedule", None, decode.optional(decode.string))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_cron_status_decoder()))
+  decode.success(ScalewayContainersV1beta1Cron(args:, container_id:, id:, name:, schedule:, status:))
 }
 
 pub type ScalewayContainersV1beta1Domain {
@@ -122,6 +168,16 @@ pub type ScalewayContainersV1beta1Domain {
   )
 }
 
+pub fn scaleway_containers_v1beta1_domain_decoder() -> decode.Decoder(ScalewayContainersV1beta1Domain) {
+  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
+  use hostname <- decode.optional_field("hostname", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_domain_status_decoder()))
+  use url <- decode.optional_field("url", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1beta1Domain(container_id:, error_message:, hostname:, id:, status:, url:))
+}
+
 pub type ScalewayContainersV1beta1ListContainersResponse {
   ScalewayContainersV1beta1ListContainersResponse(
     /// Array of containers.
@@ -129,6 +185,12 @@ pub type ScalewayContainersV1beta1ListContainersResponse {
     /// Total number of containers.
     total_count: Option(Int),
   )
+}
+
+pub fn scaleway_containers_v1beta1_list_containers_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListContainersResponse) {
+  use containers <- decode.optional_field("containers", None, decode.optional(decode.list(scaleway_containers_v1beta1_container_decoder())))
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  decode.success(ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:))
 }
 
 pub type ScalewayContainersV1beta1ListCronsResponse {
@@ -140,6 +202,12 @@ pub type ScalewayContainersV1beta1ListCronsResponse {
   )
 }
 
+pub fn scaleway_containers_v1beta1_list_crons_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListCronsResponse) {
+  use crons <- decode.optional_field("crons", None, decode.optional(decode.list(scaleway_containers_v1beta1_cron_decoder())))
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  decode.success(ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:))
+}
+
 pub type ScalewayContainersV1beta1ListDomainsResponse {
   ScalewayContainersV1beta1ListDomainsResponse(
     /// Array of domains.
@@ -147,6 +215,12 @@ pub type ScalewayContainersV1beta1ListDomainsResponse {
     /// Total number of domains.
     total_count: Option(Int),
   )
+}
+
+pub fn scaleway_containers_v1beta1_list_domains_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListDomainsResponse) {
+  use domains <- decode.optional_field("domains", None, decode.optional(decode.list(scaleway_containers_v1beta1_domain_decoder())))
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  decode.success(ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:))
 }
 
 pub type ScalewayContainersV1beta1ListNamespacesResponse {
@@ -158,11 +232,23 @@ pub type ScalewayContainersV1beta1ListNamespacesResponse {
   )
 }
 
+pub fn scaleway_containers_v1beta1_list_namespaces_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListNamespacesResponse) {
+  use namespaces <- decode.optional_field("namespaces", None, decode.optional(decode.list(scaleway_containers_v1beta1_namespace_decoder())))
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  decode.success(ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:))
+}
+
 pub type ScalewayContainersV1beta1ListTokensResponse {
   ScalewayContainersV1beta1ListTokensResponse(
     tokens: Option(List(ScalewayContainersV1beta1Token)),
     total_count: Option(Int),
   )
+}
+
+pub fn scaleway_containers_v1beta1_list_tokens_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListTokensResponse) {
+  use tokens <- decode.optional_field("tokens", None, decode.optional(decode.list(scaleway_containers_v1beta1_token_decoder())))
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  decode.success(ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:))
 }
 
 pub type ScalewayContainersV1beta1ListTriggersResponse {
@@ -172,6 +258,12 @@ pub type ScalewayContainersV1beta1ListTriggersResponse {
     /// Triggers on this page.
     triggers: Option(List(ScalewayContainersV1beta1Trigger)),
   )
+}
+
+pub fn scaleway_containers_v1beta1_list_triggers_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListTriggersResponse) {
+  use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
+  use triggers <- decode.optional_field("triggers", None, decode.optional(decode.list(scaleway_containers_v1beta1_trigger_decoder())))
+  decode.success(ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:))
 }
 
 pub type ScalewayContainersV1beta1Namespace {
@@ -212,6 +304,26 @@ pub type ScalewayContainersV1beta1Namespace {
   )
 }
 
+pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(ScalewayContainersV1beta1Namespace) {
+  use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
+  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  use organization_id <- decode.optional_field("organization_id", None, decode.optional(decode.string))
+  use project_id <- decode.optional_field("project_id", None, decode.optional(decode.string))
+  use region <- decode.optional_field("region", None, decode.optional(decode.string))
+  use registry_endpoint <- decode.optional_field("registry_endpoint", None, decode.optional(decode.string))
+  use registry_namespace_id <- decode.optional_field("registry_namespace_id", None, decode.optional(decode.string))
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_hashed_value_decoder())))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_namespace_status_decoder()))
+  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
+  use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
+  use vpc_integration_activated <- decode.optional_field("vpc_integration_activated", None, decode.optional(decode.bool))
+  decode.success(ScalewayContainersV1beta1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at:, vpc_integration_activated:))
+}
+
 pub type ScalewayContainersV1beta1Secret {
   ScalewayContainersV1beta1Secret(
     key: Option(String),
@@ -219,11 +331,23 @@ pub type ScalewayContainersV1beta1Secret {
   )
 }
 
+pub fn scaleway_containers_v1beta1_secret_decoder() -> decode.Decoder(ScalewayContainersV1beta1Secret) {
+  use key <- decode.optional_field("key", None, decode.optional(decode.string))
+  use value <- decode.optional_field("value", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1beta1Secret(key:, value:))
+}
+
 pub type ScalewayContainersV1beta1SecretHashedValue {
   ScalewayContainersV1beta1SecretHashedValue(
     hashed_value: Option(String),
     key: Option(String),
   )
+}
+
+pub fn scaleway_containers_v1beta1_secret_hashed_value_decoder() -> decode.Decoder(ScalewayContainersV1beta1SecretHashedValue) {
+  use hashed_value <- decode.optional_field("hashed_value", None, decode.optional(decode.string))
+  use key <- decode.optional_field("key", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1beta1SecretHashedValue(hashed_value:, key:))
 }
 
 pub type ScalewayContainersV1beta1Token {
@@ -247,6 +371,18 @@ pub type ScalewayContainersV1beta1Token {
   )
 }
 
+pub fn scaleway_containers_v1beta1_token_decoder() -> decode.Decoder(ScalewayContainersV1beta1Token) {
+  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
+  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use expires_at <- decode.optional_field("expires_at", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use namespace_id <- decode.optional_field("namespace_id", None, decode.optional(decode.string))
+  use public_key <- decode.optional_field("public_key", None, decode.optional(decode.string))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_token_status_decoder()))
+  use token <- decode.optional_field("token", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1beta1Token(container_id:, description:, expires_at:, id:, namespace_id:, public_key:, status:, token:))
+}
+
 pub type ScalewayContainersV1beta1Trigger {
   ScalewayContainersV1beta1Trigger(
     /// ID of the container to trigger.
@@ -268,6 +404,19 @@ pub type ScalewayContainersV1beta1Trigger {
     /// Status of the trigger.
     status: Option(ScalewayContainersV1beta1TriggerStatus),
   )
+}
+
+pub fn scaleway_containers_v1beta1_trigger_decoder() -> decode.Decoder(ScalewayContainersV1beta1Trigger) {
+  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
+  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.string))
+  use input_type <- decode.optional_field("input_type", None, decode.optional(scaleway_containers_v1beta1_trigger_input_type_decoder()))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  use scw_nats_config <- decode.optional_field("scw_nats_config", None, decode.optional(decode.dynamic))
+  use scw_sqs_config <- decode.optional_field("scw_sqs_config", None, decode.optional(decode.dynamic))
+  use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_trigger_status_decoder()))
+  decode.success(ScalewayContainersV1beta1Trigger(container_id:, description:, error_message:, id:, input_type:, name:, scw_nats_config:, scw_sqs_config:, status:))
 }
 
 

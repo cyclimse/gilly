@@ -2,8 +2,10 @@ import envoy
 import gleam/http/request
 import gleam/httpc
 import gleam/io
+import gleam/json
+import gleam/list
 import gleam/result
-import pprint
+import gleam/string
 
 import scaleway/schema
 
@@ -13,7 +15,16 @@ const default_api_url = "https://api.scaleway.com"
 
 pub fn main() {
   let client = must_load_scaleway_client_from_env()
-  list_containers(client)
+
+  let resp = list_containers(client)
+
+  list.each(resp.containers, fn(container) {
+    let url = "https://" <> container.domain_name
+
+    let row =
+      "Container " <> container.name <> " (" <> container.id <> "): " <> url
+    io.println(row)
+  })
 }
 
 type ScalewayClient {
@@ -51,8 +62,11 @@ fn list_containers(
   let assert Ok(resp) = httpc.send(req)
   assert resp.status == 200
 
-  pprint.debug("Raw response body:")
-  pprint.debug(resp.body)
-  
-  todo as "Parse response body and return list of containers"
+  let assert Ok(parsed) =
+    json.parse(
+      resp.body,
+      schema.scaleway_containers_v1beta1_list_containers_response_decoder(),
+    )
+
+  parsed
 }

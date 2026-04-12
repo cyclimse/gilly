@@ -4,12 +4,19 @@ title: codegen object mixed required
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: object_mixed_required_test
 ---
-import gleam/option.{type Option}
+import gleam/dynamic/decode
+import gleam/option.{None, type Option}
 
 pub type User {
   User(
     name: String,
     email: Option(String),
   )
+}
+
+pub fn user_decoder() -> decode.Decoder(User) {
+  use name <- decode.field("name", decode.string)
+  use email <- decode.optional_field("email", None, decode.optional(decode.string))
+  decode.success(User(name:, email:))
 }
 

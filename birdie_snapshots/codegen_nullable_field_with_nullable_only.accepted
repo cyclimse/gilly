@@ -4,12 +4,19 @@ title: codegen nullable field with NullableOnly
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: nullable_field_with_nullable_only_test
 ---
-import gleam/option.{type Option}
+import gleam/dynamic/decode
+import gleam/option.{None, type Option}
 
 pub type Config {
   Config(
     name: String,
     label: Option(String),
   )
+}
+
+pub fn config_decoder() -> decode.Decoder(Config) {
+  use name <- decode.field("name", decode.string)
+  use label <- decode.optional_field("label", None, decode.optional(decode.string))
+  decode.success(Config(name:, label:))
 }
 

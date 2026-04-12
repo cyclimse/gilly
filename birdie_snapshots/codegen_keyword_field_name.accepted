@@ -4,9 +4,16 @@ title: codegen keyword field name
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: keyword_field_name_test
 ---
+import gleam/dynamic/decode
+
 pub type Resource {
   Resource(
     type_: String,
   )
+}
+
+pub fn resource_decoder() -> decode.Decoder(Resource) {
+  use type_ <- decode.field("type", decode.string)
+  decode.success(Resource(type_:))
 }
 

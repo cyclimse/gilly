@@ -13,6 +13,12 @@ pub type Pet {
   )
 }
 
+pub fn pet_decoder() -> decode.Decoder(Pet) {
+  use status <- decode.field("status", pet_status_decoder())
+  use size <- decode.field("size", pet_size_decoder())
+  decode.success(Pet(status:, size:))
+}
+
 
 // --- Enums -------------------------------------------------------------------
 

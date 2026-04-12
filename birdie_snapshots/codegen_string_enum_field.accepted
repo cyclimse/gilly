@@ -12,6 +12,11 @@ pub type Order {
   )
 }
 
+pub fn order_decoder() -> decode.Decoder(Order) {
+  use status <- decode.field("status", order_status_decoder())
+  decode.success(Order(status:))
+}
+
 
 // --- Enums -------------------------------------------------------------------
 

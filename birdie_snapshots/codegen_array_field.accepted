@@ -4,9 +4,16 @@ title: codegen array field
 file: ./test/gilly/internal/codegen_test.gleam
 test_name: array_field_test
 ---
+import gleam/dynamic/decode
+
 pub type TagList {
   TagList(
     tags: List(String),
   )
+}
+
+pub fn tag_list_decoder() -> decode.Decoder(TagList) {
+  use tags <- decode.field("tags", decode.list(decode.string))
+  decode.success(TagList(tags:))
 }
 

@@ -3,7 +3,7 @@ version: 1.5.4
 title: Codegen Pet Store Schemas
 ---
 import gleam/dynamic/decode
-import gleam/option.{type Option}
+import gleam/option.{None, type Option}
 
 pub type ApiResponse {
   ApiResponse(
@@ -13,11 +13,24 @@ pub type ApiResponse {
   )
 }
 
+pub fn api_response_decoder() -> decode.Decoder(ApiResponse) {
+  use code <- decode.optional_field("code", None, decode.optional(decode.int))
+  use message <- decode.optional_field("message", None, decode.optional(decode.string))
+  use type_ <- decode.optional_field("type", None, decode.optional(decode.string))
+  decode.success(ApiResponse(code:, message:, type_:))
+}
+
 pub type Category {
   Category(
     id: Option(Int),
     name: Option(String),
   )
+}
+
+pub fn category_decoder() -> decode.Decoder(Category) {
+  use id <- decode.optional_field("id", None, decode.optional(decode.int))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  decode.success(Category(id:, name:))
 }
 
 pub type Order {
@@ -32,6 +45,16 @@ pub type Order {
   )
 }
 
+pub fn order_decoder() -> decode.Decoder(Order) {
+  use complete <- decode.optional_field("complete", None, decode.optional(decode.bool))
+  use id <- decode.optional_field("id", None, decode.optional(decode.int))
+  use pet_id <- decode.optional_field("petId", None, decode.optional(decode.int))
+  use quantity <- decode.optional_field("quantity", None, decode.optional(decode.int))
+  use ship_date <- decode.optional_field("shipDate", None, decode.optional(decode.string))
+  use status <- decode.optional_field("status", None, decode.optional(order_status_decoder()))
+  decode.success(Order(complete:, id:, pet_id:, quantity:, ship_date:, status:))
+}
+
 pub type Pet {
   Pet(
     category: Option(Category),
@@ -44,11 +67,27 @@ pub type Pet {
   )
 }
 
+pub fn pet_decoder() -> decode.Decoder(Pet) {
+  use category <- decode.optional_field("category", None, decode.optional(category_decoder()))
+  use id <- decode.optional_field("id", None, decode.optional(decode.int))
+  use name <- decode.field("name", decode.string)
+  use photo_urls <- decode.field("photoUrls", decode.list(decode.string))
+  use status <- decode.optional_field("status", None, decode.optional(pet_status_decoder()))
+  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(tag_decoder())))
+  decode.success(Pet(category:, id:, name:, photo_urls:, status:, tags:))
+}
+
 pub type Tag {
   Tag(
     id: Option(Int),
     name: Option(String),
   )
+}
+
+pub fn tag_decoder() -> decode.Decoder(Tag) {
+  use id <- decode.optional_field("id", None, decode.optional(decode.int))
+  use name <- decode.optional_field("name", None, decode.optional(decode.string))
+  decode.success(Tag(id:, name:))
 }
 
 pub type User {
@@ -63,6 +102,18 @@ pub type User {
     user_status: Option(Int),
     username: Option(String),
   )
+}
+
+pub fn user_decoder() -> decode.Decoder(User) {
+  use email <- decode.optional_field("email", None, decode.optional(decode.string))
+  use first_name <- decode.optional_field("firstName", None, decode.optional(decode.string))
+  use id <- decode.optional_field("id", None, decode.optional(decode.int))
+  use last_name <- decode.optional_field("lastName", None, decode.optional(decode.string))
+  use password <- decode.optional_field("password", None, decode.optional(decode.string))
+  use phone <- decode.optional_field("phone", None, decode.optional(decode.string))
+  use user_status <- decode.optional_field("userStatus", None, decode.optional(decode.int))
+  use username <- decode.optional_field("username", None, decode.optional(decode.string))
+  decode.success(User(email:, first_name:, id:, last_name:, password:, phone:, user_status:, username:))
 }
 
 
