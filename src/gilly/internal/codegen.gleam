@@ -4,8 +4,10 @@ import gilly/openapi/schema.{
   type StringSchema,
 }
 import glam/doc.{type Document}
+import gleam/dict.{type Dict}
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/set.{type Set}
 import gleam/string
 import justin
 
@@ -29,20 +31,89 @@ pub type Config {
   Config(optionality: Optionality, indent: Int)
 }
 
+// --- State -------------------------------------------------------------------
+
+type State {
+  State(imports: Dict(String, Set(String)))
+}
+
+fn default_state() -> State {
+  State(imports: dict.new())
+}
+
+fn import_qualified(state: State, module: String, imported: String) -> State {
+  let imports =
+    dict.upsert(state.imports, module, fn(existing) {
+      case existing {
+        Some(values) -> set.insert(values, imported)
+        None -> set.from_list([imported])
+      }
+    })
+  State(imports:)
+}
+
+fn imports_doc(state: State, indent: Int) -> Document {
+  let sorted_imports =
+    dict.to_list(state.imports)
+    |> list.sort(fn(a, b) { string.compare(a.0, b.0) })
+
+  list.map(sorted_imports, fn(entry) {
+    let #(module, qualified) = entry
+    let import_line = doc.from_string("import " <> module)
+    case set.to_list(qualified) {
+      [] -> import_line
+      values -> {
+        let values_doc =
+          list.sort(values, string.compare)
+          |> list.map(doc.from_string)
+          |> doc.join(with: doc.break(", ", ","))
+          |> doc.group
+        doc.concat([
+          import_line,
+          doc.from_string(".{"),
+          doc.concat([doc.soft_break, values_doc])
+            |> doc.group
+            |> doc.nest(by: indent),
+          doc.soft_break,
+          doc.from_string("}"),
+        ])
+      }
+    }
+  })
+  |> doc.join(with: doc.line)
+}
+
+// --- Public API --------------------------------------------------------------
+
 /// Generate Gleam source code for the schema types in an OpenAPI spec.
 ///
 pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
   let schemas = extract_schemas(spec)
+  let state = default_state()
 
-  let type_docs =
-    list.map(schemas, fn(entry) {
+  let #(state, type_docs) =
+    list.fold(schemas, #(state, []), fn(acc, entry) {
+      let #(state, docs) = acc
       let #(name, schema) = entry
-      schema_to_type_doc(name, schema, schemas, config)
+      let #(state, type_doc) =
+        schema_to_type_doc(state, name, schema, schemas, config)
+      #(state, [type_doc, ..docs])
     })
+  let type_docs = list.reverse(type_docs)
 
-  let code =
+  let types_code =
     doc.join(type_docs, with: doc.lines(2))
     |> doc.append(doc.line)
+
+  let code = case dict.is_empty(state.imports) {
+    True -> types_code
+    False ->
+      doc.concat([
+        imports_doc(state, config.indent),
+        doc.lines(2),
+        types_code,
+      ])
+  }
 
   doc.to_string(code, 80)
 }
@@ -56,38 +127,49 @@ fn extract_schemas(spec: OpenAPI) -> List(#(String, Schema)) {
 // --- Type generation ---------------------------------------------------------
 
 fn schema_to_type_doc(
+  state: State,
   name: String,
   schema: Schema,
   all_schemas: List(#(String, Schema)),
   config: Config,
-) -> Document {
+) -> #(State, Document) {
   let type_name = to_type_name(name)
   case schema {
     schema.Object(base, object_schema) ->
-      object_type_doc(type_name, base, object_schema, all_schemas, config)
+      object_type_doc(
+        state,
+        type_name,
+        base,
+        object_schema,
+        all_schemas,
+        config,
+      )
     _ ->
       // For non-object top-level schemas, generate a type alias-like wrapper
-      simple_type_doc(type_name, schema, all_schemas, config)
+      simple_type_doc(state, type_name, schema, all_schemas, config)
   }
 }
 
 fn object_type_doc(
+  state: State,
   type_name: String,
   base: BaseSchema,
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
-) -> Document {
+) -> #(State, Document) {
   let comment = base_schema_comment(base)
 
-  let fields =
-    list.map(object_schema.properties, fn(prop) {
+  let #(state, fields) =
+    list.fold(object_schema.properties, #(state, []), fn(acc, prop) {
+      let #(state, fields) = acc
       let #(prop_name, prop_schema) = prop
       let field_name = to_field_name(prop_name)
       let in_required = list.contains(object_schema.required, prop_name)
       let optional =
         is_field_optional(prop_schema, in_required, config.optionality)
-      let field_type = schema_to_gleam_type(prop_schema, !optional, all_schemas)
+      let #(state, field_type) =
+        schema_to_gleam_type(state, prop_schema, !optional, all_schemas)
 
       let field_line =
         doc.concat([
@@ -95,11 +177,14 @@ fn object_type_doc(
           field_type,
         ])
 
-      case schema_description(prop_schema) {
+      let field_doc = case schema_description(prop_schema) {
         Some(comment) -> doc.concat([comment, doc.line, field_line])
         None -> field_line
       }
+
+      #(state, [field_doc, ..fields])
     })
+  let fields = list.reverse(fields)
 
   let indent = config.indent
 
@@ -131,47 +216,55 @@ fn object_type_doc(
       ])
   }
 
-  case comment {
+  let result = case comment {
     Some(c) -> doc.concat([c, doc.line, body])
     None -> body
   }
+
+  #(state, result)
 }
 
 fn simple_type_doc(
+  state: State,
   type_name: String,
   schema: Schema,
   all_schemas: List(#(String, Schema)),
   config: Config,
-) -> Document {
-  let gleam_type = schema_to_gleam_type(schema, True, all_schemas)
-  doc.concat([
-    doc.from_string("pub type " <> type_name <> " ="),
-    doc.line |> doc.nest(by: config.indent),
-    gleam_type |> doc.nest(by: config.indent),
-  ])
+) -> #(State, Document) {
+  let #(state, gleam_type) =
+    schema_to_gleam_type(state, schema, True, all_schemas)
+  let result =
+    doc.concat([
+      doc.from_string("pub type " <> type_name <> " ="),
+      doc.line |> doc.nest(by: config.indent),
+      gleam_type |> doc.nest(by: config.indent),
+    ])
+  #(state, result)
 }
 
 // --- Type mapping ------------------------------------------------------------
 
 fn schema_to_gleam_type(
+  state: State,
   schema: Schema,
   required: Bool,
   all_schemas: List(#(String, Schema)),
-) -> Document {
-  let inner = case schema {
-    schema.Ref(ref:) -> doc.from_string(ref_to_type_name(ref))
-    schema.String(_, string_schema) -> string_type(string_schema)
-    schema.Integer(_, _) -> doc.from_string("Int")
-    schema.Number(_) -> doc.from_string("Float")
-    schema.Boolean(_) -> doc.from_string("Bool")
-    schema.Array(_, array_schema) -> array_type(array_schema, all_schemas)
+) -> #(State, Document) {
+  let #(state, inner) = case schema {
+    schema.Ref(ref:) -> #(state, doc.from_string(ref_to_type_name(ref)))
+    schema.String(_, string_schema) -> #(state, string_type(string_schema))
+    schema.Integer(_, _) -> #(state, doc.from_string("Int"))
+    schema.Number(_) -> #(state, doc.from_string("Float"))
+    schema.Boolean(_) -> #(state, doc.from_string("Bool"))
+    schema.Array(_, array_schema) ->
+      array_type(state, array_schema, all_schemas)
     schema.Object(_, object_schema) ->
-      inline_object_type(object_schema, all_schemas)
+      inline_object_type(state, object_schema, all_schemas)
   }
 
   case required {
-    True -> inner
-    False -> wrap_optional(inner)
+    True -> #(state, inner)
+    False -> wrap_optional(state, inner)
   }
 }
 
@@ -190,31 +283,42 @@ fn string_type(string_schema: StringSchema) -> Document {
 }
 
 fn array_type(
+  state: State,
   array_schema: ArraySchema,
   all_schemas: List(#(String, Schema)),
-) -> Document {
-  let items_type = schema_to_gleam_type(array_schema.items, True, all_schemas)
-  doc.concat([
-    doc.from_string("List("),
-    items_type,
-    doc.from_string(")"),
-  ])
+) -> #(State, Document) {
+  let #(state, items_type) =
+    schema_to_gleam_type(state, array_schema.items, True, all_schemas)
+  #(
+    state,
+    doc.concat([
+      doc.from_string("List("),
+      items_type,
+      doc.from_string(")"),
+    ]),
+  )
 }
 
 fn inline_object_type(
+  state: State,
   _object_schema: ObjectSchema,
   _all_schemas: List(#(String, Schema)),
-) -> Document {
+) -> #(State, Document) {
   // For inline anonymous objects, fall back to a generic type
-  doc.from_string("Dynamic")
+  let state = import_qualified(state, "gleam/dynamic", "type Dynamic")
+  #(state, doc.from_string("Dynamic"))
 }
 
-fn wrap_optional(inner: Document) -> Document {
-  doc.concat([
-    doc.from_string("Option("),
-    inner,
-    doc.from_string(")"),
-  ])
+fn wrap_optional(state: State, inner: Document) -> #(State, Document) {
+  let state = import_qualified(state, "gleam/option", "type Option")
+  #(
+    state,
+    doc.concat([
+      doc.from_string("Option("),
+      inner,
+      doc.from_string(")"),
+    ]),
+  )
 }
 
 // --- Optionality logic -------------------------------------------------------

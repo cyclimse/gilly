@@ -2,6 +2,8 @@
 version: 1.5.4
 title: Codegen Pet Store Schemas
 ---
+import gleam/option.{type Option}
+
 pub type ApiResponse {
   ApiResponse(
     code: Option(Int),
