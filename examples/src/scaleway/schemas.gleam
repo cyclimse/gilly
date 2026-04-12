@@ -13,74 +13,74 @@ pub type ScalewayContainersV1beta1Container {
   ScalewayContainersV1beta1Container(
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
-    args: Option(List(String)),
+    args: List(String),
     /// Container command.
     /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
-    command: Option(List(String)),
+    command: List(String),
     /// CPU limit of the container in mvCPU.
-    cpu_limit: Option(Int),
+    cpu_limit: Int,
     /// Creation date of the container. (RFC 3339 format)
     created_at: Option(String),
     /// Description of the container.
     description: Option(String),
     /// Domain name attributed to the contaioner.
-    domain_name: Option(String),
+    domain_name: String,
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
+    environment_variables: Dynamic,
     /// Last error message of the container.
     error_message: Option(String),
     /// Health check configuration of the container.
-    health_check: Option(Dynamic),
+    health_check: Dynamic,
     /// Configuration for the handling of HTTP and HTTPS requests.
     /// Possible values:
     /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
     /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: Option(String),
+    http_option: String,
     /// UUID of the container.
-    id: Option(String),
+    id: String,
     /// Local storage limit of the container (in MB).
-    local_storage_limit: Option(Int),
+    local_storage_limit: Int,
     /// Number of maximum concurrent executions of the container.
-    max_concurrency: Option(Int),
+    max_concurrency: Int,
     /// Maximum number of instances to scale the container to.
-    max_scale: Option(Int),
+    max_scale: Int,
     /// Memory limit of the container in MB.
-    memory_limit: Option(Int),
+    memory_limit: Int,
     /// Minimum number of instances to scale the container to.
-    min_scale: Option(Int),
+    min_scale: Int,
     /// Name of the container.
-    name: Option(String),
+    name: String,
     /// UUID of the namespace the container belongs to.
-    namespace_id: Option(String),
+    namespace_id: String,
     /// Port the container listens on.
-    port: Option(Int),
+    port: Int,
     /// Privacy setting of the container.
-    privacy: Option(String),
+    privacy: String,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
     private_network_id: Option(String),
     /// Protocol the container uses.
-    protocol: Option(String),
+    protocol: String,
     /// Last date when the container was successfully deployed and set to ready. (RFC 3339 format)
     ready_at: Option(String),
     /// Region in which the container will be deployed.
-    region: Option(String),
+    region: String,
     /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-    registry_image: Option(String),
+    registry_image: String,
     /// Execution environment of the container.
-    sandbox: Option(String),
+    sandbox: String,
     /// Configuration used to decide when to scale up or down.
     /// Possible values:
     /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
     /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
     /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
-    scaling_option: Option(Dynamic),
+    scaling_option: Dynamic,
     /// Secret environment variables of the container.
-    secret_environment_variables: Option(List(ScalewayContainersV1beta1SecretHashedValue)),
+    secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the container.
-    status: Option(String),
+    status: String,
     /// List of tags applied to the Serverless Container.
-    tags: Option(List(String)),
+    tags: List(String),
     /// Processing time limit for the container. (in seconds)
     timeout: Option(String),
     /// Last update date of the container. (RFC 3339 format)
@@ -91,86 +91,86 @@ pub type ScalewayContainersV1beta1Container {
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
-    args: Option(Dynamic),
+    args: Dynamic,
     /// UUID of the container invoked by this cron.
-    container_id: Option(String),
+    container_id: String,
     /// UUID of the cron.
-    id: Option(String),
+    id: String,
     /// Name of the cron.
-    name: Option(String),
+    name: String,
     /// UNIX cron schedule.
-    schedule: Option(String),
+    schedule: String,
     /// Status of the cron.
-    status: Option(String),
+    status: String,
   )
 }
 
 pub type ScalewayContainersV1beta1Domain {
   ScalewayContainersV1beta1Domain(
     /// UUID of the container.
-    container_id: Option(String),
+    container_id: String,
     /// Last error message of the domain.
     error_message: Option(String),
     /// Domain assigned to the container.
-    hostname: Option(String),
+    hostname: String,
     /// UUID of the domain.
-    id: Option(String),
+    id: String,
     /// Status of the domain.
-    status: Option(String),
+    status: String,
     /// URL (TBD).
-    url: Option(String),
+    url: String,
   )
 }
 
 pub type ScalewayContainersV1beta1ListContainersResponse {
   ScalewayContainersV1beta1ListContainersResponse(
     /// Array of containers.
-    containers: Option(List(ScalewayContainersV1beta1Container)),
+    containers: List(ScalewayContainersV1beta1Container),
     /// Total number of containers.
-    total_count: Option(Int),
+    total_count: Int,
   )
 }
 
 pub type ScalewayContainersV1beta1ListCronsResponse {
   ScalewayContainersV1beta1ListCronsResponse(
     /// Array of crons.
-    crons: Option(List(ScalewayContainersV1beta1Cron)),
+    crons: List(ScalewayContainersV1beta1Cron),
     /// Total number of crons.
-    total_count: Option(Int),
+    total_count: Int,
   )
 }
 
 pub type ScalewayContainersV1beta1ListDomainsResponse {
   ScalewayContainersV1beta1ListDomainsResponse(
     /// Array of domains.
-    domains: Option(List(ScalewayContainersV1beta1Domain)),
+    domains: List(ScalewayContainersV1beta1Domain),
     /// Total number of domains.
-    total_count: Option(Int),
+    total_count: Int,
   )
 }
 
 pub type ScalewayContainersV1beta1ListNamespacesResponse {
   ScalewayContainersV1beta1ListNamespacesResponse(
     /// Array of the namespaces.
-    namespaces: Option(List(ScalewayContainersV1beta1Namespace)),
+    namespaces: List(ScalewayContainersV1beta1Namespace),
     /// Total number of namespaces.
-    total_count: Option(Int),
+    total_count: Int,
   )
 }
 
 pub type ScalewayContainersV1beta1ListTokensResponse {
   ScalewayContainersV1beta1ListTokensResponse(
-    tokens: Option(List(ScalewayContainersV1beta1Token)),
-    total_count: Option(Int),
+    tokens: List(ScalewayContainersV1beta1Token),
+    total_count: Int,
   )
 }
 
 pub type ScalewayContainersV1beta1ListTriggersResponse {
   ScalewayContainersV1beta1ListTriggersResponse(
     /// Total count of existing triggers (matching any filters specified).
-    total_count: Option(Int),
+    total_count: Int,
     /// Triggers on this page.
-    triggers: Option(List(ScalewayContainersV1beta1Trigger)),
+    triggers: List(ScalewayContainersV1beta1Trigger),
   )
 }
 
@@ -181,48 +181,48 @@ pub type ScalewayContainersV1beta1Namespace {
     /// Description of the endpoint.
     description: Option(String),
     /// Environment variables of the namespace.
-    environment_variables: Option(Dynamic),
+    environment_variables: Dynamic,
     /// Last error message of the namesace.
     error_message: Option(String),
     /// UUID of the namespace.
-    id: Option(String),
+    id: String,
     /// Name of the namespace.
-    name: Option(String),
+    name: String,
     /// UUID of the Organization the namespace belongs to.
-    organization_id: Option(String),
+    organization_id: String,
     /// UUID of the Project the namespace belongs to.
-    project_id: Option(String),
+    project_id: String,
     /// Region in which the namespace will be created.
-    region: Option(String),
+    region: String,
     /// Registry endpoint of the namespace.
-    registry_endpoint: Option(String),
+    registry_endpoint: String,
     /// UUID of the registry namespace.
-    registry_namespace_id: Option(String),
+    registry_namespace_id: String,
     /// Secret environment variables of the namespace.
-    secret_environment_variables: Option(List(ScalewayContainersV1beta1SecretHashedValue)),
+    secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the namespace.
-    status: Option(String),
+    status: String,
     /// List of tags applied to the Serverless Container Namespace.
-    tags: Option(List(String)),
+    tags: List(String),
     /// Last update date of the namespace. (RFC 3339 format)
     updated_at: Option(String),
     /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
     /// The value of this field doesn't matter anymore, and will be removed in a near future.
-    vpc_integration_activated: Option(Bool),
+    vpc_integration_activated: Bool,
   )
 }
 
 pub type ScalewayContainersV1beta1Secret {
   ScalewayContainersV1beta1Secret(
-    key: Option(String),
-    value: Option(GoogleProtobufStringValue),
+    key: String,
+    value: GoogleProtobufStringValue,
   )
 }
 
 pub type ScalewayContainersV1beta1SecretHashedValue {
   ScalewayContainersV1beta1SecretHashedValue(
-    hashed_value: Option(String),
-    key: Option(String),
+    hashed_value: String,
+    key: String,
   )
 }
 
@@ -235,37 +235,37 @@ pub type ScalewayContainersV1beta1Token {
     /// Expiry date of the token. (RFC 3339 format)
     expires_at: Option(String),
     /// UUID of the token.
-    id: Option(String),
+    id: String,
     /// UUID of the namespace the token belongs to.
     namespace_id: Option(String),
     /// Public key of the token.
-    public_key: Option(String),
+    public_key: String,
     /// Status of the token.
-    status: Option(String),
+    status: String,
     /// Identifier of the token.
-    token: Option(String),
+    token: String,
   )
 }
 
 pub type ScalewayContainersV1beta1Trigger {
   ScalewayContainersV1beta1Trigger(
     /// ID of the container to trigger.
-    container_id: Option(String),
+    container_id: String,
     /// Description of the trigger.
-    description: Option(String),
+    description: String,
     /// Error message of the trigger.
     error_message: Option(String),
     /// ID of the trigger.
-    id: Option(String),
+    id: String,
     /// Type of the input.
-    input_type: Option(String),
+    input_type: String,
     /// Name of the trigger.
-    name: Option(String),
+    name: String,
     /// Configuration for a Scaleway Messaging and Queuing NATS subject.
     scw_nats_config: Option(Dynamic),
     /// Configuration for a Scaleway Messaging and Queuing SQS queue.
     scw_sqs_config: Option(Dynamic),
     /// Status of the trigger.
-    status: Option(String),
+    status: String,
   )
 }
