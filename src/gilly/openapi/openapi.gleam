@@ -10,18 +10,33 @@ import gleam/option.{type Option}
 import gleam/result
 import gleam/string
 
+pub type Server {
+  Server(url: String)
+}
+
 pub type OpenAPI {
   OpenAPI(
     version: Version,
     info: Info,
+    servers: List(Server),
     paths: List(#(String, PathItem)),
     components: Option(Components),
   )
 }
 
+fn server_decoder() -> decode.Decoder(Server) {
+  use url <- decode.field("url", decode.string)
+  decode.success(Server(url:))
+}
+
 pub fn openapi_decoder() -> decode.Decoder(OpenAPI) {
   use info <- decode.field("info", info_decoder())
   use version <- decode.field("openapi", version_decoder())
+  use servers <- decode.optional_field(
+    "servers",
+    [],
+    decode.list(server_decoder()),
+  )
   use paths <- decode.optional_field(
     "paths",
     [],
@@ -33,7 +48,7 @@ pub fn openapi_decoder() -> decode.Decoder(OpenAPI) {
     option.None,
     decode.optional(components_decoder()),
   )
-  decode.success(OpenAPI(version:, info:, paths:, components:))
+  decode.success(OpenAPI(version:, info:, servers:, paths:, components:))
 }
 
 pub fn from_json_string(json_string: String) -> Result(OpenAPI, Error) {

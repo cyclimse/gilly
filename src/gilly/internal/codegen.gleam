@@ -29,7 +29,7 @@ pub type Optionality {
 /// Configuration for the code generator.
 ///
 pub type Config {
-  Config(optionality: Optionality, indent: Int)
+  Config(optionality: Optionality, indent: Int, optional_query_params: Bool)
 }
 
 // --- State -------------------------------------------------------------------
@@ -146,16 +146,24 @@ pub fn generate(spec: OpenAPI, config: Config) -> String {
 
   let ops_code = case op_docs {
     [] -> doc.empty
-    _ ->
+    _ -> {
+      let base_url = default_base_url(spec)
       doc.concat([
         doc.lines(2),
         separator_comment("Operations"),
         doc.lines(2),
         api_error_doc(config.indent),
         doc.lines(2),
+        client_type_doc(config.indent, spec.info.description),
+        doc.lines(2),
+        client_new_doc(config.indent, base_url),
+        doc.lines(2),
+        client_with_base_url_doc(config.indent),
+        doc.lines(2),
         doc.join(op_docs, with: doc.lines(2)),
         doc.line,
       ])
+    }
   }
 
   // 3. Assemble with single import block
@@ -232,13 +240,23 @@ pub fn generate_operations(spec: OpenAPI, config: Config) -> String {
 
   let code = case op_docs {
     [] -> doc.empty
-    _ ->
+    _ -> {
+      let base_url = default_base_url(spec)
       doc.concat([
         imports_doc(state, config.indent),
+        doc.lines(2),
+        api_error_doc(config.indent),
+        doc.lines(2),
+        client_type_doc(config.indent, spec.info.description),
+        doc.lines(2),
+        client_new_doc(config.indent, base_url),
+        doc.lines(2),
+        client_with_base_url_doc(config.indent),
         doc.lines(2),
         doc.join(op_docs, with: doc.lines(2)),
         doc.line,
       ])
+    }
   }
 
   doc.to_string(code, 80)
@@ -301,6 +319,84 @@ fn api_error_doc(indent: Int) -> Document {
   ])
 }
 
+fn client_type_doc(indent: Int, description: Option(String)) -> Document {
+  let comment = case description {
+    Some(desc) -> doc.concat([description_to_comment(desc), doc.line])
+    None -> doc.empty
+  }
+  doc.concat([
+    comment,
+    doc.from_string("pub opaque type Client(err) {"),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("Client(")
+      |> doc.nest(by: indent),
+    doc.line |> doc.nest(by: indent * 2),
+    doc.from_string(
+      "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
+    )
+      |> doc.nest(by: indent * 2),
+    doc.line |> doc.nest(by: indent * 2),
+    doc.from_string("base_url: String,")
+      |> doc.nest(by: indent * 2),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string(")")
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn client_new_doc(indent: Int, default_base_url: Option(String)) -> Document {
+  let base_url_default = case default_base_url {
+    Some(url) -> "\"" <> url <> "\""
+    None -> "\"\""
+  }
+
+  doc.concat([
+    doc.from_string("pub fn new("),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string(
+      "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
+    )
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string(") -> Client(err) {"),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string(
+      "Client(http_client:, base_url: " <> base_url_default <> ")",
+    )
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn client_with_base_url_doc(indent: Int) -> Document {
+  doc.concat([
+    doc.from_string("pub fn with_base_url("),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("client: Client(err),")
+      |> doc.nest(by: indent),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("base_url: String,")
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string(") -> Client(err) {"),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("Client(..client, base_url:)")
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn default_base_url(spec: OpenAPI) -> Option(String) {
+  case spec.servers {
+    [first, ..] -> Some(first.url)
+    [] -> None
+  }
+}
+
 fn path_item_to_docs(
   state: State,
   path: String,
@@ -343,23 +439,79 @@ fn operation_doc(
 
   // Separate path and query parameters
   let path_params = list.filter(op.parameters, fn(p) { p.in_ == Path })
-  let query_params = list.filter(op.parameters, fn(p) { p.in_ == Query })
+  let query_params =
+    list.filter(op.parameters, fn(p) { p.in_ == Query })
+    |> list.map(fn(p) {
+      case config.optional_query_params {
+        True -> operation.Parameter(..p, required: False)
+        False -> p
+      }
+    })
 
   // Build the request body type (if any)
-  let #(state, body_param) = case op.request_body {
-    Some(rb) -> request_body_param(state, rb, all_schemas)
-    None -> #(state, None)
+  // If the body is an inline object, generate a named schema for it so we get
+  // a proper type + to_json encoder instead of Dynamic/json.null().
+  let #(state, body_param, inline_body_docs, all_schemas) = case
+    op.request_body
+  {
+    Some(rb) -> {
+      let #(state, param) = request_body_param(state, rb, all_schemas)
+      case param {
+        Some(#(arg_name, _type_doc, schema.Object(base, obj_schema))) -> {
+          // Derive a name from the operation id, e.g. "CreateContainer" -> "CreateContainerRequest"
+          let request_type_name = case op.operation_id {
+            Some(id) -> to_type_name(id) <> "Request"
+            None -> "RequestBody"
+          }
+          // Track enums registered before schema generation
+          let enums_before = state.enums
+          // Generate schema docs (type + decoder + to_json) for the inline body
+          let #(state, schema_doc) =
+            schema_to_type_doc(
+              state,
+              request_type_name,
+              schema.Object(base, obj_schema),
+              all_schemas,
+              config,
+            )
+          // Generate enum docs for any enums newly registered by the inline body
+          let new_enums =
+            dict.to_list(state.enums)
+            |> list.filter(fn(entry) { !dict.has_key(enums_before, entry.0) })
+          let enum_docs = case new_enums {
+            [] -> []
+            _ -> {
+              let temp_state = State(..state, enums: dict.from_list(new_enums))
+              [enums_doc(temp_state, config.indent)]
+            }
+          }
+          // Replace the body param with a Ref to the generated type
+          let ref_schema =
+            schema.Ref(ref: "#/components/schemas/" <> request_type_name)
+          let type_doc = doc.from_string(request_type_name)
+          // Add the inline schema to all_schemas so ref_to_json can find it
+          let all_schemas = [
+            #(request_type_name, schema.Object(base, obj_schema)),
+            ..all_schemas
+          ]
+          #(
+            state,
+            Some(#(arg_name, type_doc, ref_schema)),
+            list.flatten([enum_docs, [schema_doc]]),
+            all_schemas,
+          )
+        }
+        _ -> #(state, param, [], all_schemas)
+      }
+    }
+    None -> #(state, None, [], all_schemas)
   }
 
   // Build the response type from the 200/201 response
   let #(state, response_type) = response_type_from_op(state, op, all_schemas)
 
   // Build function arguments
-  let client_arg =
-    doc.from_string(
-      "client: fn(request.Request(String)) -> Result(response.Response(String), err)",
-    )
-  let base_url_arg = doc.from_string("base_url: String")
+  let client_arg = doc.from_string("client: Client(err)")
 
   let #(state, param_args) =
     list.fold(path_params, #(state, []), fn(acc, param) {
@@ -373,10 +525,14 @@ fn operation_doc(
       #(state, list.append(args, [arg]))
     })
 
-  // Query params are always String
+  // Query params are String, optional ones are Option(String)
   let query_args =
     list.map(query_params, fn(param) {
-      doc.from_string(to_field_name(param.name) <> ": String")
+      let type_str = case param.required {
+        True -> "String"
+        False -> "Option(String)"
+      }
+      doc.from_string(to_field_name(param.name) <> ": " <> type_str)
     })
 
   let #(state, body_args) = case body_param {
@@ -392,7 +548,7 @@ fn operation_doc(
   }
 
   let all_args =
-    [client_arg, base_url_arg]
+    [client_arg]
     |> list.append(param_args)
     |> list.append(query_args)
     |> list.append(body_args)
@@ -417,8 +573,25 @@ fn operation_doc(
     False -> state
   }
 
+  // Import gleam/option and gleam/list if any query param is optional
+  let has_optional_query = list.any(query_params, fn(p) { !p.required })
+  let state = case has_optional_query {
+    True ->
+      state
+      |> import_module("gleam/option")
+      |> import_module("gleam/list")
+    False -> state
+  }
+
   let req_lines =
-    build_request_lines(state, method, query_params, body_param, all_schemas)
+    build_request_lines(
+      state,
+      method,
+      query_params,
+      body_param,
+      all_schemas,
+      indent,
+    )
 
   let #(state, decode_line) =
     build_decode_line(state, response_type, all_schemas)
@@ -477,7 +650,18 @@ fn operation_doc(
       doc.from_string("}"),
     ])
 
-  #(state, fn_doc)
+  // Prepend any inline body schema docs before the function
+  let full_doc = case inline_body_docs {
+    [] -> fn_doc
+    _ ->
+      doc.concat([
+        doc.join(inline_body_docs, with: doc.lines(2)),
+        doc.lines(2),
+        fn_doc,
+      ])
+  }
+
+  #(state, full_doc)
 }
 
 fn operation_fn_name(op: Operation, path: String, method: String) -> String {
@@ -500,6 +684,9 @@ fn param_to_type(
   all_schemas: List(#(String, Schema)),
 ) -> #(State, Document) {
   case param.schema {
+    // Inline string enums on parameters are just String — the enum type is
+    // not generated in the schema section.
+    Some(schema.String(_, _)) -> #(state, doc.from_string("String"))
     Some(schema) ->
       schema_to_gleam_type(
         state,
@@ -582,12 +769,12 @@ fn build_url_expression(path: String, path_params: List(Parameter)) -> Document 
   case path_params {
     [] ->
       doc.from_string(
-        "let assert Ok(req) = request.to(base_url <> \"" <> path <> "\")",
+        "let assert Ok(req) = request.to(client.base_url <> \"" <> path <> "\")",
       )
     _ -> {
       let url_parts = build_path_parts(path, path_params)
       doc.concat([
-        doc.from_string("let assert Ok(req) = request.to(base_url <> "),
+        doc.from_string("let assert Ok(req) = request.to(client.base_url <> "),
         url_parts,
         doc.from_string(")"),
       ])
@@ -659,6 +846,7 @@ fn build_request_lines(
   query_params: List(Parameter),
   body_param: Option(#(String, Document, Schema)),
   all_schemas: List(#(String, Schema)),
+  indent: Int,
 ) -> List(Document) {
   let method_line =
     doc.from_string("let req = request.set_method(req, http." <> method <> ")")
@@ -690,17 +878,65 @@ fn build_request_lines(
     None -> []
   }
 
-  let query_lines =
-    list.map(query_params, fn(param) {
-      let param_name = to_field_name(param.name)
-      doc.from_string(
-        "let req = request.set_query(req, [#(\""
-        <> param.name
-        <> "\", "
-        <> param_name
-        <> "), ..request.get_query(req) |> result.unwrap([])])",
-      )
-    })
+  let query_lines = case query_params {
+    [] -> []
+    _ -> {
+      // Required query params are always included
+      let required_entries =
+        list.filter(query_params, fn(p) { p.required })
+        |> list.map(fn(param) {
+          let param_name = to_field_name(param.name)
+          doc.from_string("#(\"" <> param.name <> "\", " <> param_name <> ")")
+        })
+
+      // Optional query params use option.map + option.values to filter Nones
+      let optional_entries =
+        list.filter(query_params, fn(p) { !p.required })
+        |> list.map(fn(param) {
+          let param_name = to_field_name(param.name)
+          doc.from_string(
+            "option.map("
+            <> param_name
+            <> ", fn(v) { #(\""
+            <> param.name
+            <> "\", v) })",
+          )
+        })
+
+      let required_list = case required_entries {
+        [] -> doc.from_string("[]")
+        _ ->
+          doc.concat([
+            doc.from_string("["),
+            doc.join(required_entries, with: doc.from_string(", ")),
+            doc.from_string("]"),
+          ])
+      }
+
+      let optional_part = case optional_entries {
+        [] -> []
+        _ -> [
+          doc.from_string("let query = list.append(query, option.values(["),
+          ..list.append(
+            list.map(optional_entries, fn(entry) {
+              doc.concat([
+                doc.from_string("  "),
+                entry,
+                doc.from_string(","),
+              ])
+            }),
+            [doc.from_string("]))")],
+          )
+        ]
+      }
+
+      list.flatten([
+        [doc.concat([doc.from_string("let query = "), required_list])],
+        optional_part,
+        [doc.from_string("let req = request.set_query(req, query)")],
+      ])
+    }
+  }
 
   [method_line, header_line]
   |> list.append(body_line)
@@ -721,7 +957,7 @@ fn build_decode_line(
         state,
         doc.concat([
           doc.from_string(
-            "use resp <- result.try(client(req) |> result.map_error(ClientError))",
+            "use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))",
           ),
           doc.line,
           doc.from_string("json.parse(resp.body, " <> decoder_str <> ")"),
@@ -734,7 +970,7 @@ fn build_decode_line(
       state,
       doc.concat([
         doc.from_string(
-          "use resp <- result.try(client(req) |> result.map_error(ClientError))",
+          "use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))",
         ),
         doc.line,
         doc.from_string("let _ = resp"),

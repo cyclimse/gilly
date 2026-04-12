@@ -6,7 +6,7 @@ import gleam/json
 import gleam/list
 import gleam/result
 
-import scaleway/schema
+import scaleway/client
 
 const default_region = "fr-par"
 
@@ -47,7 +47,7 @@ fn must_load_scaleway_client_from_env() -> ScalewayClient {
 
 fn list_containers(
   client: ScalewayClient,
-) -> schema.ScalewayContainersV1beta1ListContainersResponse {
+) -> client.ScalewayContainersV1beta1ListContainersResponse {
   let url =
     client.scw_api_url
     <> "/containers/v1beta1/regions/"
@@ -64,7 +64,7 @@ fn list_containers(
   let assert Ok(parsed) =
     json.parse(
       resp.body,
-      schema.scaleway_containers_v1beta1_list_containers_response_decoder(),
+      client.scaleway_containers_v1beta1_list_containers_response_decoder(),
     )
 
   parsed

@@ -239,6 +239,7 @@ For more help using Scaleway Serverless containers, check out the following reso
 * The #serverless-containers channel on our [Slack Community](https://www.scaleway.com/en/docs/tutorials/scaleway-slack-community/)
 * Our [support ticketing system](https://www.scaleway.com/en/docs/console/account/how-to/open-a-support-ticket/)."),
   ),
+  [Server("https://api.scaleway.com")],
   [
     #(
       "/containers/v1beta1/regions/{region}/containers",

@@ -11,15 +11,39 @@ import gleam/http/response
 import gleam/json
 import gleam/result
 
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+) -> Client(err) {
+  Client(http_client:, base_url: "")
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
 /// Returns pet inventories
 pub fn get_inventory(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/store/inventory")
+  let assert Ok(req) = request.to(client.base_url <> "/store/inventory")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }

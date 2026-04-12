@@ -5,6 +5,7 @@ title: Simple OpenAPI Spec
 OpenAPI(
   Version(3, Some(0), Some(4)),
   Info("Hello World API", "1.0.0", None),
+  [],
   [
     #(
       "/hello",

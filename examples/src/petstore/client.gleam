@@ -10,6 +10,7 @@ import gleam/http/request
 import gleam/http/response
 import gleam/int
 import gleam/json
+import gleam/list
 import gleam/option.{None, type Option}
 import gleam/result
 
@@ -247,284 +248,307 @@ pub type ApiError(err) {
   ClientError(err)
 }
 
+/// This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
+/// Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
+/// You can now help us improve the API whether it's by making changes to the definition itself or to the code.
+/// That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
+/// 
+/// Some useful links:
+/// - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+/// - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+) -> Client(err) {
+  Client(http_client:, base_url: "/api/v3")
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
 /// Add a new pet to the store.
 pub fn add_pet(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   body: Pet,
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet")
+  let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(pet_to_json(body)))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, pet_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Update an existing pet.
 pub fn update_pet(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   body: Pet,
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet")
+  let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Put)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(pet_to_json(body)))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, pet_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Finds Pets by status.
 pub fn find_pets_by_status(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   status: String,
 ) -> Result(List(Pet), ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/findByStatus")
+  let assert Ok(req) = request.to(client.base_url <> "/pet/findByStatus")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_query(req, [#("status", status), ..request.get_query(req) |> result.unwrap([])])
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  let query = [#("status", status)]
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.list(pet_decoder()))
   |> result.map_error(JsonDecodeError)
 }
 
 /// Finds Pets by tags.
 pub fn find_pets_by_tags(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   tags: String,
 ) -> Result(List(Pet), ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/findByTags")
+  let assert Ok(req) = request.to(client.base_url <> "/pet/findByTags")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_query(req, [#("tags", tags), ..request.get_query(req) |> result.unwrap([])])
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  let query = [#("tags", tags)]
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.list(pet_decoder()))
   |> result.map_error(JsonDecodeError)
 }
 
 /// Find pet by ID.
 pub fn get_pet_by_id(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   pet_id: Int,
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, pet_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Updates a pet in the store with form data.
 pub fn update_pet_with_form(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   pet_id: Int,
-  name: String,
-  status: String,
+  name: Option(String),
+  status: Option(String),
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_query(req, [#("name", name), ..request.get_query(req) |> result.unwrap([])])
-  let req = request.set_query(req, [#("status", status), ..request.get_query(req) |> result.unwrap([])])
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  let query = []
+  let query = list.append(query, option.values([
+    option.map(name, fn(v) { #("name", v) }),
+    option.map(status, fn(v) { #("status", v) }),
+  ]))
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, pet_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Deletes a pet.
 pub fn delete_pet(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   pet_id: Int,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }
 
 /// Uploads an image.
 pub fn upload_file(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   pet_id: Int,
-  additional_metadata: String,
+  additional_metadata: Option(String),
 ) -> Result(ApiResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/pet/" <> int.to_string(pet_id) <> "/uploadImage")
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id) <> "/uploadImage")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_query(req, [#("additionalMetadata", additional_metadata), ..request.get_query(req) |> result.unwrap([])])
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  let query = []
+  let query = list.append(query, option.values([
+    option.map(additional_metadata, fn(v) { #("additionalMetadata", v) }),
+  ]))
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, api_response_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Returns pet inventories by status.
 pub fn get_inventory(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
 ) -> Result(Dynamic, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/store/inventory")
+  let assert Ok(req) = request.to(client.base_url <> "/store/inventory")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.dynamic)
   |> result.map_error(JsonDecodeError)
 }
 
 /// Place an order for a pet.
 pub fn place_order(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   body: Order,
 ) -> Result(Order, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/store/order")
+  let assert Ok(req) = request.to(client.base_url <> "/store/order")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(order_to_json(body)))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, order_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Find purchase order by ID.
 pub fn get_order_by_id(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   order_id: Int,
 ) -> Result(Order, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/store/order/" <> int.to_string(order_id))
+  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(order_id))
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, order_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Delete purchase order by identifier.
 pub fn delete_order(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   order_id: Int,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/store/order/" <> int.to_string(order_id))
+  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(order_id))
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }
 
 /// Create user.
 pub fn create_user(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   body: User,
 ) -> Result(User, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user")
+  let assert Ok(req) = request.to(client.base_url <> "/user")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(user_to_json(body)))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, user_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Creates list of users with given input array.
 pub fn create_users_with_list_input(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   body: List(User),
 ) -> Result(User, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/createWithList")
+  let assert Ok(req) = request.to(client.base_url <> "/user/createWithList")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(json.array(body, fn(item) { user_to_json(item) })))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, user_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Logs user into the system.
 pub fn login_user(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
-  username: String,
-  password: String,
+  client: Client(err),
+  username: Option(String),
+  password: Option(String),
 ) -> Result(String, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/login")
+  let assert Ok(req) = request.to(client.base_url <> "/user/login")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_query(req, [#("username", username), ..request.get_query(req) |> result.unwrap([])])
-  let req = request.set_query(req, [#("password", password), ..request.get_query(req) |> result.unwrap([])])
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  let query = []
+  let query = list.append(query, option.values([
+    option.map(username, fn(v) { #("username", v) }),
+    option.map(password, fn(v) { #("password", v) }),
+  ]))
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.string)
   |> result.map_error(JsonDecodeError)
 }
 
 /// Logs out current logged in user session.
 pub fn logout_user(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/logout")
+  let assert Ok(req) = request.to(client.base_url <> "/user/logout")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }
 
 /// Get user by user name.
 pub fn get_user_by_name(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   username: String,
 ) -> Result(User, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, user_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 /// Update user resource.
 pub fn update_user(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   username: String,
   body: User,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
   let req = request.set_method(req, http.Put)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(user_to_json(body)))
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }
 
 /// Delete user resource.
 pub fn delete_user(
-  client: fn(request.Request(String)) -> Result(response.Response(String), err),
-  base_url: String,
+  client: Client(err),
   username: String,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   let _ = resp
   Ok(Nil)
 }

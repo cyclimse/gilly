@@ -1,41 +1,44 @@
 # Gilly examples
 
+A [Makefile](Makefile) is provided for convenience.
+
 ## Pet Store
 
-Generate Gleam types from the Pet Store OpenAPI spec:
+Generate the client from the Pet Store OpenAPI spec:
 
 ```bash
-gleam run -m gilly -- samples/petstore.json -o src/pet_store/schema.gleam
+make generate-petstore
 ```
 
-Run the Pet Store example:
+Start the Pet Store docker container:
 
 ```bash
-docker run --rm -p 8080:8080 swaggerapi/petstore3:1.0.27
+make docker-petstore
 ```
 
 Then, in another terminal, run the client:
 
 ```bash
-gleam run -m petstore/petstore
+make run-petstore
 ```
 
 ## Scaleway
 
-Generate Gleam types from the Scaleway OpenAPI spec:
+Generate the client from the Scaleway OpenAPI spec:
 
 ```bash
-gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/schema.gleam --optionality NullableOnly
+make generate-scaleway
 ```
 
-Export your Scaleway API key as an environment variable:
+Export your Scaleway credentials as environment variables:
 
 ```bash
-export SCW_SECRET_KEY=<your_api_key>
+export SCW_SECRET_KEY=<your_secret_key>
+export SCW_DEFAULT_PROJECT_ID=<your_project_id>
 ```
 
 Run the client:
 
 ```bash
-gleam run -m scaleway/scaleway
+make run-scaleway
 ```

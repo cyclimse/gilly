@@ -1,0 +1,78 @@
+---
+version: 1.5.4
+title: codegen operation post with inline request body
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: post_with_inline_request_body_test
+---
+import gleam/dynamic.{type Dynamic}
+import gleam/dynamic/decode
+import gleam/http
+import gleam/http/request
+import gleam/http/response
+import gleam/json
+import gleam/option.{None, type Option}
+import gleam/result
+
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+) -> Client(err) {
+  Client(http_client:, base_url: "")
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
+pub type CreateContainerRequest {
+  CreateContainerRequest(
+    name: String,
+    description: Option(String),
+    min_scale: Option(Int),
+  )
+}
+
+pub fn create_container_request_decoder() -> decode.Decoder(CreateContainerRequest) {
+  use name <- decode.field("name", decode.string)
+  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use min_scale <- decode.optional_field("min_scale", None, decode.optional(decode.int))
+  decode.success(CreateContainerRequest(name:, description:, min_scale:))
+}
+
+pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.Json {
+  json.object([
+    #("name", json.string(value.name)),
+    #("description", json.nullable(value.description, json.string)),
+    #("min_scale", json.nullable(value.min_scale, json.int)),
+  ])
+}
+
+/// Create a new container
+pub fn create_container(
+  client: Client(err),
+  region: String,
+  body: CreateContainerRequest,
+) -> Result(Container, ApiError(err)) {
+  let assert Ok(req) = request.to(client.base_url <> "/containers/" <> region <> "/containers")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(create_container_request_to_json(body)))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+

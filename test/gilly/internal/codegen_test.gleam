@@ -26,19 +26,27 @@ fn spec_with_schemas(schemas: List(#(String, schema.Schema))) -> OpenAPI {
   OpenAPI(
     version: v3(),
     info: Info(title: "Test", version: "1.0.0", description: None),
+    servers: [],
     paths: [],
     components: Some(Components(schemas:)),
   )
 }
 
+fn default_config() -> codegen.Config {
+  codegen.Config(
+    optionality: codegen.RequiredOnly,
+    indent: 2,
+    optional_query_params: False,
+  )
+}
+
 fn generate(spec: OpenAPI) -> String {
-  let config = codegen.Config(optionality: codegen.RequiredOnly, indent: 2)
-  codegen.generate_schemas(spec, config)
+  codegen.generate_schemas(spec, default_config())
 }
 
 fn generate_with(spec: OpenAPI, optionality: codegen.Optionality) -> String {
-  let config = codegen.Config(optionality:, indent: 2)
-  codegen.generate_schemas(spec, config)
+  let config = default_config()
+  codegen.generate_schemas(spec, codegen.Config(..config, optionality:))
 }
 
 // --- Simple types ------------------------------------------------------------
@@ -469,14 +477,14 @@ fn spec_with_paths(
   OpenAPI(
     version: v3(),
     info: Info(title: "Test", version: "1.0.0", description: None),
+    servers: [],
     paths: paths,
     components: Some(Components(schemas:)),
   )
 }
 
 fn generate_ops(spec: OpenAPI) -> String {
-  let config = codegen.Config(optionality: codegen.RequiredOnly, indent: 2)
-  codegen.generate_operations(spec, config)
+  codegen.generate_operations(spec, default_config())
 }
 
 pub fn simple_get_no_params_test() {
@@ -717,6 +725,134 @@ pub fn post_with_request_body_test() {
   )
   |> generate_ops
   |> birdie.snap(title: "codegen operation post with request body")
+}
+
+pub fn post_with_inline_request_body_test() {
+  spec_with_paths(
+    [
+      #(
+        "/containers/{region}/containers",
+        PathItem(
+          ..empty_path_item(),
+          post: Some(
+            Operation(
+              ..empty_operation("createContainer"),
+              summary: Some("Create a new container"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: Some("The region you want to target"),
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              request_body: Some(
+                RequestBody(
+                  description: Some("Container creation request"),
+                  required: True,
+                  content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Object(
+                          base(ObjectType),
+                          ObjectSchema(required: ["name"], properties: [
+                            #(
+                              "name",
+                              schema.String(
+                                base(StringType),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                            #(
+                              "description",
+                              schema.String(
+                                BaseSchema(..base(StringType), nullable: True),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                            #(
+                              "min_scale",
+                              schema.Integer(
+                                BaseSchema(..base(IntegerType), nullable: True),
+                                IntegerSchema(
+                                  minimum: None,
+                                  maximum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        )),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              responses: [
+                #(
+                  "200",
+                  Response(description: "Successful operation", content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Ref(
+                          ref: "#/components/schemas/Container",
+                        )),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [
+      #(
+        "Container",
+        schema.Object(
+          base(ObjectType),
+          ObjectSchema(required: ["name"], properties: [
+            #(
+              "name",
+              schema.String(
+                base(StringType),
+                StringSchema(
+                  min_length: None,
+                  max_length: None,
+                  enum: None,
+                  format: None,
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation post with inline request body")
 }
 
 pub fn delete_with_path_param_test() {

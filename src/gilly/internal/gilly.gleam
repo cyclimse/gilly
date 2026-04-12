@@ -9,11 +9,11 @@ import gleam/string
 import simplifile
 
 pub opaque type Builder {
-  Builder(optionality: Optionality, indent: Int)
+  Builder(optionality: Optionality, indent: Int, optional_query_params: Bool)
 }
 
 pub fn new() -> Builder {
-  Builder(optionality: codegen.RequiredOnly, indent: 2)
+  Builder(optionality: codegen.RequiredOnly, indent: 2, optional_query_params: False)
 }
 
 pub fn with_optionality(builder: Builder, optionality: Optionality) -> Builder {
@@ -22,6 +22,10 @@ pub fn with_optionality(builder: Builder, optionality: Optionality) -> Builder {
 
 pub fn with_indent(builder: Builder, indent: Int) -> Builder {
   Builder(..builder, indent:)
+}
+
+pub fn with_optional_query_params(builder: Builder, optional_query_params: Bool) -> Builder {
+  Builder(..builder, optional_query_params:)
 }
 
 pub fn generate_code_from_file(
@@ -81,6 +85,10 @@ fn generate_header(source: String) -> String {
 
 pub fn generate_code(builder: Builder, spec: OpenAPI) -> String {
   let config =
-    codegen.Config(optionality: builder.optionality, indent: builder.indent)
+    codegen.Config(
+      optionality: builder.optionality,
+      indent: builder.indent,
+      optional_query_params: builder.optional_query_params,
+    )
   codegen.generate(spec, config)
 }
