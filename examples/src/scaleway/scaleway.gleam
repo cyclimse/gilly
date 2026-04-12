@@ -1,7 +1,9 @@
 import envoy
 import gleam/http/request
 import gleam/httpc
+import gleam/io
 import gleam/result
+import pprint
 
 import scaleway/schema
 
@@ -49,5 +51,8 @@ fn list_containers(
   let assert Ok(resp) = httpc.send(req)
   assert resp.status == 200
 
+  pprint.debug("Raw response body:")
+  pprint.debug(resp.body)
+  
   todo as "Parse response body and return list of containers"
 }
