@@ -27,7 +27,7 @@ jobs:
 
       - run: echo 'I am not using semantic versioning' | gleam publish -y
         env:
-          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+          HEXPM_API_KEY: ${{ secrets.HEXPM_API_KEY }}
 
   # In the future, it would be good to figure out how to publish to Hex using goreleaser.
   # ...But for now, this is okay :davidgoodenough:
