@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: boolean_field_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type Feature {
   Feature(
@@ -15,5 +16,11 @@ pub type Feature {
 pub fn feature_decoder() -> decode.Decoder(Feature) {
   use enabled <- decode.field("enabled", decode.bool)
   decode.success(Feature(enabled:))
+}
+
+pub fn feature_to_json(value: Feature) -> json.Json {
+  json.object([
+    #("enabled", json.bool(value.enabled)),
+  ])
 }
 

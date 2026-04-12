@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: string_enum_field_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type Order {
   Order(
@@ -17,6 +18,12 @@ pub fn order_decoder() -> decode.Decoder(Order) {
   decode.success(Order(status:))
 }
 
+pub fn order_to_json(value: Order) -> json.Json {
+  json.object([
+    #("status", json.string(order_status_to_string(value.status))),
+  ])
+}
+
 
 // --- Enums -------------------------------------------------------------------
 
@@ -24,6 +31,18 @@ pub type OrderStatus {
   OrderStatusPending
   OrderStatusApproved
   OrderStatusDelivered
+}
+
+pub fn order_status_to_string(value: OrderStatus) -> String {
+  case value {
+    OrderStatusPending -> "pending"
+    OrderStatusApproved -> "approved"
+    OrderStatusDelivered -> "delivered"
+  }
+}
+
+pub fn order_status_to_json(value: OrderStatus) -> json.Json {
+  json.string(order_status_to_string(value))
 }
 
 pub fn order_status_decoder() -> decode.Decoder(OrderStatus) {

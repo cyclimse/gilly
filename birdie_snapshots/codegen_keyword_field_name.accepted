@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: keyword_field_name_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type Resource {
   Resource(
@@ -15,5 +16,11 @@ pub type Resource {
 pub fn resource_decoder() -> decode.Decoder(Resource) {
   use type_ <- decode.field("type", decode.string)
   decode.success(Resource(type_:))
+}
+
+pub fn resource_to_json(value: Resource) -> json.Json {
+  json.object([
+    #("type", json.string(value.type_)),
+  ])
 }
 

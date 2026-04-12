@@ -5,6 +5,7 @@
 
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
+import gleam/json
 import gleam/option.{None, type Option}
 
 pub type GoogleProtobufStringValue =
@@ -125,6 +126,43 @@ pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(Scalewa
   decode.success(ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at:, description:, domain_name:, environment_variables:, error_message:, health_check:, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, ready_at:, region:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, status:, tags:, timeout:, updated_at:))
 }
 
+pub fn scaleway_containers_v1beta1_container_to_json(value: ScalewayContainersV1beta1Container) -> json.Json {
+  json.object([
+    #("args", json.array(value.args, fn(item) { json.string(item) })),
+    #("command", json.array(value.command, fn(item) { json.string(item) })),
+    #("cpu_limit", json.int(value.cpu_limit)),
+    #("created_at", json.nullable(value.created_at, json.string)),
+    #("description", json.nullable(value.description, json.string)),
+    #("domain_name", json.string(value.domain_name)),
+    #("environment_variables", json.null()),
+    #("error_message", json.nullable(value.error_message, json.string)),
+    #("health_check", json.null()),
+    #("http_option", json.string(scaleway_containers_v1beta1_container_http_option_to_string(value.http_option))),
+    #("id", json.string(value.id)),
+    #("local_storage_limit", json.int(value.local_storage_limit)),
+    #("max_concurrency", json.int(value.max_concurrency)),
+    #("max_scale", json.int(value.max_scale)),
+    #("memory_limit", json.int(value.memory_limit)),
+    #("min_scale", json.int(value.min_scale)),
+    #("name", json.string(value.name)),
+    #("namespace_id", json.string(value.namespace_id)),
+    #("port", json.int(value.port)),
+    #("privacy", json.string(scaleway_containers_v1beta1_container_privacy_to_string(value.privacy))),
+    #("private_network_id", json.nullable(value.private_network_id, json.string)),
+    #("protocol", json.string(scaleway_containers_v1beta1_container_protocol_to_string(value.protocol))),
+    #("ready_at", json.nullable(value.ready_at, json.string)),
+    #("region", json.string(value.region)),
+    #("registry_image", json.string(value.registry_image)),
+    #("sandbox", json.string(scaleway_containers_v1beta1_container_sandbox_to_string(value.sandbox))),
+    #("scaling_option", json.null()),
+    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_hashed_value_to_json(item) })),
+    #("status", json.string(scaleway_containers_v1beta1_container_status_to_string(value.status))),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
+    #("timeout", json.nullable(value.timeout, json.string)),
+    #("updated_at", json.nullable(value.updated_at, json.string)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
@@ -150,6 +188,17 @@ pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayCont
   use schedule <- decode.field("schedule", decode.string)
   use status <- decode.field("status", scaleway_containers_v1beta1_cron_status_decoder())
   decode.success(ScalewayContainersV1beta1Cron(args:, container_id:, id:, name:, schedule:, status:))
+}
+
+pub fn scaleway_containers_v1beta1_cron_to_json(value: ScalewayContainersV1beta1Cron) -> json.Json {
+  json.object([
+    #("args", json.null()),
+    #("container_id", json.string(value.container_id)),
+    #("id", json.string(value.id)),
+    #("name", json.string(value.name)),
+    #("schedule", json.string(value.schedule)),
+    #("status", json.string(scaleway_containers_v1beta1_cron_status_to_string(value.status))),
+  ])
 }
 
 pub type ScalewayContainersV1beta1Domain {
@@ -179,6 +228,17 @@ pub fn scaleway_containers_v1beta1_domain_decoder() -> decode.Decoder(ScalewayCo
   decode.success(ScalewayContainersV1beta1Domain(container_id:, error_message:, hostname:, id:, status:, url:))
 }
 
+pub fn scaleway_containers_v1beta1_domain_to_json(value: ScalewayContainersV1beta1Domain) -> json.Json {
+  json.object([
+    #("container_id", json.string(value.container_id)),
+    #("error_message", json.nullable(value.error_message, json.string)),
+    #("hostname", json.string(value.hostname)),
+    #("id", json.string(value.id)),
+    #("status", json.string(scaleway_containers_v1beta1_domain_status_to_string(value.status))),
+    #("url", json.string(value.url)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1ListContainersResponse {
   ScalewayContainersV1beta1ListContainersResponse(
     /// Array of containers.
@@ -192,6 +252,13 @@ pub fn scaleway_containers_v1beta1_list_containers_response_decoder() -> decode.
   use containers <- decode.field("containers", decode.list(scaleway_containers_v1beta1_container_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:))
+}
+
+pub fn scaleway_containers_v1beta1_list_containers_response_to_json(value: ScalewayContainersV1beta1ListContainersResponse) -> json.Json {
+  json.object([
+    #("containers", json.array(value.containers, fn(item) { scaleway_containers_v1beta1_container_to_json(item) })),
+    #("total_count", json.int(value.total_count)),
+  ])
 }
 
 pub type ScalewayContainersV1beta1ListCronsResponse {
@@ -209,6 +276,13 @@ pub fn scaleway_containers_v1beta1_list_crons_response_decoder() -> decode.Decod
   decode.success(ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:))
 }
 
+pub fn scaleway_containers_v1beta1_list_crons_response_to_json(value: ScalewayContainersV1beta1ListCronsResponse) -> json.Json {
+  json.object([
+    #("crons", json.array(value.crons, fn(item) { scaleway_containers_v1beta1_cron_to_json(item) })),
+    #("total_count", json.int(value.total_count)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1ListDomainsResponse {
   ScalewayContainersV1beta1ListDomainsResponse(
     /// Array of domains.
@@ -222,6 +296,13 @@ pub fn scaleway_containers_v1beta1_list_domains_response_decoder() -> decode.Dec
   use domains <- decode.field("domains", decode.list(scaleway_containers_v1beta1_domain_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:))
+}
+
+pub fn scaleway_containers_v1beta1_list_domains_response_to_json(value: ScalewayContainersV1beta1ListDomainsResponse) -> json.Json {
+  json.object([
+    #("domains", json.array(value.domains, fn(item) { scaleway_containers_v1beta1_domain_to_json(item) })),
+    #("total_count", json.int(value.total_count)),
+  ])
 }
 
 pub type ScalewayContainersV1beta1ListNamespacesResponse {
@@ -239,6 +320,13 @@ pub fn scaleway_containers_v1beta1_list_namespaces_response_decoder() -> decode.
   decode.success(ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:))
 }
 
+pub fn scaleway_containers_v1beta1_list_namespaces_response_to_json(value: ScalewayContainersV1beta1ListNamespacesResponse) -> json.Json {
+  json.object([
+    #("namespaces", json.array(value.namespaces, fn(item) { scaleway_containers_v1beta1_namespace_to_json(item) })),
+    #("total_count", json.int(value.total_count)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1ListTokensResponse {
   ScalewayContainersV1beta1ListTokensResponse(
     tokens: List(ScalewayContainersV1beta1Token),
@@ -250,6 +338,13 @@ pub fn scaleway_containers_v1beta1_list_tokens_response_decoder() -> decode.Deco
   use tokens <- decode.field("tokens", decode.list(scaleway_containers_v1beta1_token_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:))
+}
+
+pub fn scaleway_containers_v1beta1_list_tokens_response_to_json(value: ScalewayContainersV1beta1ListTokensResponse) -> json.Json {
+  json.object([
+    #("tokens", json.array(value.tokens, fn(item) { scaleway_containers_v1beta1_token_to_json(item) })),
+    #("total_count", json.int(value.total_count)),
+  ])
 }
 
 pub type ScalewayContainersV1beta1ListTriggersResponse {
@@ -265,6 +360,13 @@ pub fn scaleway_containers_v1beta1_list_triggers_response_decoder() -> decode.De
   use total_count <- decode.field("total_count", decode.int)
   use triggers <- decode.field("triggers", decode.list(scaleway_containers_v1beta1_trigger_decoder()))
   decode.success(ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:))
+}
+
+pub fn scaleway_containers_v1beta1_list_triggers_response_to_json(value: ScalewayContainersV1beta1ListTriggersResponse) -> json.Json {
+  json.object([
+    #("total_count", json.int(value.total_count)),
+    #("triggers", json.array(value.triggers, fn(item) { scaleway_containers_v1beta1_trigger_to_json(item) })),
+  ])
 }
 
 pub type ScalewayContainersV1beta1Namespace {
@@ -325,6 +427,27 @@ pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(Scalewa
   decode.success(ScalewayContainersV1beta1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at:, vpc_integration_activated:))
 }
 
+pub fn scaleway_containers_v1beta1_namespace_to_json(value: ScalewayContainersV1beta1Namespace) -> json.Json {
+  json.object([
+    #("created_at", json.nullable(value.created_at, json.string)),
+    #("description", json.nullable(value.description, json.string)),
+    #("environment_variables", json.null()),
+    #("error_message", json.nullable(value.error_message, json.string)),
+    #("id", json.string(value.id)),
+    #("name", json.string(value.name)),
+    #("organization_id", json.string(value.organization_id)),
+    #("project_id", json.string(value.project_id)),
+    #("region", json.string(value.region)),
+    #("registry_endpoint", json.string(value.registry_endpoint)),
+    #("registry_namespace_id", json.string(value.registry_namespace_id)),
+    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_hashed_value_to_json(item) })),
+    #("status", json.string(scaleway_containers_v1beta1_namespace_status_to_string(value.status))),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
+    #("updated_at", json.nullable(value.updated_at, json.string)),
+    #("vpc_integration_activated", json.bool(value.vpc_integration_activated)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1Secret {
   ScalewayContainersV1beta1Secret(
     key: String,
@@ -338,6 +461,13 @@ pub fn scaleway_containers_v1beta1_secret_decoder() -> decode.Decoder(ScalewayCo
   decode.success(ScalewayContainersV1beta1Secret(key:, value:))
 }
 
+pub fn scaleway_containers_v1beta1_secret_to_json(value: ScalewayContainersV1beta1Secret) -> json.Json {
+  json.object([
+    #("key", json.string(value.key)),
+    #("value", json.string(value.value)),
+  ])
+}
+
 pub type ScalewayContainersV1beta1SecretHashedValue {
   ScalewayContainersV1beta1SecretHashedValue(
     hashed_value: String,
@@ -349,6 +479,13 @@ pub fn scaleway_containers_v1beta1_secret_hashed_value_decoder() -> decode.Decod
   use hashed_value <- decode.field("hashed_value", decode.string)
   use key <- decode.field("key", decode.string)
   decode.success(ScalewayContainersV1beta1SecretHashedValue(hashed_value:, key:))
+}
+
+pub fn scaleway_containers_v1beta1_secret_hashed_value_to_json(value: ScalewayContainersV1beta1SecretHashedValue) -> json.Json {
+  json.object([
+    #("hashed_value", json.string(value.hashed_value)),
+    #("key", json.string(value.key)),
+  ])
 }
 
 pub type ScalewayContainersV1beta1Token {
@@ -382,6 +519,19 @@ pub fn scaleway_containers_v1beta1_token_decoder() -> decode.Decoder(ScalewayCon
   use status <- decode.field("status", scaleway_containers_v1beta1_token_status_decoder())
   use token <- decode.field("token", decode.string)
   decode.success(ScalewayContainersV1beta1Token(container_id:, description:, expires_at:, id:, namespace_id:, public_key:, status:, token:))
+}
+
+pub fn scaleway_containers_v1beta1_token_to_json(value: ScalewayContainersV1beta1Token) -> json.Json {
+  json.object([
+    #("container_id", json.nullable(value.container_id, json.string)),
+    #("description", json.nullable(value.description, json.string)),
+    #("expires_at", json.nullable(value.expires_at, json.string)),
+    #("id", json.string(value.id)),
+    #("namespace_id", json.nullable(value.namespace_id, json.string)),
+    #("public_key", json.string(value.public_key)),
+    #("status", json.string(scaleway_containers_v1beta1_token_status_to_string(value.status))),
+    #("token", json.string(value.token)),
+  ])
 }
 
 pub type ScalewayContainersV1beta1Trigger {
@@ -420,6 +570,20 @@ pub fn scaleway_containers_v1beta1_trigger_decoder() -> decode.Decoder(ScalewayC
   decode.success(ScalewayContainersV1beta1Trigger(container_id:, description:, error_message:, id:, input_type:, name:, scw_nats_config:, scw_sqs_config:, status:))
 }
 
+pub fn scaleway_containers_v1beta1_trigger_to_json(value: ScalewayContainersV1beta1Trigger) -> json.Json {
+  json.object([
+    #("container_id", json.string(value.container_id)),
+    #("description", json.string(value.description)),
+    #("error_message", json.nullable(value.error_message, json.string)),
+    #("id", json.string(value.id)),
+    #("input_type", json.string(scaleway_containers_v1beta1_trigger_input_type_to_string(value.input_type))),
+    #("name", json.string(value.name)),
+    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(_) { json.null() })),
+    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(_) { json.null() })),
+    #("status", json.string(scaleway_containers_v1beta1_trigger_status_to_string(value.status))),
+  ])
+}
+
 
 // --- Enums -------------------------------------------------------------------
 
@@ -427,6 +591,18 @@ pub type ScalewayContainersV1beta1ContainerHttpOption {
   ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption
   ScalewayContainersV1beta1ContainerHttpOptionEnabled
   ScalewayContainersV1beta1ContainerHttpOptionRedirected
+}
+
+pub fn scaleway_containers_v1beta1_container_http_option_to_string(value: ScalewayContainersV1beta1ContainerHttpOption) -> String {
+  case value {
+    ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption -> "unknown_http_option"
+    ScalewayContainersV1beta1ContainerHttpOptionEnabled -> "enabled"
+    ScalewayContainersV1beta1ContainerHttpOptionRedirected -> "redirected"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_container_http_option_to_json(value: ScalewayContainersV1beta1ContainerHttpOption) -> json.Json {
+  json.string(scaleway_containers_v1beta1_container_http_option_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_container_http_option_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerHttpOption) {
@@ -445,6 +621,18 @@ pub type ScalewayContainersV1beta1ContainerPrivacy {
   ScalewayContainersV1beta1ContainerPrivacyPrivate
 }
 
+pub fn scaleway_containers_v1beta1_container_privacy_to_string(value: ScalewayContainersV1beta1ContainerPrivacy) -> String {
+  case value {
+    ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy -> "unknown_privacy"
+    ScalewayContainersV1beta1ContainerPrivacyPublic -> "public"
+    ScalewayContainersV1beta1ContainerPrivacyPrivate -> "private"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_container_privacy_to_json(value: ScalewayContainersV1beta1ContainerPrivacy) -> json.Json {
+  json.string(scaleway_containers_v1beta1_container_privacy_to_string(value))
+}
+
 pub fn scaleway_containers_v1beta1_container_privacy_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerPrivacy) {
   use value <- decode.then(decode.string)
   case value {
@@ -461,6 +649,18 @@ pub type ScalewayContainersV1beta1ContainerProtocol {
   ScalewayContainersV1beta1ContainerProtocolH2c
 }
 
+pub fn scaleway_containers_v1beta1_container_protocol_to_string(value: ScalewayContainersV1beta1ContainerProtocol) -> String {
+  case value {
+    ScalewayContainersV1beta1ContainerProtocolUnknownProtocol -> "unknown_protocol"
+    ScalewayContainersV1beta1ContainerProtocolHttp1 -> "http1"
+    ScalewayContainersV1beta1ContainerProtocolH2c -> "h2c"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_container_protocol_to_json(value: ScalewayContainersV1beta1ContainerProtocol) -> json.Json {
+  json.string(scaleway_containers_v1beta1_container_protocol_to_string(value))
+}
+
 pub fn scaleway_containers_v1beta1_container_protocol_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerProtocol) {
   use value <- decode.then(decode.string)
   case value {
@@ -475,6 +675,18 @@ pub type ScalewayContainersV1beta1ContainerSandbox {
   ScalewayContainersV1beta1ContainerSandboxUnknownSandbox
   ScalewayContainersV1beta1ContainerSandboxV1
   ScalewayContainersV1beta1ContainerSandboxV2
+}
+
+pub fn scaleway_containers_v1beta1_container_sandbox_to_string(value: ScalewayContainersV1beta1ContainerSandbox) -> String {
+  case value {
+    ScalewayContainersV1beta1ContainerSandboxUnknownSandbox -> "unknown_sandbox"
+    ScalewayContainersV1beta1ContainerSandboxV1 -> "v1"
+    ScalewayContainersV1beta1ContainerSandboxV2 -> "v2"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_container_sandbox_to_json(value: ScalewayContainersV1beta1ContainerSandbox) -> json.Json {
+  json.string(scaleway_containers_v1beta1_container_sandbox_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_container_sandbox_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerSandbox) {
@@ -498,6 +710,25 @@ pub type ScalewayContainersV1beta1ContainerStatus {
   ScalewayContainersV1beta1ContainerStatusCreated
   ScalewayContainersV1beta1ContainerStatusLocking
   ScalewayContainersV1beta1ContainerStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_container_status_to_string(value: ScalewayContainersV1beta1ContainerStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1ContainerStatusUnknown -> "unknown"
+    ScalewayContainersV1beta1ContainerStatusReady -> "ready"
+    ScalewayContainersV1beta1ContainerStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1ContainerStatusError -> "error"
+    ScalewayContainersV1beta1ContainerStatusLocked -> "locked"
+    ScalewayContainersV1beta1ContainerStatusCreating -> "creating"
+    ScalewayContainersV1beta1ContainerStatusPending -> "pending"
+    ScalewayContainersV1beta1ContainerStatusCreated -> "created"
+    ScalewayContainersV1beta1ContainerStatusLocking -> "locking"
+    ScalewayContainersV1beta1ContainerStatusUpgrading -> "upgrading"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_container_status_to_json(value: ScalewayContainersV1beta1ContainerStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_container_status_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_container_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerStatus) {
@@ -530,6 +761,25 @@ pub type ScalewayContainersV1beta1CronStatus {
   ScalewayContainersV1beta1CronStatusRebalancing
 }
 
+pub fn scaleway_containers_v1beta1_cron_status_to_string(value: ScalewayContainersV1beta1CronStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1CronStatusUnknown -> "unknown"
+    ScalewayContainersV1beta1CronStatusReady -> "ready"
+    ScalewayContainersV1beta1CronStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1CronStatusError -> "error"
+    ScalewayContainersV1beta1CronStatusLocked -> "locked"
+    ScalewayContainersV1beta1CronStatusCreating -> "creating"
+    ScalewayContainersV1beta1CronStatusPending -> "pending"
+    ScalewayContainersV1beta1CronStatusLocking -> "locking"
+    ScalewayContainersV1beta1CronStatusUpgrading -> "upgrading"
+    ScalewayContainersV1beta1CronStatusRebalancing -> "rebalancing"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_cron_status_to_json(value: ScalewayContainersV1beta1CronStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_cron_status_to_string(value))
+}
+
 pub fn scaleway_containers_v1beta1_cron_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1CronStatus) {
   use value <- decode.then(decode.string)
   case value {
@@ -557,6 +807,24 @@ pub type ScalewayContainersV1beta1DomainStatus {
   ScalewayContainersV1beta1DomainStatusLocked
   ScalewayContainersV1beta1DomainStatusLocking
   ScalewayContainersV1beta1DomainStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_domain_status_to_string(value: ScalewayContainersV1beta1DomainStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1DomainStatusUnknown -> "unknown"
+    ScalewayContainersV1beta1DomainStatusReady -> "ready"
+    ScalewayContainersV1beta1DomainStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1DomainStatusError -> "error"
+    ScalewayContainersV1beta1DomainStatusCreating -> "creating"
+    ScalewayContainersV1beta1DomainStatusPending -> "pending"
+    ScalewayContainersV1beta1DomainStatusLocked -> "locked"
+    ScalewayContainersV1beta1DomainStatusLocking -> "locking"
+    ScalewayContainersV1beta1DomainStatusUpgrading -> "upgrading"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_domain_status_to_json(value: ScalewayContainersV1beta1DomainStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_domain_status_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_domain_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1DomainStatus) {
@@ -587,6 +855,24 @@ pub type ScalewayContainersV1beta1NamespaceStatus {
   ScalewayContainersV1beta1NamespaceStatusUpgrading
 }
 
+pub fn scaleway_containers_v1beta1_namespace_status_to_string(value: ScalewayContainersV1beta1NamespaceStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1NamespaceStatusUnknown -> "unknown"
+    ScalewayContainersV1beta1NamespaceStatusReady -> "ready"
+    ScalewayContainersV1beta1NamespaceStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1NamespaceStatusError -> "error"
+    ScalewayContainersV1beta1NamespaceStatusLocked -> "locked"
+    ScalewayContainersV1beta1NamespaceStatusCreating -> "creating"
+    ScalewayContainersV1beta1NamespaceStatusPending -> "pending"
+    ScalewayContainersV1beta1NamespaceStatusLocking -> "locking"
+    ScalewayContainersV1beta1NamespaceStatusUpgrading -> "upgrading"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_namespace_status_to_json(value: ScalewayContainersV1beta1NamespaceStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_namespace_status_to_string(value))
+}
+
 pub fn scaleway_containers_v1beta1_namespace_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1NamespaceStatus) {
   use value <- decode.then(decode.string)
   case value {
@@ -611,6 +897,20 @@ pub type ScalewayContainersV1beta1TokenStatus {
   ScalewayContainersV1beta1TokenStatusCreating
 }
 
+pub fn scaleway_containers_v1beta1_token_status_to_string(value: ScalewayContainersV1beta1TokenStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1TokenStatusUnknown -> "unknown"
+    ScalewayContainersV1beta1TokenStatusReady -> "ready"
+    ScalewayContainersV1beta1TokenStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1TokenStatusError -> "error"
+    ScalewayContainersV1beta1TokenStatusCreating -> "creating"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_token_status_to_json(value: ScalewayContainersV1beta1TokenStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_token_status_to_string(value))
+}
+
 pub fn scaleway_containers_v1beta1_token_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TokenStatus) {
   use value <- decode.then(decode.string)
   case value {
@@ -629,6 +929,20 @@ pub type ScalewayContainersV1beta1TriggerInputType {
   ScalewayContainersV1beta1TriggerInputTypeScwSqs
   ScalewayContainersV1beta1TriggerInputTypeNats
   ScalewayContainersV1beta1TriggerInputTypeScwNats
+}
+
+pub fn scaleway_containers_v1beta1_trigger_input_type_to_string(value: ScalewayContainersV1beta1TriggerInputType) -> String {
+  case value {
+    ScalewayContainersV1beta1TriggerInputTypeUnknownInputType -> "unknown_input_type"
+    ScalewayContainersV1beta1TriggerInputTypeSqs -> "sqs"
+    ScalewayContainersV1beta1TriggerInputTypeScwSqs -> "scw_sqs"
+    ScalewayContainersV1beta1TriggerInputTypeNats -> "nats"
+    ScalewayContainersV1beta1TriggerInputTypeScwNats -> "scw_nats"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_trigger_input_type_to_json(value: ScalewayContainersV1beta1TriggerInputType) -> json.Json {
+  json.string(scaleway_containers_v1beta1_trigger_input_type_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_trigger_input_type_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerInputType) {
@@ -653,6 +967,24 @@ pub type ScalewayContainersV1beta1TriggerStatus {
   ScalewayContainersV1beta1TriggerStatusLocked
   ScalewayContainersV1beta1TriggerStatusLocking
   ScalewayContainersV1beta1TriggerStatusUpgrading
+}
+
+pub fn scaleway_containers_v1beta1_trigger_status_to_string(value: ScalewayContainersV1beta1TriggerStatus) -> String {
+  case value {
+    ScalewayContainersV1beta1TriggerStatusUnknownStatus -> "unknown_status"
+    ScalewayContainersV1beta1TriggerStatusReady -> "ready"
+    ScalewayContainersV1beta1TriggerStatusDeleting -> "deleting"
+    ScalewayContainersV1beta1TriggerStatusError -> "error"
+    ScalewayContainersV1beta1TriggerStatusCreating -> "creating"
+    ScalewayContainersV1beta1TriggerStatusPending -> "pending"
+    ScalewayContainersV1beta1TriggerStatusLocked -> "locked"
+    ScalewayContainersV1beta1TriggerStatusLocking -> "locking"
+    ScalewayContainersV1beta1TriggerStatusUpgrading -> "upgrading"
+  }
+}
+
+pub fn scaleway_containers_v1beta1_trigger_status_to_json(value: ScalewayContainersV1beta1TriggerStatus) -> json.Json {
+  json.string(scaleway_containers_v1beta1_trigger_status_to_string(value))
 }
 
 pub fn scaleway_containers_v1beta1_trigger_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerStatus) {

@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: array_field_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type TagList {
   TagList(
@@ -15,5 +16,11 @@ pub type TagList {
 pub fn tag_list_decoder() -> decode.Decoder(TagList) {
   use tags <- decode.field("tags", decode.list(decode.string))
   decode.success(TagList(tags:))
+}
+
+pub fn tag_list_to_json(value: TagList) -> json.Json {
+  json.object([
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
+  ])
 }
 

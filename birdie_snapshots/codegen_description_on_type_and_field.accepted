@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: description_on_type_and_field_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 /// A user account.
 pub type User {
@@ -17,5 +18,11 @@ pub type User {
 pub fn user_decoder() -> decode.Decoder(User) {
   use name <- decode.field("name", decode.string)
   decode.success(User(name:))
+}
+
+pub fn user_to_json(value: User) -> json.Json {
+  json.object([
+    #("name", json.string(value.name)),
+  ])
 }
 

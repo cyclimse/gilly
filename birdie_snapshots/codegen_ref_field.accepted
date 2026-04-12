@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: ref_field_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type Pet {
   Pet(
@@ -15,5 +16,11 @@ pub type Pet {
 pub fn pet_decoder() -> decode.Decoder(Pet) {
   use category <- decode.field("category", decode.dynamic)
   decode.success(Pet(category:))
+}
+
+pub fn pet_to_json(value: Pet) -> json.Json {
+  json.object([
+    #("category", json.null()),
+  ])
 }
 

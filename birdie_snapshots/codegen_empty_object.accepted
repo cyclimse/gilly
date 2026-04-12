@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: empty_object_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type EmptyRecord {
   EmptyRecord
@@ -12,5 +13,9 @@ pub type EmptyRecord {
 
 pub fn empty_record_decoder() -> decode.Decoder(EmptyRecord) {
   decode.success(EmptyRecord)
+}
+
+pub fn empty_record_to_json(value: EmptyRecord) -> json.Json {
+  json.object([])
 }
 

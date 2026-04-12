@@ -126,12 +126,13 @@ pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
     doc.join(type_docs, with: doc.lines(2))
     |> doc.append(doc.line)
 
-  // If we discovered any enums, register the decode import
+  // If we discovered any enums, register the decode and json imports
   let state = case dict.is_empty(state.enums) {
     True -> state
     False ->
       state
       |> import_module("gleam/dynamic/decode")
+      |> import_module("gleam/json")
   }
 
   let enums_code = case dict.is_empty(state.enums) {
@@ -271,7 +272,10 @@ fn object_type_doc(
 
   let #(state, decoder) =
     record_decoder_doc(state, type_name, object_schema, all_schemas, config)
-  let result = doc.concat([result, doc.lines(2), decoder])
+  let #(state, encoder) =
+    record_to_json_doc(state, type_name, object_schema, all_schemas, config)
+  let result =
+    doc.concat([result, doc.lines(2), decoder, doc.lines(2), encoder])
 
   #(state, result)
 }
@@ -475,6 +479,222 @@ fn ref_to_decoder(
   }
 }
 
+// --- JSON encoder mapping ----------------------------------------------------
+
+fn schema_to_json_expression(
+  state: State,
+  schema: Schema,
+  accessor: String,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+  optional: Bool,
+) -> #(State, Document) {
+  case optional {
+    True -> {
+      let #(state, encoder_fn) =
+        schema_to_json_encoder_fn(state, schema, all_schemas, enum_name_hint)
+      #(
+        state,
+        doc.concat([
+          doc.from_string("json.nullable(" <> accessor <> ", "),
+          encoder_fn,
+          doc.from_string(")"),
+        ]),
+      )
+    }
+    False ->
+      schema_to_json_expression_inner(
+        state,
+        schema,
+        accessor,
+        all_schemas,
+        enum_name_hint,
+      )
+  }
+}
+
+/// Returns a function-style encoder suitable for use as a callback.
+/// e.g. `json.string`, `json.int`, `pet_to_json`, `fn(v) { ... }`.
+fn schema_to_json_encoder_fn(
+  state: State,
+  schema: Schema,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case schema {
+    schema.String(_, string_schema) ->
+      string_to_json_fn(state, string_schema, enum_name_hint)
+    schema.Integer(_, _) -> #(state, doc.from_string("json.int"))
+    schema.Number(_) -> #(state, doc.from_string("json.float"))
+    schema.Boolean(_) -> #(state, doc.from_string("json.bool"))
+    schema.Array(_, array_schema) -> {
+      let #(state, item_fn) =
+        schema_to_json_encoder_fn(
+          state,
+          array_schema.items,
+          all_schemas,
+          enum_name_hint,
+        )
+      #(
+        state,
+        doc.concat([
+          doc.from_string("json.array(_, "),
+          item_fn,
+          doc.from_string(")"),
+        ]),
+      )
+    }
+    schema.Ref(ref:) -> ref_to_json_fn(state, ref, all_schemas)
+    schema.Object(_, _) -> #(state, doc.from_string("fn(_) { json.null() }"))
+  }
+}
+
+fn string_to_json_fn(
+  state: State,
+  string_schema: StringSchema,
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case string_schema.enum {
+    Some(_) -> {
+      let type_name = to_type_name(enum_name_hint)
+      let to_json_fn = justin.snake_case(type_name) <> "_to_json"
+      #(state, doc.from_string(to_json_fn))
+    }
+    None -> #(state, doc.from_string("json.string"))
+  }
+}
+
+fn ref_to_json_fn(
+  state: State,
+  ref: String,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Document) {
+  let raw_name = case string.split(ref, "/") {
+    [_, _, _, name, ..] -> name
+    _ -> ref
+  }
+  let type_name = to_type_name(raw_name)
+  case list.key_find(all_schemas, raw_name) {
+    Ok(schema.Object(_, _)) -> {
+      let to_json_fn = justin.snake_case(type_name) <> "_to_json"
+      #(state, doc.from_string(to_json_fn))
+    }
+    Ok(schema) ->
+      schema_to_json_encoder_fn(state, schema, all_schemas, type_name)
+    Error(_) -> #(state, doc.from_string("fn(_) { json.null() }"))
+  }
+}
+
+fn schema_to_json_expression_inner(
+  state: State,
+  schema: Schema,
+  accessor: String,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case schema {
+    schema.String(_, string_schema) ->
+      string_to_json(state, string_schema, accessor, enum_name_hint)
+    schema.Integer(_, _) -> #(
+      state,
+      doc.from_string("json.int(" <> accessor <> ")"),
+    )
+    schema.Number(_) -> #(
+      state,
+      doc.from_string("json.float(" <> accessor <> ")"),
+    )
+    schema.Boolean(_) -> #(
+      state,
+      doc.from_string("json.bool(" <> accessor <> ")"),
+    )
+    schema.Array(_, array_schema) ->
+      array_to_json(state, array_schema, accessor, all_schemas, enum_name_hint)
+    schema.Ref(ref:) -> ref_to_json(state, ref, accessor, all_schemas)
+    schema.Object(_, _) -> #(state, doc.from_string("json.null()"))
+  }
+}
+
+fn string_to_json(
+  state: State,
+  string_schema: StringSchema,
+  accessor: String,
+  enum_name_hint: String,
+) -> #(State, Document) {
+  case string_schema.enum {
+    Some(_) -> {
+      let type_name = to_type_name(enum_name_hint)
+      let to_string_fn = justin.snake_case(type_name) <> "_to_string"
+      #(
+        state,
+        doc.from_string(
+          "json.string(" <> to_string_fn <> "(" <> accessor <> "))",
+        ),
+      )
+    }
+    None ->
+      case string_schema.format {
+        Some("binary") -> #(
+          state,
+          doc.from_string("json.string(" <> accessor <> ")"),
+        )
+        _ -> #(state, doc.from_string("json.string(" <> accessor <> ")"))
+      }
+  }
+}
+
+fn array_to_json(
+  state: State,
+  array_schema: ArraySchema,
+  accessor: String,
+  all_schemas: List(#(String, Schema)),
+  enum_name_hint: String,
+) -> #(State, Document) {
+  let #(state, item_encoder) =
+    schema_to_json_expression_inner(
+      state,
+      array_schema.items,
+      "item",
+      all_schemas,
+      enum_name_hint,
+    )
+  #(
+    state,
+    doc.concat([
+      doc.from_string("json.array(" <> accessor <> ", fn(item) { "),
+      item_encoder,
+      doc.from_string(" })"),
+    ]),
+  )
+}
+
+fn ref_to_json(
+  state: State,
+  ref: String,
+  accessor: String,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Document) {
+  let raw_name = case string.split(ref, "/") {
+    [_, _, _, name, ..] -> name
+    _ -> ref
+  }
+  let type_name = to_type_name(raw_name)
+  case list.key_find(all_schemas, raw_name) {
+    Ok(schema.Object(_, _)) -> {
+      let to_json_fn = justin.snake_case(type_name) <> "_to_json"
+      #(state, doc.from_string(to_json_fn <> "(" <> accessor <> ")"))
+    }
+    Ok(schema) ->
+      schema_to_json_expression_inner(
+        state,
+        schema,
+        accessor,
+        all_schemas,
+        type_name,
+      )
+    Error(_) -> #(state, doc.from_string("json.null()"))
+  }
+}
+
 // --- Optionality logic -------------------------------------------------------
 
 fn is_field_optional(
@@ -662,6 +882,79 @@ fn record_decoder_doc(
   #(state, result)
 }
 
+// --- Record encoder codegen --------------------------------------------------
+
+fn record_to_json_doc(
+  state: State,
+  type_name: String,
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, Document) {
+  let state = import_module(state, "gleam/json")
+  let fn_name = justin.snake_case(type_name) <> "_to_json"
+  let indent = config.indent
+
+  let #(state, field_pairs) =
+    list.fold(object_schema.properties, #(state, []), fn(acc, prop) {
+      let #(state, pairs) = acc
+      let #(prop_name, prop_schema) = prop
+      let field_name = to_field_name(prop_name)
+      let in_required = list.contains(object_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      let enum_hint = type_name <> to_type_name(prop_name)
+      let accessor = "value." <> field_name
+      let #(state, json_expr) =
+        schema_to_json_expression(
+          state,
+          prop_schema,
+          accessor,
+          all_schemas,
+          enum_hint,
+          optional,
+        )
+
+      let pair =
+        doc.concat([
+          doc.from_string("#(\"" <> prop_name <> "\", "),
+          json_expr,
+          doc.from_string(")"),
+        ])
+      #(state, [pair, ..pairs])
+    })
+  let field_pairs = list.reverse(field_pairs)
+
+  let body = case field_pairs {
+    [] -> doc.from_string("json.object([])")
+    _ ->
+      doc.concat([
+        doc.from_string("json.object(["),
+        doc.line |> doc.nest(by: indent),
+        doc.join(
+          field_pairs,
+          with: doc.concat([doc.from_string(","), doc.line]),
+        )
+          |> doc.nest(by: indent),
+        doc.concat([doc.from_string(","), doc.line]),
+        doc.from_string("])"),
+      ])
+  }
+
+  let result =
+    doc.concat([
+      doc.from_string(
+        "pub fn " <> fn_name <> "(value: " <> type_name <> ") -> json.Json {",
+      ),
+      doc.line |> doc.nest(by: indent),
+      body |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+
+  #(state, result)
+}
+
 // --- Enum codegen ------------------------------------------------------------
 
 fn separator_comment(value: String) -> Document {
@@ -678,6 +971,10 @@ fn enums_doc(state: State, indent: Int) -> Document {
     let #(type_name, variants) = entry
     doc.concat([
       enum_type_doc(type_name, variants, indent),
+      doc.lines(2),
+      enum_to_string_doc(type_name, variants, indent),
+      doc.lines(2),
+      enum_to_json_doc(type_name, variants, indent),
       doc.lines(2),
       enum_decoder_doc(type_name, variants, indent),
     ])
@@ -699,6 +996,77 @@ fn enum_type_doc(
     doc.from_string("pub type " <> type_name <> " {"),
     doc.line |> doc.nest(by: indent),
     doc.join(variant_docs, with: doc.line)
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn enum_to_string_doc(
+  type_name: String,
+  variants: List(String),
+  indent: Int,
+) -> Document {
+  let fn_name = justin.snake_case(type_name) <> "_to_string"
+  let var_name = "value"
+
+  let case_lines =
+    list.map(variants, fn(v) {
+      doc.concat([
+        doc.from_string(enum_variant_name(type_name, v)),
+        doc.from_string(" -> "),
+        doc.from_string("\"" <> v <> "\""),
+      ])
+    })
+
+  let case_block =
+    doc.concat([
+      doc.from_string("case " <> var_name <> " {"),
+      doc.line |> doc.nest(by: indent),
+      doc.join(case_lines, with: doc.line)
+        |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+
+  doc.concat([
+    doc.from_string(
+      "pub fn "
+      <> fn_name
+      <> "("
+      <> var_name
+      <> ": "
+      <> type_name
+      <> ") -> String {",
+    ),
+    doc.line |> doc.nest(by: indent),
+    case_block |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn enum_to_json_doc(
+  type_name: String,
+  _variants: List(String),
+  indent: Int,
+) -> Document {
+  let fn_name = justin.snake_case(type_name) <> "_to_json"
+  let to_string_fn = justin.snake_case(type_name) <> "_to_string"
+  let var_name = "value"
+
+  doc.concat([
+    doc.from_string(
+      "pub fn "
+      <> fn_name
+      <> "("
+      <> var_name
+      <> ": "
+      <> type_name
+      <> ") -> json.Json {",
+    ),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("json.string(" <> to_string_fn <> "(" <> var_name <> "))")
       |> doc.nest(by: indent),
     doc.line,
     doc.from_string("}"),

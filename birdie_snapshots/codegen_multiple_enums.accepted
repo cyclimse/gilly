@@ -5,6 +5,7 @@ file: ./test/gilly/internal/codegen_test.gleam
 test_name: multiple_enums_test
 ---
 import gleam/dynamic/decode
+import gleam/json
 
 pub type Pet {
   Pet(
@@ -19,6 +20,13 @@ pub fn pet_decoder() -> decode.Decoder(Pet) {
   decode.success(Pet(status:, size:))
 }
 
+pub fn pet_to_json(value: Pet) -> json.Json {
+  json.object([
+    #("status", json.string(pet_status_to_string(value.status))),
+    #("size", json.string(pet_size_to_string(value.size))),
+  ])
+}
+
 
 // --- Enums -------------------------------------------------------------------
 
@@ -26,6 +34,18 @@ pub type PetSize {
   PetSizeSmall
   PetSizeMedium
   PetSizeLarge
+}
+
+pub fn pet_size_to_string(value: PetSize) -> String {
+  case value {
+    PetSizeSmall -> "small"
+    PetSizeMedium -> "medium"
+    PetSizeLarge -> "large"
+  }
+}
+
+pub fn pet_size_to_json(value: PetSize) -> json.Json {
+  json.string(pet_size_to_string(value))
 }
 
 pub fn pet_size_decoder() -> decode.Decoder(PetSize) {
@@ -41,6 +61,17 @@ pub fn pet_size_decoder() -> decode.Decoder(PetSize) {
 pub type PetStatus {
   PetStatusAvailable
   PetStatusSold
+}
+
+pub fn pet_status_to_string(value: PetStatus) -> String {
+  case value {
+    PetStatusAvailable -> "available"
+    PetStatusSold -> "sold"
+  }
+}
+
+pub fn pet_status_to_json(value: PetStatus) -> json.Json {
+  json.string(pet_status_to_string(value))
 }
 
 pub fn pet_status_decoder() -> decode.Decoder(PetStatus) {
