@@ -13,8 +13,8 @@ archives:
     files:
       - gleam.toml
       - manifest.toml
-      - src/**/*
-      - test/**/*
+      - src/
+      - test/
       - LICENSE*
       - README*
 

@@ -1,5 +1,5 @@
 name = "gilly"
-version = "0.1.7"
+version = "0.1.8"
 description = "✨ Generate Gleam SDKs from OpenAPI specifications"
 licences = ["Unlicense"]
 repository = { type = "github", user = "cyclimse", repo = "gilly" }
