@@ -12,7 +12,7 @@ import gleam/option.{type Option, None, Some}
 import gleam/result
 import simplifile
 
-const version = "0.1.7"
+const version = "0.1.8"
 
 type Args {
   Generate(

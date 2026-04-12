@@ -9,6 +9,7 @@ Generate Gleam SDKs from OpenAPI specifications.
 > Gilly is in early development:
 > - many features from the OpenAPI specification are not yet supported
 > - for now, generated code is not guaranteed not to break between Gilly releases
+> 
 > Feedback and contributions are very welcome!
 
 ## Usage
