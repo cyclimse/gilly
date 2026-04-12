@@ -1,0 +1,12 @@
+---
+version: 1.5.4
+title: codegen string enum field
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: string_enum_field_test
+---
+pub type Order {
+  Order(
+    status: String,
+  )
+}
+

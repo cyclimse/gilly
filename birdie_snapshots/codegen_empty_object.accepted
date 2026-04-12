@@ -1,0 +1,10 @@
+---
+version: 1.5.4
+title: codegen empty object
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: empty_object_test
+---
+pub type EmptyRecord {
+  EmptyRecord
+}
+

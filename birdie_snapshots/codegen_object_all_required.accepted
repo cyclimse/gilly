@@ -1,0 +1,13 @@
+---
+version: 1.5.4
+title: codegen object all required
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: object_all_required_test
+---
+pub type User {
+  User(
+    name: String,
+    age: Int,
+  )
+}
+

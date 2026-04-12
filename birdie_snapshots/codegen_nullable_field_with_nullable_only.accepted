@@ -1,0 +1,15 @@
+---
+version: 1.5.4
+title: codegen nullable field with NullableOnly
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: nullable_field_with_nullable_only_test
+---
+import gleam/option.{type Option}
+
+pub type Config {
+  Config(
+    name: String,
+    label: Option(String),
+  )
+}
+

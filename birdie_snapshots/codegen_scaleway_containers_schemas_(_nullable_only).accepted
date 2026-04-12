@@ -2,6 +2,9 @@
 version: 1.5.4
 title: Codegen Scaleway Containers Schemas (NullableOnly)
 ---
+import gleam/dynamic.{type Dynamic}
+import gleam/option.{type Option}
+
 pub type GoogleProtobufStringValue =
   String
 

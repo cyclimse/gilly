@@ -1,0 +1,12 @@
+---
+version: 1.5.4
+title: codegen ref field
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: ref_field_test
+---
+pub type Pet {
+  Pet(
+    category: Category,
+  )
+}
+

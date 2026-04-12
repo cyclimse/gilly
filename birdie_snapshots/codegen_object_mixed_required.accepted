@@ -1,0 +1,15 @@
+---
+version: 1.5.4
+title: codegen object mixed required
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: object_mixed_required_test
+---
+import gleam/option.{type Option}
+
+pub type User {
+  User(
+    name: String,
+    email: Option(String),
+  )
+}
+

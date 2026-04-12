@@ -1,0 +1,12 @@
+---
+version: 1.5.4
+title: codegen boolean field
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: boolean_field_test
+---
+pub type Feature {
+  Feature(
+    enabled: Bool,
+  )
+}
+

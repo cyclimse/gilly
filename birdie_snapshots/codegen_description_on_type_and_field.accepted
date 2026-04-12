@@ -1,0 +1,14 @@
+---
+version: 1.5.4
+title: codegen description on type and field
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: description_on_type_and_field_test
+---
+/// A user account.
+pub type User {
+  User(
+    /// The user's display name.
+    name: String,
+  )
+}
+

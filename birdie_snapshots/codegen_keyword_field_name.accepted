@@ -1,0 +1,12 @@
+---
+version: 1.5.4
+title: codegen keyword field name
+file: ./test/gilly/codegen_unit_test.gleam
+test_name: keyword_field_name_test
+---
+pub type Resource {
+  Resource(
+    type_: String,
+  )
+}
+
