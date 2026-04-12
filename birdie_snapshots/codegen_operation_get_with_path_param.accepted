@@ -1,35 +1,28 @@
 ---
 version: 1.5.4
-title: Codegen Simple Schema
+title: codegen operation get with path param
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: get_with_path_param_test
 ---
-import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/http
 import gleam/http/request
 import gleam/http/response
+import gleam/int
 import gleam/json
 import gleam/result
 
-
-
-
-// --- Operations --------------------------------------------------------------
-
-pub type ApiError(err) {
-  JsonDecodeError(json.DecodeError)
-  ClientError(err)
-}
-
-/// Say hello.
-pub fn say_hello(
+/// Find pet by ID
+pub fn get_pet_by_id(
   client: fn(request.Request(String)) -> Result(response.Response(String), err),
   base_url: String,
-) -> Result(Dynamic, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/hello")
+  pet_id: Int,
+) -> Result(Pet, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/pet/" <> int.to_string(pet_id))
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, decode.dynamic)
+  json.parse(resp.body, pet_decoder())
   |> result.map_error(JsonDecodeError)
 }
 

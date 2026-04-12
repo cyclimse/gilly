@@ -1,4 +1,5 @@
-import gilly/openapi/openapi.{type OpenAPI}
+import gilly/openapi/openapi.{type OpenAPI, type PathItem}
+import gilly/openapi/operation.{type Operation, type Parameter, Path, Query}
 import gilly/openapi/schema.{
   type ArraySchema, type BaseSchema, type ObjectSchema, type Schema,
   type StringSchema,
@@ -106,21 +107,80 @@ fn imports_doc(state: State, indent: Int) -> Document {
 
 // --- Public API --------------------------------------------------------------
 
+/// Generate Gleam source code for both schema types and operations from an
+/// OpenAPI spec, with a single shared import block.
+///
+pub fn generate(spec: OpenAPI, config: Config) -> String {
+  let schemas = extract_schemas(spec)
+  let state = default_state()
+
+  // 1. Generate schema types
+  let #(state, type_docs) = generate_schema_docs(state, schemas, config)
+
+  let types_code =
+    doc.join(type_docs, with: doc.lines(2))
+    |> doc.append(doc.line)
+
+  // Register enum imports if needed
+  let state = case dict.is_empty(state.enums) {
+    True -> state
+    False ->
+      state
+      |> import_module("gleam/dynamic/decode")
+      |> import_module("gleam/json")
+  }
+
+  let enums_code = case dict.is_empty(state.enums) {
+    True -> doc.empty
+    False ->
+      doc.concat([
+        doc.lines(2),
+        separator_comment("Enums"),
+        doc.lines(2),
+        enums_doc(state, config.indent),
+      ])
+  }
+
+  // 2. Generate operations
+  let #(state, op_docs) = generate_operation_docs(state, spec, schemas, config)
+
+  let ops_code = case op_docs {
+    [] -> doc.empty
+    _ ->
+      doc.concat([
+        doc.lines(2),
+        separator_comment("Operations"),
+        doc.lines(2),
+        api_error_doc(config.indent),
+        doc.lines(2),
+        doc.join(op_docs, with: doc.lines(2)),
+        doc.line,
+      ])
+  }
+
+  // 3. Assemble with single import block
+  let code = case dict.is_empty(state.imports) {
+    True -> doc.concat([types_code, enums_code, ops_code])
+    False ->
+      doc.concat([
+        imports_doc(state, config.indent),
+        doc.lines(2),
+        types_code,
+        enums_code,
+        ops_code,
+      ])
+  }
+
+  doc.to_string(code, 80)
+}
+
 /// Generate Gleam source code for the schema types in an OpenAPI spec.
 ///
 pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
   let schemas = extract_schemas(spec)
   let state = default_state()
 
-  let #(state, type_docs) =
-    list.fold(schemas, #(state, []), fn(acc, entry) {
-      let #(state, docs) = acc
-      let #(name, schema) = entry
-      let #(state, type_doc) =
-        schema_to_type_doc(state, name, schema, schemas, config)
-      #(state, [type_doc, ..docs])
-    })
-  let type_docs = list.reverse(type_docs)
+  let #(state, type_docs) = generate_schema_docs(state, schemas, config)
 
   let types_code =
     doc.join(type_docs, with: doc.lines(2))
@@ -160,10 +220,529 @@ pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
   doc.to_string(code, 80)
 }
 
+/// Generate Gleam source code for the operations (API client functions) in an
+/// OpenAPI spec. Each operation becomes a function that takes a generic HTTP
+/// client callback, enabling any HTTP library to be used.
+///
+pub fn generate_operations(spec: OpenAPI, config: Config) -> String {
+  let schemas = extract_schemas(spec)
+  let state = default_state()
+
+  let #(state, op_docs) = generate_operation_docs(state, spec, schemas, config)
+
+  let code = case op_docs {
+    [] -> doc.empty
+    _ ->
+      doc.concat([
+        imports_doc(state, config.indent),
+        doc.lines(2),
+        doc.join(op_docs, with: doc.lines(2)),
+        doc.line,
+      ])
+  }
+
+  doc.to_string(code, 80)
+}
+
+fn generate_schema_docs(
+  state: State,
+  schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document)) {
+  let #(state, type_docs) =
+    list.fold(schemas, #(state, []), fn(acc, entry) {
+      let #(state, docs) = acc
+      let #(name, schema) = entry
+      let #(state, type_doc) =
+        schema_to_type_doc(state, name, schema, schemas, config)
+      #(state, [type_doc, ..docs])
+    })
+  #(state, list.reverse(type_docs))
+}
+
+fn generate_operation_docs(
+  state: State,
+  spec: OpenAPI,
+  schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document)) {
+  let state = import_module(state, "gleam/http/request")
+  let state = import_module(state, "gleam/http/response")
+  let state = import_module(state, "gleam/http")
+  let state = import_module(state, "gleam/result")
+
+  list.fold(spec.paths, #(state, []), fn(acc, path_entry) {
+    let #(state, docs) = acc
+    let #(path, path_item) = path_entry
+    let #(state, path_docs) =
+      path_item_to_docs(state, path, path_item, schemas, config)
+    #(state, list.append(docs, path_docs))
+  })
+}
+
 fn extract_schemas(spec: OpenAPI) -> List(#(String, Schema)) {
   spec.components
   |> option.map(fn(c) { c.schemas })
   |> option.unwrap([])
+}
+
+// --- Operation generation ----------------------------------------------------
+
+fn api_error_doc(indent: Int) -> Document {
+  doc.concat([
+    doc.from_string("pub type ApiError(err) {"),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("JsonDecodeError(json.DecodeError)")
+      |> doc.nest(by: indent),
+    doc.line |> doc.nest(by: indent),
+    doc.from_string("ClientError(err)") |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn path_item_to_docs(
+  state: State,
+  path: String,
+  path_item: PathItem,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document)) {
+  let methods = [
+    #("Get", path_item.get),
+    #("Post", path_item.post),
+    #("Put", path_item.put),
+    #("Delete", path_item.delete),
+    #("Patch", path_item.patch),
+  ]
+
+  list.fold(methods, #(state, []), fn(acc, method_entry) {
+    let #(state, docs) = acc
+    let #(method, op) = method_entry
+    case op {
+      Some(operation) -> {
+        let #(state, op_doc) =
+          operation_doc(state, path, method, operation, all_schemas, config)
+        #(state, list.append(docs, [op_doc]))
+      }
+      None -> #(state, docs)
+    }
+  })
+}
+
+fn operation_doc(
+  state: State,
+  path: String,
+  method: String,
+  op: Operation,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, Document) {
+  let indent = config.indent
+  let fn_name = operation_fn_name(op, path, method)
+
+  // Separate path and query parameters
+  let path_params = list.filter(op.parameters, fn(p) { p.in_ == Path })
+  let query_params = list.filter(op.parameters, fn(p) { p.in_ == Query })
+
+  // Build the request body type (if any)
+  let #(state, body_param) = case op.request_body {
+    Some(rb) -> request_body_param(state, rb, all_schemas)
+    None -> #(state, None)
+  }
+
+  // Build the response type from the 200/201 response
+  let #(state, response_type) = response_type_from_op(state, op, all_schemas)
+
+  // Build function arguments
+  let client_arg =
+    doc.from_string(
+      "client: fn(request.Request(String)) -> Result(response.Response(String), err)",
+    )
+  let base_url_arg = doc.from_string("base_url: String")
+
+  let #(state, param_args) =
+    list.fold(path_params, #(state, []), fn(acc, param) {
+      let #(state, args) = acc
+      let #(state, type_doc) = param_to_type(state, param, all_schemas)
+      let arg =
+        doc.concat([
+          doc.from_string(to_field_name(param.name) <> ": "),
+          type_doc,
+        ])
+      #(state, list.append(args, [arg]))
+    })
+
+  // Query params are always String
+  let query_args =
+    list.map(query_params, fn(param) {
+      doc.from_string(to_field_name(param.name) <> ": String")
+    })
+
+  let #(state, body_args) = case body_param {
+    Some(#(arg_name, type_doc, _schema)) -> {
+      let arg =
+        doc.concat([
+          doc.from_string(arg_name <> ": "),
+          type_doc,
+        ])
+      #(state, [arg])
+    }
+    None -> #(state, [])
+  }
+
+  let all_args =
+    [client_arg, base_url_arg]
+    |> list.append(param_args)
+    |> list.append(query_args)
+    |> list.append(body_args)
+
+  // Build URL expression with path parameter substitution
+  let url_expr = build_url_expression(path, path_params)
+
+  // Build the function body
+  let state = import_module(state, "gleam/dynamic/decode")
+  let state = import_module(state, "gleam/json")
+
+  // Import gleam/int if any path param is an integer
+  let has_int_path_param =
+    list.any(path_params, fn(p) {
+      case p.schema {
+        Some(schema.Integer(_, _)) -> True
+        _ -> False
+      }
+    })
+  let state = case has_int_path_param {
+    True -> import_module(state, "gleam/int")
+    False -> state
+  }
+
+  let req_lines =
+    build_request_lines(state, method, query_params, body_param, all_schemas)
+
+  let #(state, decode_line) =
+    build_decode_line(state, response_type, all_schemas)
+
+  let body_lines =
+    list.flatten([
+      [url_expr],
+      req_lines,
+      [decode_line],
+    ])
+
+  // Build return type
+  let return_type = case response_type {
+    Some(#(type_doc, _schema)) ->
+      doc.concat([
+        doc.from_string("Result("),
+        type_doc,
+        doc.from_string(", ApiError(err))"),
+      ])
+    None -> doc.from_string("Result(Nil, ApiError(err))")
+  }
+
+  // Add description comment
+  let comment = case op.summary {
+    Some(summary) ->
+      doc.concat([
+        doc.from_string("/// " <> summary),
+        doc.line,
+      ])
+    None ->
+      case op.description {
+        Some(desc) ->
+          doc.concat([
+            description_to_comment(desc),
+            doc.line,
+          ])
+        None -> doc.empty
+      }
+  }
+
+  let fn_doc =
+    doc.concat([
+      comment,
+      doc.from_string("pub fn " <> fn_name <> "("),
+      doc.line |> doc.nest(by: indent),
+      doc.join(all_args, with: doc.concat([doc.from_string(","), doc.line]))
+        |> doc.nest(by: indent),
+      doc.concat([doc.from_string(","), doc.line]),
+      doc.from_string(") -> "),
+      return_type,
+      doc.from_string(" {"),
+      doc.line |> doc.nest(by: indent),
+      doc.join(body_lines, with: doc.line)
+        |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+
+  #(state, fn_doc)
+}
+
+fn operation_fn_name(op: Operation, path: String, method: String) -> String {
+  case op.operation_id {
+    Some(id) -> justin.snake_case(id)
+    None -> {
+      // Fallback: method + path
+      let clean_path =
+        string.replace(path, "{", "")
+        |> string.replace("}", "")
+        |> string.replace("/", "_")
+      justin.snake_case(string.lowercase(method) <> clean_path)
+    }
+  }
+}
+
+fn param_to_type(
+  state: State,
+  param: Parameter,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Document) {
+  case param.schema {
+    Some(schema) ->
+      schema_to_gleam_type(
+        state,
+        schema,
+        param.required,
+        all_schemas,
+        param.name,
+      )
+    None -> #(state, doc.from_string("String"))
+  }
+}
+
+fn request_body_param(
+  state: State,
+  rb: operation.RequestBody,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Option(#(String, Document, Schema))) {
+  // Look for application/json content
+  case list.key_find(rb.content, "application/json") {
+    Ok(media_type) ->
+      case media_type.schema {
+        Some(body_schema) -> {
+          let #(state, type_doc) =
+            schema_to_gleam_type(state, body_schema, True, all_schemas, "body")
+          #(state, Some(#("body", type_doc, body_schema)))
+        }
+        None -> #(state, None)
+      }
+    Error(_) -> #(state, None)
+  }
+}
+
+fn response_type_from_op(
+  state: State,
+  op: Operation,
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Option(#(Document, Schema))) {
+  // Try 200, then 201, then "default"
+  let response =
+    list.key_find(op.responses, "200")
+    |> result_or(fn() { list.key_find(op.responses, "201") })
+    |> result_or(fn() { list.key_find(op.responses, "default") })
+
+  case response {
+    Ok(resp) ->
+      case list.key_find(resp.content, "application/json") {
+        Ok(media_type) ->
+          case media_type.schema {
+            Some(resp_schema) -> {
+              let #(state, type_doc) =
+                schema_to_gleam_type(
+                  state,
+                  resp_schema,
+                  True,
+                  all_schemas,
+                  "response",
+                )
+              #(state, Some(#(type_doc, resp_schema)))
+            }
+            None -> #(state, None)
+          }
+        Error(_) -> #(state, None)
+      }
+    Error(_) -> #(state, None)
+  }
+}
+
+fn result_or(
+  result: Result(a, e),
+  alternative: fn() -> Result(a, e),
+) -> Result(a, e) {
+  case result {
+    Ok(_) -> result
+    Error(_) -> alternative()
+  }
+}
+
+fn build_url_expression(path: String, path_params: List(Parameter)) -> Document {
+  // Split path on {param} segments and build a string concatenation
+  case path_params {
+    [] ->
+      doc.from_string(
+        "let assert Ok(req) = request.to(base_url <> \"" <> path <> "\")",
+      )
+    _ -> {
+      let url_parts = build_path_parts(path, path_params)
+      doc.concat([
+        doc.from_string("let assert Ok(req) = request.to(base_url <> "),
+        url_parts,
+        doc.from_string(")"),
+      ])
+    }
+  }
+}
+
+fn build_path_parts(path: String, params: List(Parameter)) -> Document {
+  // Replace {param} with string concatenation
+  let parts = split_path_on_params(path, params, [])
+  doc.join(parts, with: doc.from_string(" <> "))
+}
+
+fn split_path_on_params(
+  remaining: String,
+  params: List(Parameter),
+  acc: List(Document),
+) -> List(Document) {
+  case find_next_param(remaining, params) {
+    Some(#(before, param, after)) -> {
+      let param_name = to_field_name(param.name)
+      let has_int_type = case param.schema {
+        Some(schema.Integer(_, _)) -> True
+        _ -> False
+      }
+      let before_parts = case before {
+        "" -> acc
+        _ -> list.append(acc, [doc.from_string("\"" <> before <> "\"")])
+      }
+      let param_expr = case has_int_type {
+        True -> doc.from_string("int.to_string(" <> param_name <> ")")
+        False -> doc.from_string(param_name)
+      }
+      split_path_on_params(
+        after,
+        params,
+        list.append(before_parts, [param_expr]),
+      )
+    }
+    None ->
+      case remaining {
+        "" -> acc
+        _ -> list.append(acc, [doc.from_string("\"" <> remaining <> "\"")])
+      }
+  }
+}
+
+fn find_next_param(
+  path: String,
+  params: List(Parameter),
+) -> Option(#(String, Parameter, String)) {
+  case string.split_once(path, "{") {
+    Ok(#(before, rest)) ->
+      case string.split_once(rest, "}") {
+        Ok(#(param_name, after)) ->
+          case list.find(params, fn(p) { p.name == param_name }) {
+            Ok(param) -> Some(#(before, param, after))
+            Error(_) -> None
+          }
+        Error(_) -> None
+      }
+    Error(_) -> None
+  }
+}
+
+fn build_request_lines(
+  state: State,
+  method: String,
+  query_params: List(Parameter),
+  body_param: Option(#(String, Document, Schema)),
+  all_schemas: List(#(String, Schema)),
+) -> List(Document) {
+  let method_line =
+    doc.from_string("let req = request.set_method(req, http." <> method <> ")")
+
+  let header_line =
+    doc.from_string(
+      "let req = request.prepend_header(req, \"content-type\", \"application/json\")",
+    )
+
+  let body_line = case body_param {
+    Some(#(arg_name, _, body_schema)) -> {
+      let #(_state, encode_expr) =
+        schema_to_json_expression_inner(
+          state,
+          body_schema,
+          arg_name,
+          all_schemas,
+          arg_name,
+        )
+      let encode_str = doc.to_string(encode_expr, 80)
+      [
+        doc.from_string(
+          "let req = request.set_body(req, json.to_string("
+          <> encode_str
+          <> "))",
+        ),
+      ]
+    }
+    None -> []
+  }
+
+  let query_lines =
+    list.map(query_params, fn(param) {
+      let param_name = to_field_name(param.name)
+      doc.from_string(
+        "let req = request.set_query(req, [#(\""
+        <> param.name
+        <> "\", "
+        <> param_name
+        <> "), ..request.get_query(req) |> result.unwrap([])])",
+      )
+    })
+
+  [method_line, header_line]
+  |> list.append(body_line)
+  |> list.append(query_lines)
+}
+
+fn build_decode_line(
+  state: State,
+  response_type: Option(#(Document, Schema)),
+  all_schemas: List(#(String, Schema)),
+) -> #(State, Document) {
+  case response_type {
+    Some(#(_type_doc, resp_schema)) -> {
+      let #(state, decoder_doc) =
+        schema_to_inner_decoder(state, resp_schema, all_schemas, "response")
+      let decoder_str = doc.to_string(decoder_doc, 80)
+      #(
+        state,
+        doc.concat([
+          doc.from_string(
+            "use resp <- result.try(client(req) |> result.map_error(ClientError))",
+          ),
+          doc.line,
+          doc.from_string("json.parse(resp.body, " <> decoder_str <> ")"),
+          doc.line,
+          doc.from_string("|> result.map_error(JsonDecodeError)"),
+        ]),
+      )
+    }
+    None -> #(
+      state,
+      doc.concat([
+        doc.from_string(
+          "use resp <- result.try(client(req) |> result.map_error(ClientError))",
+        ),
+        doc.line,
+        doc.from_string("let _ = resp"),
+        doc.line,
+        doc.from_string("Ok(Nil)"),
+      ]),
+    )
+  }
 }
 
 // --- Type generation ---------------------------------------------------------

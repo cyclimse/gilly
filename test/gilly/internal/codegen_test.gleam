@@ -1,6 +1,12 @@
 import birdie
 import gilly/internal/codegen
-import gilly/openapi/openapi.{type OpenAPI, Components, Info, OpenAPI}
+import gilly/openapi/openapi.{
+  type OpenAPI, type PathItem, Components, Info, OpenAPI, PathItem,
+}
+import gilly/openapi/operation.{
+  type Operation, MediaType, Operation, Parameter, Path, Query, RequestBody,
+  Response,
+}
 import gilly/openapi/schema.{
   type BaseSchema, ArraySchema, BaseSchema, BooleanType, IntegerSchema,
   IntegerType, ObjectSchema, ObjectType, StringSchema, StringType,
@@ -436,4 +442,313 @@ pub fn boolean_field_test() {
   ])
   |> generate
   |> birdie.snap(title: "codegen boolean field")
+}
+
+// --- Operation generation ----------------------------------------------------
+
+fn empty_path_item() -> PathItem {
+  PathItem(get: None, post: None, put: None, delete: None, patch: None)
+}
+
+fn empty_operation(operation_id: String) -> Operation {
+  Operation(
+    operation_id: Some(operation_id),
+    summary: None,
+    description: None,
+    tags: [],
+    parameters: [],
+    request_body: None,
+    responses: [],
+  )
+}
+
+fn spec_with_paths(
+  paths: List(#(String, PathItem)),
+  schemas: List(#(String, schema.Schema)),
+) -> OpenAPI {
+  OpenAPI(
+    version: v3(),
+    info: Info(title: "Test", version: "1.0.0", description: None),
+    paths: paths,
+    components: Some(Components(schemas:)),
+  )
+}
+
+fn generate_ops(spec: OpenAPI) -> String {
+  let config = codegen.Config(optionality: codegen.RequiredOnly, indent: 2)
+  codegen.generate_operations(spec, config)
+}
+
+pub fn simple_get_no_params_test() {
+  spec_with_paths(
+    [
+      #(
+        "/store/inventory",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("getInventory"),
+              summary: Some("Returns pet inventories"),
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation simple get no params")
+}
+
+pub fn get_with_path_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet/{petId}",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("getPetById"),
+              summary: Some("Find pet by ID"),
+              parameters: [
+                Parameter(
+                  name: "petId",
+                  in_: Path,
+                  description: Some("ID of pet to return"),
+                  required: True,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Ref(ref: "#/components/schemas/Pet")),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [
+      #(
+        "Pet",
+        schema.Object(
+          base(ObjectType),
+          ObjectSchema(required: ["name"], properties: [
+            #(
+              "name",
+              schema.String(
+                base(StringType),
+                StringSchema(
+                  min_length: None,
+                  max_length: None,
+                  enum: None,
+                  format: None,
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with path param")
+}
+
+pub fn get_with_query_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet/findByStatus",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("findPetsByStatus"),
+              summary: Some("Finds pets by status"),
+              parameters: [
+                Parameter(
+                  name: "status",
+                  in_: Query,
+                  description: Some("Status values"),
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Array(
+                          base(schema.ArrayType),
+                          ArraySchema(
+                            min_items: None,
+                            max_items: None,
+                            items: schema.Ref(ref: "#/components/schemas/Pet"),
+                          ),
+                        )),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [
+      #(
+        "Pet",
+        schema.Object(
+          base(ObjectType),
+          ObjectSchema(required: ["name"], properties: [
+            #(
+              "name",
+              schema.String(
+                base(StringType),
+                StringSchema(
+                  min_length: None,
+                  max_length: None,
+                  enum: None,
+                  format: None,
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with query param")
+}
+
+pub fn post_with_request_body_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet",
+        PathItem(
+          ..empty_path_item(),
+          post: Some(
+            Operation(
+              ..empty_operation("addPet"),
+              summary: Some("Add a new pet"),
+              request_body: Some(
+                RequestBody(
+                  description: Some("Pet object"),
+                  required: True,
+                  content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Ref(ref: "#/components/schemas/Pet")),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              responses: [
+                #(
+                  "200",
+                  Response(description: "Successful operation", content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Ref(ref: "#/components/schemas/Pet")),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [
+      #(
+        "Pet",
+        schema.Object(
+          base(ObjectType),
+          ObjectSchema(required: ["name"], properties: [
+            #(
+              "name",
+              schema.String(
+                base(StringType),
+                StringSchema(
+                  min_length: None,
+                  max_length: None,
+                  enum: None,
+                  format: None,
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation post with request body")
+}
+
+pub fn delete_with_path_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet/{petId}",
+        PathItem(
+          ..empty_path_item(),
+          delete: Some(
+            Operation(
+              ..empty_operation("deletePet"),
+              summary: Some("Deletes a pet"),
+              parameters: [
+                Parameter(
+                  name: "petId",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation delete with path param")
 }

@@ -4,8 +4,12 @@ title: Codegen Scaleway Containers Schemas (NullableOnly)
 ---
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
+import gleam/http
+import gleam/http/request
+import gleam/http/response
 import gleam/json
 import gleam/option.{None, type Option}
+import gleam/result
 
 pub type GoogleProtobufStringValue =
   String
@@ -1001,3 +1005,514 @@ pub fn scaleway_containers_v1beta1_trigger_status_decoder() -> decode.Decoder(Sc
     _ -> decode.failure(ScalewayContainersV1beta1TriggerStatusUnknownStatus, "ScalewayContainersV1beta1TriggerStatus")
   }
 }
+
+// --- Operations --------------------------------------------------------------
+
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+/// List all your containers
+pub fn list_containers(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+  namespace_id: String,
+  name: String,
+  organization_id: String,
+  project_id: String,
+) -> Result(ScalewayContainersV1beta1ListContainersResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("namespace_id", namespace_id), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("name", name), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("organization_id", organization_id), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("project_id", project_id), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_containers_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a new container
+pub fn create_container(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a container
+pub fn get_container(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  container_id: String,
+) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> container_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete a container
+pub fn delete_container(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  container_id: String,
+) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> container_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Update an existing container
+pub fn update_container(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  container_id: String,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> container_id)
+  let req = request.set_method(req, http.Patch)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Deploy a container
+pub fn deploy_container(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  container_id: String,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> container_id <> "/deploy")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// List all your crons
+pub fn list_crons(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+  container_id: String,
+) -> Result(ScalewayContainersV1beta1ListCronsResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("container_id", container_id), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_crons_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a new cron
+pub fn create_cron(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a cron
+pub fn get_cron(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  cron_id: String,
+) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> cron_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete an existing cron
+pub fn delete_cron(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  cron_id: String,
+) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> cron_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Update an existing cron
+pub fn update_cron(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  cron_id: String,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> cron_id)
+  let req = request.set_method(req, http.Patch)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// List all custom domains
+pub fn list_domains(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+  container_id: String,
+) -> Result(ScalewayContainersV1beta1ListDomainsResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("container_id", container_id), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_domains_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a custom domain
+pub fn create_domain(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a custom domain
+pub fn get_domain(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  domain_id: String,
+) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> domain_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete a custom domain
+pub fn delete_domain(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  domain_id: String,
+) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> domain_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// List all your namespaces
+pub fn list_namespaces(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+  name: String,
+  organization_id: String,
+  project_id: String,
+) -> Result(ScalewayContainersV1beta1ListNamespacesResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("name", name), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("organization_id", organization_id), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("project_id", project_id), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_namespaces_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a new namespace
+pub fn create_namespace(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a namespace
+pub fn get_namespace(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  namespace_id: String,
+) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> namespace_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete an existing namespace
+pub fn delete_namespace(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  namespace_id: String,
+) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> namespace_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Update an existing namespace
+pub fn update_namespace(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  namespace_id: String,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> namespace_id)
+  let req = request.set_method(req, http.Patch)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// List all tokens
+pub fn list_tokens(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+  container_id: String,
+  namespace_id: String,
+) -> Result(ScalewayContainersV1beta1ListTokensResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("container_id", container_id), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("namespace_id", namespace_id), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_tokens_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a new revocable token
+pub fn create_token(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a token
+pub fn get_token(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  token_id: String,
+) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> token_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete a token
+pub fn delete_token(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  token_id: String,
+) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> token_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// List all triggers
+pub fn list_triggers(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  page: String,
+  page_size: String,
+  order_by: String,
+) -> Result(ScalewayContainersV1beta1ListTriggersResponse, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_query(req, [#("page", page), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("page_size", page_size), ..request.get_query(req) |> result.unwrap([])])
+  let req = request.set_query(req, [#("order_by", order_by), ..request.get_query(req) |> result.unwrap([])])
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_list_triggers_response_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Create a trigger
+pub fn create_trigger(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Get a trigger
+pub fn get_trigger(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  trigger_id: String,
+) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> trigger_id)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Delete a trigger
+pub fn delete_trigger(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  trigger_id: String,
+) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> trigger_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+/// Update a trigger
+pub fn update_trigger(
+  client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  base_url: String,
+  region: Region,
+  trigger_id: String,
+  body: Dynamic,
+) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> trigger_id)
+  let req = request.set_method(req, http.Patch)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(json.null()))
+  use resp <- result.try(client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+

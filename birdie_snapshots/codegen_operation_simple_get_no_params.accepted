@@ -1,8 +1,9 @@
 ---
 version: 1.5.4
-title: Codegen Simple Schema
+title: codegen operation simple get no params
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: simple_get_no_params_test
 ---
-import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/http
 import gleam/http/request
@@ -10,26 +11,16 @@ import gleam/http/response
 import gleam/json
 import gleam/result
 
-
-
-
-// --- Operations --------------------------------------------------------------
-
-pub type ApiError(err) {
-  JsonDecodeError(json.DecodeError)
-  ClientError(err)
-}
-
-/// Say hello.
-pub fn say_hello(
+/// Returns pet inventories
+pub fn get_inventory(
   client: fn(request.Request(String)) -> Result(response.Response(String), err),
   base_url: String,
-) -> Result(Dynamic, ApiError(err)) {
-  let assert Ok(req) = request.to(base_url <> "/hello")
+) -> Result(Nil, ApiError(err)) {
+  let assert Ok(req) = request.to(base_url <> "/store/inventory")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, decode.dynamic)
-  |> result.map_error(JsonDecodeError)
+  let _ = resp
+  Ok(Nil)
 }
 

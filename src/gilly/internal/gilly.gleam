@@ -82,5 +82,5 @@ fn generate_header(source: String) -> String {
 pub fn generate_code(builder: Builder, spec: OpenAPI) -> String {
   let config =
     codegen.Config(optionality: builder.optionality, indent: builder.indent)
-  codegen.generate_schemas(spec, config)
+  codegen.generate(spec, config)
 }
