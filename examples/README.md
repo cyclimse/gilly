@@ -1,6 +1,6 @@
 # Gilly examples
 
-A [Makefile](Makefile) is provided for convenience.
+Examples of generated clients using Gilly.
 
 ## Pet Store
 
