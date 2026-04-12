@@ -7,11 +7,13 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
-  publish:
-    name: Publish to Hex
+  goreleaser:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v6
 
@@ -24,22 +26,6 @@ jobs:
       - run: gleam deps download
 
       - run: gleam build
-
-      - run: echo 'I am not using semantic versioning' | gleam publish -y
-        env:
-          HEXPM_API_KEY: ${{ secrets.HEXPM_API_KEY }}
-
-  # In the future, it would be good to figure out how to publish to Hex using goreleaser.
-  # ...But for now, this is okay :davidgoodenough:
-  goreleaser:
-    runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      attestations: write
-
-    steps:
-      - uses: actions/checkout@v6
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

@@ -1,5 +1,21 @@
+version: 2
+
+project_name: gilly
+
+builds:
+  # Not doing GoReleaser's default build, since we don't have any Go code to build.
+  - skip: true
+
 checksum:
   name_template: "checksums.txt"
+
+publishers:
+  - name: Hex
+    # use a custom publish command since goreleaser doesn't have built-in support for publishing to Hex.
+    cmd: |
+      echo 'I am not using semantic versioning' | gleam publish -y
+    env:
+      - HEXPM_API_KEY=${{ .Env.HEXPM_API_KEY }}
 
 archives:
   - formats: [tar.gz]
