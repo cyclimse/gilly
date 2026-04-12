@@ -37,6 +37,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEXPM_API_KEY: ${{ secrets.HEXPM_API_KEY }}
 
       - uses: actions/attest@v4
         with:
