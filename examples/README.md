@@ -5,7 +5,7 @@
 Generate Gleam types from the Scaleway OpenAPI spec:
 
 ```bash
-gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/schemas.gleam --optionality NullableOnly
+gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/schema.gleam --optionality NullableOnly
 ```
 
 Export your Scaleway API key as an environment variable:
