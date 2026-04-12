@@ -3,6 +3,7 @@ version: 1.5.4
 title: Codegen Scaleway Containers Schemas (NullableOnly)
 ---
 import gleam/dynamic.{type Dynamic}
+import gleam/dynamic/decode
 import gleam/option.{type Option}
 
 pub type GoogleProtobufStringValue =
@@ -34,7 +35,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Possible values:
     /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
     /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: String,
+    http_option: UnknownHttpOptionEnabledRedirected,
     /// UUID of the container.
     id: String,
     /// Local storage limit of the container (in MB).
@@ -54,12 +55,12 @@ pub type ScalewayContainersV1beta1Container {
     /// Port the container listens on.
     port: Int,
     /// Privacy setting of the container.
-    privacy: String,
+    privacy: UnknownPrivacyPublicPrivate,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
     private_network_id: Option(String),
     /// Protocol the container uses.
-    protocol: String,
+    protocol: UnknownProtocolHttp1H2c,
     /// Last date when the container was successfully deployed and set to ready. (RFC 3339 format)
     ready_at: Option(String),
     /// Region in which the container will be deployed.
@@ -67,7 +68,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
     registry_image: String,
     /// Execution environment of the container.
-    sandbox: String,
+    sandbox: UnknownSandboxV1V2,
     /// Configuration used to decide when to scale up or down.
     /// Possible values:
     /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
@@ -77,7 +78,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Secret environment variables of the container.
     secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the container.
-    status: String,
+    status: UnknownReadyDeletingErrorLockedCreatingPendingCreatedLockingUpgrading,
     /// List of tags applied to the Serverless Container.
     tags: List(String),
     /// Processing time limit for the container. (in seconds)
@@ -100,7 +101,7 @@ pub type ScalewayContainersV1beta1Cron {
     /// UNIX cron schedule.
     schedule: String,
     /// Status of the cron.
-    status: String,
+    status: UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgradingRebalancing,
   )
 }
 
@@ -115,7 +116,7 @@ pub type ScalewayContainersV1beta1Domain {
     /// UUID of the domain.
     id: String,
     /// Status of the domain.
-    status: String,
+    status: UnknownReadyDeletingErrorCreatingPendingLockedLockingUpgrading,
     /// URL (TBD).
     url: String,
   )
@@ -200,7 +201,7 @@ pub type ScalewayContainersV1beta1Namespace {
     /// Secret environment variables of the namespace.
     secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
     /// Status of the namespace.
-    status: String,
+    status: UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgrading,
     /// List of tags applied to the Serverless Container Namespace.
     tags: List(String),
     /// Last update date of the namespace. (RFC 3339 format)
@@ -240,7 +241,7 @@ pub type ScalewayContainersV1beta1Token {
     /// Public key of the token.
     public_key: String,
     /// Status of the token.
-    status: String,
+    status: UnknownReadyDeletingErrorCreating,
     /// Identifier of the token.
     token: String,
   )
@@ -257,7 +258,7 @@ pub type ScalewayContainersV1beta1Trigger {
     /// ID of the trigger.
     id: String,
     /// Type of the input.
-    input_type: String,
+    input_type: UnknownInputTypeSqsScwSqsNatsScwNats,
     /// Name of the trigger.
     name: String,
     /// Configuration for a Scaleway Messaging and Queuing NATS subject.
@@ -265,7 +266,257 @@ pub type ScalewayContainersV1beta1Trigger {
     /// Configuration for a Scaleway Messaging and Queuing SQS queue.
     scw_sqs_config: Option(Dynamic),
     /// Status of the trigger.
-    status: String,
+    status: UnknownStatusReadyDeletingErrorCreatingPendingLockedLockingUpgrading,
   )
 }
 
+
+// --- Enums -------------------------------------------------------------------
+
+pub type UnknownHttpOptionEnabledRedirected {
+  UnknownHttpOption
+  Enabled
+  Redirected
+}
+
+pub fn unknown_http_option_enabled_redirected_decoder() -> decode.Decoder(UnknownHttpOptionEnabledRedirected) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_http_option" -> decode.success(UnknownHttpOption)
+    "enabled" -> decode.success(Enabled)
+    "redirected" -> decode.success(Redirected)
+    _ -> decode.failure(UnknownHttpOption, "UnknownHttpOptionEnabledRedirected")
+  }
+}
+
+pub type UnknownInputTypeSqsScwSqsNatsScwNats {
+  UnknownInputType
+  Sqs
+  ScwSqs
+  Nats
+  ScwNats
+}
+
+pub fn unknown_input_type_sqs_scw_sqs_nats_scw_nats_decoder() -> decode.Decoder(UnknownInputTypeSqsScwSqsNatsScwNats) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_input_type" -> decode.success(UnknownInputType)
+    "sqs" -> decode.success(Sqs)
+    "scw_sqs" -> decode.success(ScwSqs)
+    "nats" -> decode.success(Nats)
+    "scw_nats" -> decode.success(ScwNats)
+    _ -> decode.failure(UnknownInputType, "UnknownInputTypeSqsScwSqsNatsScwNats")
+  }
+}
+
+pub type UnknownPrivacyPublicPrivate {
+  UnknownPrivacy
+  Public
+  Private
+}
+
+pub fn unknown_privacy_public_private_decoder() -> decode.Decoder(UnknownPrivacyPublicPrivate) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_privacy" -> decode.success(UnknownPrivacy)
+    "public" -> decode.success(Public)
+    "private" -> decode.success(Private)
+    _ -> decode.failure(UnknownPrivacy, "UnknownPrivacyPublicPrivate")
+  }
+}
+
+pub type UnknownProtocolHttp1H2c {
+  UnknownProtocol
+  Http1
+  H2c
+}
+
+pub fn unknown_protocol_http1_h2c_decoder() -> decode.Decoder(UnknownProtocolHttp1H2c) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_protocol" -> decode.success(UnknownProtocol)
+    "http1" -> decode.success(Http1)
+    "h2c" -> decode.success(H2c)
+    _ -> decode.failure(UnknownProtocol, "UnknownProtocolHttp1H2c")
+  }
+}
+
+pub type UnknownReadyDeletingErrorCreating {
+  Unknown
+  Ready
+  Deleting
+  Error
+  Creating
+}
+
+pub fn unknown_ready_deleting_error_creating_decoder() -> decode.Decoder(UnknownReadyDeletingErrorCreating) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(Unknown)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "creating" -> decode.success(Creating)
+    _ -> decode.failure(Unknown, "UnknownReadyDeletingErrorCreating")
+  }
+}
+
+pub type UnknownReadyDeletingErrorCreatingPendingLockedLockingUpgrading {
+  Unknown
+  Ready
+  Deleting
+  Error
+  Creating
+  Pending
+  Locked
+  Locking
+  Upgrading
+}
+
+pub fn unknown_ready_deleting_error_creating_pending_locked_locking_upgrading_decoder() -> decode.Decoder(UnknownReadyDeletingErrorCreatingPendingLockedLockingUpgrading) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(Unknown)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "creating" -> decode.success(Creating)
+    "pending" -> decode.success(Pending)
+    "locked" -> decode.success(Locked)
+    "locking" -> decode.success(Locking)
+    "upgrading" -> decode.success(Upgrading)
+    _ -> decode.failure(Unknown, "UnknownReadyDeletingErrorCreatingPendingLockedLockingUpgrading")
+  }
+}
+
+pub type UnknownReadyDeletingErrorLockedCreatingPendingCreatedLockingUpgrading {
+  Unknown
+  Ready
+  Deleting
+  Error
+  Locked
+  Creating
+  Pending
+  Created
+  Locking
+  Upgrading
+}
+
+pub fn unknown_ready_deleting_error_locked_creating_pending_created_locking_upgrading_decoder() -> decode.Decoder(UnknownReadyDeletingErrorLockedCreatingPendingCreatedLockingUpgrading) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(Unknown)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "locked" -> decode.success(Locked)
+    "creating" -> decode.success(Creating)
+    "pending" -> decode.success(Pending)
+    "created" -> decode.success(Created)
+    "locking" -> decode.success(Locking)
+    "upgrading" -> decode.success(Upgrading)
+    _ -> decode.failure(Unknown, "UnknownReadyDeletingErrorLockedCreatingPendingCreatedLockingUpgrading")
+  }
+}
+
+pub type UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgrading {
+  Unknown
+  Ready
+  Deleting
+  Error
+  Locked
+  Creating
+  Pending
+  Locking
+  Upgrading
+}
+
+pub fn unknown_ready_deleting_error_locked_creating_pending_locking_upgrading_decoder() -> decode.Decoder(UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgrading) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(Unknown)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "locked" -> decode.success(Locked)
+    "creating" -> decode.success(Creating)
+    "pending" -> decode.success(Pending)
+    "locking" -> decode.success(Locking)
+    "upgrading" -> decode.success(Upgrading)
+    _ -> decode.failure(Unknown, "UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgrading")
+  }
+}
+
+pub type UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgradingRebalancing {
+  Unknown
+  Ready
+  Deleting
+  Error
+  Locked
+  Creating
+  Pending
+  Locking
+  Upgrading
+  Rebalancing
+}
+
+pub fn unknown_ready_deleting_error_locked_creating_pending_locking_upgrading_rebalancing_decoder() -> decode.Decoder(UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgradingRebalancing) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown" -> decode.success(Unknown)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "locked" -> decode.success(Locked)
+    "creating" -> decode.success(Creating)
+    "pending" -> decode.success(Pending)
+    "locking" -> decode.success(Locking)
+    "upgrading" -> decode.success(Upgrading)
+    "rebalancing" -> decode.success(Rebalancing)
+    _ -> decode.failure(Unknown, "UnknownReadyDeletingErrorLockedCreatingPendingLockingUpgradingRebalancing")
+  }
+}
+
+pub type UnknownSandboxV1V2 {
+  UnknownSandbox
+  V1
+  V2
+}
+
+pub fn unknown_sandbox_v1_v2_decoder() -> decode.Decoder(UnknownSandboxV1V2) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_sandbox" -> decode.success(UnknownSandbox)
+    "v1" -> decode.success(V1)
+    "v2" -> decode.success(V2)
+    _ -> decode.failure(UnknownSandbox, "UnknownSandboxV1V2")
+  }
+}
+
+pub type UnknownStatusReadyDeletingErrorCreatingPendingLockedLockingUpgrading {
+  UnknownStatus
+  Ready
+  Deleting
+  Error
+  Creating
+  Pending
+  Locked
+  Locking
+  Upgrading
+}
+
+pub fn unknown_status_ready_deleting_error_creating_pending_locked_locking_upgrading_decoder() -> decode.Decoder(UnknownStatusReadyDeletingErrorCreatingPendingLockedLockingUpgrading) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_status" -> decode.success(UnknownStatus)
+    "ready" -> decode.success(Ready)
+    "deleting" -> decode.success(Deleting)
+    "error" -> decode.success(Error)
+    "creating" -> decode.success(Creating)
+    "pending" -> decode.success(Pending)
+    "locked" -> decode.success(Locked)
+    "locking" -> decode.success(Locking)
+    "upgrading" -> decode.success(Upgrading)
+    _ -> decode.failure(UnknownStatus, "UnknownStatusReadyDeletingErrorCreatingPendingLockedLockingUpgrading")
+  }
+}

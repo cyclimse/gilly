@@ -333,6 +333,64 @@ pub fn string_enum_field_test() {
   |> birdie.snap(title: "codegen string enum field")
 }
 
+pub fn top_level_string_enum_test() {
+  spec_with_schemas([
+    #(
+      "OrderStatus",
+      schema.String(
+        base(StringType),
+        StringSchema(
+          min_length: None,
+          max_length: None,
+          enum: Some(["pending", "approved", "delivered"]),
+          format: None,
+        ),
+      ),
+    ),
+  ])
+  |> generate
+  |> birdie.snap(title: "codegen top level string enum")
+}
+
+pub fn multiple_enums_test() {
+  spec_with_schemas([
+    #(
+      "Pet",
+      schema.Object(
+        base(ObjectType),
+        ObjectSchema(required: ["status", "size"], properties: [
+          #(
+            "status",
+            schema.String(
+              base(StringType),
+              StringSchema(
+                min_length: None,
+                max_length: None,
+                enum: Some(["available", "sold"]),
+                format: None,
+              ),
+            ),
+          ),
+          #(
+            "size",
+            schema.String(
+              base(StringType),
+              StringSchema(
+                min_length: None,
+                max_length: None,
+                enum: Some(["small", "medium", "large"]),
+                format: None,
+              ),
+            ),
+          ),
+        ]),
+      ),
+    ),
+  ])
+  |> generate
+  |> birdie.snap(title: "codegen multiple enums")
+}
+
 // --- Keyword escaping --------------------------------------------------------
 
 pub fn keyword_field_name_test() {

@@ -2,6 +2,7 @@
 version: 1.5.4
 title: Codegen Pet Store Schemas
 ---
+import gleam/dynamic/decode
 import gleam/option.{type Option}
 
 pub type ApiResponse {
@@ -27,7 +28,7 @@ pub type Order {
     quantity: Option(Int),
     ship_date: Option(String),
     /// Order Status
-    status: Option(String),
+    status: Option(PlacedApprovedDelivered),
   )
 }
 
@@ -38,7 +39,7 @@ pub type Pet {
     name: String,
     photo_urls: List(String),
     /// pet status in the store
-    status: Option(String),
+    status: Option(AvailablePendingSold),
     tags: Option(List(Tag)),
   )
 }
@@ -64,3 +65,37 @@ pub type User {
   )
 }
 
+
+// --- Enums -------------------------------------------------------------------
+
+pub type AvailablePendingSold {
+  Available
+  Pending
+  Sold
+}
+
+pub fn available_pending_sold_decoder() -> decode.Decoder(AvailablePendingSold) {
+  use value <- decode.then(decode.string)
+  case value {
+    "available" -> decode.success(Available)
+    "pending" -> decode.success(Pending)
+    "sold" -> decode.success(Sold)
+    _ -> decode.failure(Available, "AvailablePendingSold")
+  }
+}
+
+pub type PlacedApprovedDelivered {
+  Placed
+  Approved
+  Delivered
+}
+
+pub fn placed_approved_delivered_decoder() -> decode.Decoder(PlacedApprovedDelivered) {
+  use value <- decode.then(decode.string)
+  case value {
+    "placed" -> decode.success(Placed)
+    "approved" -> decode.success(Approved)
+    "delivered" -> decode.success(Delivered)
+    _ -> decode.failure(Placed, "PlacedApprovedDelivered")
+  }
+}

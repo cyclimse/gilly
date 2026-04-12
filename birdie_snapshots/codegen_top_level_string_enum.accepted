@@ -1,16 +1,13 @@
 ---
 version: 1.5.4
-title: codegen string enum field
+title: codegen top level string enum
 file: ./test/gilly/internal/codegen_test.gleam
-test_name: string_enum_field_test
+test_name: top_level_string_enum_test
 ---
 import gleam/dynamic/decode
 
-pub type Order {
-  Order(
-    status: PendingApprovedDelivered,
-  )
-}
+pub type OrderStatus =
+  PendingApprovedDelivered
 
 
 // --- Enums -------------------------------------------------------------------

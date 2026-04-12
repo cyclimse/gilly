@@ -1,7 +1,7 @@
 ---
 version: 1.5.4
 title: codegen type alias integer
-file: ./test/gilly/codegen_unit_test.gleam
+file: ./test/gilly/internal/codegen_test.gleam
 test_name: type_alias_integer_test
 ---
 pub type MyInt =

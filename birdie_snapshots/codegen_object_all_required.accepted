@@ -1,7 +1,7 @@
 ---
 version: 1.5.4
 title: codegen object all required
-file: ./test/gilly/codegen_unit_test.gleam
+file: ./test/gilly/internal/codegen_test.gleam
 test_name: object_all_required_test
 ---
 pub type User {

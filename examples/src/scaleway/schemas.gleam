@@ -3,6 +3,7 @@
 // To regenerate, run: gilly <path_to_openapi_spec.json>
 
 
+import gleam/dynamic/decode
 import gleam/dynamic.{type Dynamic}
 import gleam/option.{type Option}
 

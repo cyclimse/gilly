@@ -5,7 +5,7 @@ import gilly/internal/codegen
 import gilly/internal/gilly.{type Builder}
 import gilly/openapi/openapi
 
-fn codegen_case(title: String, builder: Builder, file_path: String) {
+fn generate_code_case(title: String, builder: Builder, file_path: String) {
   let assert Ok(json_string) = simplifile.read(file_path)
   let assert Ok(spec) = openapi.from_json_string(json_string)
   let code = gilly.generate_code(builder, spec)
@@ -14,12 +14,16 @@ fn codegen_case(title: String, builder: Builder, file_path: String) {
 
 pub fn codegen_simple_test() {
   let builder = gilly.new()
-  codegen_case("Codegen Simple Schema", builder, "test/samples/simple.json")
+  generate_code_case(
+    "Codegen Simple Schema",
+    builder,
+    "test/samples/simple.json",
+  )
 }
 
 pub fn codegen_pet_store_test() {
   let builder = gilly.new()
-  codegen_case(
+  generate_code_case(
     "Codegen Pet Store Schemas",
     builder,
     "test/samples/petstore.json",
@@ -28,7 +32,7 @@ pub fn codegen_pet_store_test() {
 
 pub fn codegen_scaleway_containers_test() {
   let builder = gilly.new()
-  codegen_case(
+  generate_code_case(
     "Codegen Scaleway Containers Schemas",
     builder,
     "test/samples/scaleway_containers.json",
@@ -37,7 +41,7 @@ pub fn codegen_scaleway_containers_test() {
   let builder_required_only =
     gilly.new()
     |> gilly.with_optionality(codegen.NullableOnly)
-  codegen_case(
+  generate_code_case(
     "Codegen Scaleway Containers Schemas (NullableOnly)",
     builder_required_only,
     "test/samples/scaleway_containers.json",

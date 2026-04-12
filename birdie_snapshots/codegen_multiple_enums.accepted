@@ -1,0 +1,47 @@
+---
+version: 1.5.4
+title: codegen multiple enums
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: multiple_enums_test
+---
+import gleam/dynamic/decode
+
+pub type Pet {
+  Pet(
+    status: AvailableSold,
+    size: SmallMediumLarge,
+  )
+}
+
+
+// --- Enums -------------------------------------------------------------------
+
+pub type AvailableSold {
+  Available
+  Sold
+}
+
+pub fn available_sold_decoder() -> decode.Decoder(AvailableSold) {
+  use value <- decode.then(decode.string)
+  case value {
+    "available" -> decode.success(Available)
+    "sold" -> decode.success(Sold)
+    _ -> decode.failure(Available, "AvailableSold")
+  }
+}
+
+pub type SmallMediumLarge {
+  Small
+  Medium
+  Large
+}
+
+pub fn small_medium_large_decoder() -> decode.Decoder(SmallMediumLarge) {
+  use value <- decode.then(decode.string)
+  case value {
+    "small" -> decode.success(Small)
+    "medium" -> decode.success(Medium)
+    "large" -> decode.success(Large)
+    _ -> decode.failure(Small, "SmallMediumLarge")
+  }
+}

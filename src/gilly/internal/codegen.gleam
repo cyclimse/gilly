@@ -34,11 +34,24 @@ pub type Config {
 // --- State -------------------------------------------------------------------
 
 type State {
-  State(imports: Dict(String, Set(String)))
+  State(
+    imports: Dict(String, Set(String)),
+    /// Enums discovered during codegen, keyed by generated type name.
+    /// Values are the original string variants from the OpenAPI spec.
+    enums: Dict(String, List(String)),
+  )
 }
 
 fn default_state() -> State {
-  State(imports: dict.new())
+  State(imports: dict.new(), enums: dict.new())
+}
+
+fn register_enum(
+  state: State,
+  type_name: String,
+  variants: List(String),
+) -> State {
+  State(..state, enums: dict.insert(state.enums, type_name, variants))
 }
 
 fn import_qualified(state: State, module: String, imported: String) -> State {
@@ -49,9 +62,16 @@ fn import_qualified(state: State, module: String, imported: String) -> State {
         None -> set.from_list([imported])
       }
     })
-  State(imports:)
+  State(..state, imports:)
 }
 
+fn import_module(state: State, module: String) -> State {
+  let imports = case dict.has_key(state.imports, module) {
+    True -> state.imports
+    False -> dict.insert(state.imports, module, set.new())
+  }
+  State(..state, imports:)
+}
 fn imports_doc(state: State, indent: Int) -> Document {
   let sorted_imports =
     dict.to_list(state.imports)
@@ -105,13 +125,33 @@ pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
     doc.join(type_docs, with: doc.lines(2))
     |> doc.append(doc.line)
 
+  // If we discovered any enums, register the decode import
+  let state = case dict.is_empty(state.enums) {
+    True -> state
+    False ->
+      state
+      |> import_module("gleam/dynamic/decode")
+  }
+
+  let enums_code = case dict.is_empty(state.enums) {
+    True -> doc.empty
+    False ->
+      doc.concat([
+        doc.lines(2),
+        separator_comment("Enums"),
+        doc.lines(2),
+        enums_doc(state, config.indent),
+      ])
+  }
+
   let code = case dict.is_empty(state.imports) {
-    True -> types_code
+    True -> doc.concat([types_code, enums_code])
     False ->
       doc.concat([
         imports_doc(state, config.indent),
         doc.lines(2),
         types_code,
+        enums_code,
       ])
   }
 
@@ -252,7 +292,7 @@ fn schema_to_gleam_type(
 ) -> #(State, Document) {
   let #(state, inner) = case schema {
     schema.Ref(ref:) -> #(state, doc.from_string(ref_to_type_name(ref)))
-    schema.String(_, string_schema) -> #(state, string_type(string_schema))
+    schema.String(_, string_schema) -> string_type(state, string_schema)
     schema.Integer(_, _) -> #(state, doc.from_string("Int"))
     schema.Number(_) -> #(state, doc.from_string("Float"))
     schema.Boolean(_) -> #(state, doc.from_string("Bool"))
@@ -268,16 +308,18 @@ fn schema_to_gleam_type(
   }
 }
 
-fn string_type(string_schema: StringSchema) -> Document {
+fn string_type(state: State, string_schema: StringSchema) -> #(State, Document) {
   case string_schema.enum {
-    Some(_) ->
-      // Enums on strings — for now just use String
-      doc.from_string("String")
+    Some(variants) -> {
+      let type_name = enum_type_name(variants)
+      let state = register_enum(state, type_name, variants)
+      #(state, doc.from_string(type_name))
+    }
     None ->
       case string_schema.format {
-        Some("date-time") -> doc.from_string("String")
-        Some("binary") -> doc.from_string("BitArray")
-        _ -> doc.from_string("String")
+        Some("date-time") -> #(state, doc.from_string("String"))
+        Some("binary") -> #(state, doc.from_string("BitArray"))
+        _ -> #(state, doc.from_string("String"))
       }
   }
 }
@@ -402,4 +444,122 @@ fn ref_to_type_name(ref: String) -> String {
     [_, _, _, name, ..] -> to_type_name(name)
     _ -> to_type_name(ref)
   }
+}
+
+/// Derive a PascalCase enum type name from the variant strings.
+/// e.g. ["pending", "approved", "delivered"] -> "PendingApprovedDelivered"
+fn enum_type_name(variants: List(String)) -> String {
+  list.map(variants, justin.pascal_case)
+  |> string.join("")
+}
+
+/// Convert a variant string to a PascalCase constructor name.
+fn enum_variant_name(variant: String) -> String {
+  justin.pascal_case(variant)
+}
+
+fn enum_decoder_name(type_name: String) -> String {
+  justin.snake_case(type_name) <> "_decoder"
+}
+
+// --- Enum codegen ------------------------------------------------------------
+
+fn separator_comment(value: String) -> Document {
+  string.pad_end("// --- " <> value <> " ", to: 80, with: "-")
+  |> doc.from_string
+}
+
+fn enums_doc(state: State, indent: Int) -> Document {
+  let sorted_enums =
+    dict.to_list(state.enums)
+    |> list.sort(fn(a, b) { string.compare(a.0, b.0) })
+
+  list.map(sorted_enums, fn(entry) {
+    let #(type_name, variants) = entry
+    doc.concat([
+      enum_type_doc(type_name, variants, indent),
+      doc.lines(2),
+      enum_decoder_doc(type_name, variants, indent),
+    ])
+  })
+  |> doc.join(with: doc.lines(2))
+}
+
+fn enum_type_doc(
+  type_name: String,
+  variants: List(String),
+  indent: Int,
+) -> Document {
+  let variant_docs =
+    list.map(variants, fn(v) { doc.from_string(enum_variant_name(v)) })
+
+  doc.concat([
+    doc.from_string("pub type " <> type_name <> " {"),
+    doc.line |> doc.nest(by: indent),
+    doc.join(variant_docs, with: doc.line)
+      |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
+}
+
+fn enum_decoder_doc(
+  type_name: String,
+  variants: List(String),
+  indent: Int,
+) -> Document {
+  let decoder_name = enum_decoder_name(type_name)
+  let var_name = "value"
+
+  let success_cases =
+    list.map(variants, fn(v) {
+      doc.concat([
+        doc.from_string("\"" <> v <> "\" -> "),
+        doc.from_string("decode.success(" <> enum_variant_name(v) <> ")"),
+      ])
+    })
+
+  let first_variant = case variants {
+    [first, ..] -> enum_variant_name(first)
+    [] -> "Nil"
+  }
+
+  let failure_case =
+    doc.concat([
+      doc.from_string("_ -> "),
+      doc.from_string(
+        "decode.failure(" <> first_variant <> ", \"" <> type_name <> "\")",
+      ),
+    ])
+
+  let case_body = list.append(success_cases, [failure_case])
+
+  let case_block =
+    doc.concat([
+      doc.from_string("case " <> var_name <> " {"),
+      doc.line |> doc.nest(by: indent),
+      doc.join(case_body, with: doc.line)
+        |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+
+  let fn_body =
+    doc.concat([
+      doc.from_string("use " <> var_name <> " <- decode.then(decode.string)"),
+      doc.line,
+      case_block,
+    ])
+
+  let return_type = doc.from_string("decode.Decoder(" <> type_name <> ")")
+
+  doc.concat([
+    doc.from_string("pub fn " <> decoder_name <> "() -> "),
+    return_type,
+    doc.from_string(" {"),
+    doc.line |> doc.nest(by: indent),
+    fn_body |> doc.nest(by: indent),
+    doc.line,
+    doc.from_string("}"),
+  ])
 }

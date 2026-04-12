@@ -1,7 +1,7 @@
 ---
 version: 1.5.4
 title: codegen array field
-file: ./test/gilly/codegen_unit_test.gleam
+file: ./test/gilly/internal/codegen_test.gleam
 test_name: array_field_test
 ---
 pub type TagList {
