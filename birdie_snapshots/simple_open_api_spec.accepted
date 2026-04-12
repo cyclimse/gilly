@@ -1,11 +1,69 @@
 ---
 version: 1.5.4
 title: Simple OpenAPI Spec
-file: ./test/gilly/openapi/openapi_test.gleam
-test_name: from_json_string_simple_test
 ---
 OpenAPI(
-  "3.0.4",
+  Version(3, Some(0), Some(4)),
   Info("Hello World API", "1.0.0", None),
+  [
+    #(
+      "/hello",
+      PathItem(
+        Some(Operation(
+          Some("sayHello"),
+          Some("Say hello."),
+          None,
+          [],
+          [],
+          None,
+          [
+            #(
+              "200",
+              Response(
+                "Successful response",
+                [
+                  #(
+                    "application/json",
+                    MediaType(Some(Object(
+                      BaseSchema(
+                        ObjectType,
+                        None,
+                        None,
+                      ),
+                      ObjectSchema(
+                        [],
+                        [
+                          #(
+                            "message",
+                            String(
+                              BaseSchema(
+                                StringType,
+                                None,
+                                None,
+                              ),
+                              StringSchema(
+                                None,
+                                None,
+                                None,
+                                None,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ))),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        )),
+        None,
+        None,
+        None,
+        None,
+      ),
+    ),
+  ],
   None,
 )
