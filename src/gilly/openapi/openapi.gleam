@@ -1,4 +1,5 @@
 import gilly/openapi/schema.{type Schema, schema_decoder}
+import gleam/dict
 import gleam/dynamic/decode
 import gleam/json
 import gleam/option.{type Option}
@@ -11,8 +12,9 @@ pub fn openapi_decoder() -> decode.Decoder(OpenAPI) {
   use info <- decode.field("info", info_decoder())
 
   use version <- decode.field("openapi", decode.string)
-  use components <- decode.field(
+  use components <- decode.optional_field(
     "components",
+    option.None,
     decode.optional(components_decoder()),
   )
   decode.success(OpenAPI(version:, info:, components:))
@@ -31,7 +33,11 @@ pub type Info {
 fn info_decoder() -> decode.Decoder(Info) {
   use title <- decode.field("title", decode.string)
   use version <- decode.field("version", decode.string)
-  use description <- decode.field("description", decode.optional(decode.string))
+  use description <- decode.optional_field(
+    "description",
+    option.None,
+    decode.optional(decode.string),
+  )
   decode.success(Info(title:, version:, description:))
 }
 
@@ -42,12 +48,8 @@ pub type Components {
 fn components_decoder() -> decode.Decoder(Components) {
   use schemas <- decode.field(
     "schemas",
-    decode.list({
-      use a <- decode.field(0, decode.string)
-      use b <- decode.field(1, schema_decoder())
-
-      decode.success(#(a, b))
-    }),
+    decode.dict(decode.string, schema_decoder())
+      |> decode.map(dict.to_list),
   )
   decode.success(Components(schemas:))
 }

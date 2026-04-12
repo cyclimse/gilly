@@ -1,0 +1,11 @@
+---
+version: 1.5.4
+title: Simple OpenAPI Spec
+file: ./test/gilly/openapi/openapi_test.gleam
+test_name: from_json_string_simple_test
+---
+OpenAPI(
+  "3.0.4",
+  Info("Hello World API", "1.0.0", None),
+  None,
+)
