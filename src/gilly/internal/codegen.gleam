@@ -72,6 +72,7 @@ fn import_module(state: State, module: String) -> State {
   }
   State(..state, imports:)
 }
+
 fn imports_doc(state: State, indent: Int) -> Document {
   let sorted_imports =
     dict.to_list(state.imports)
