@@ -2,70 +2,46 @@ import envoy
 import gleam/http/request
 import gleam/httpc
 import gleam/io
-import gleam/json
 import gleam/list
+import gleam/option.{None}
 import gleam/result
+import gleam/string
 
 import scaleway/client
 
 const default_region = "fr-par"
 
-const default_api_url = "https://api.scaleway.com"
-
 pub fn main() {
-  let client = must_load_scaleway_client_from_env()
-
-  let resp = list_containers(client)
-
-  list.each(resp.containers, fn(container) {
-    let url = "https://" <> container.domain_name
-
-    let row =
-      "Container " <> container.name <> " (" <> container.id <> "): " <> url
-    io.println(row)
-  })
-}
-
-type ScalewayClient {
-  ScalewayClient(
-    scw_secret_key: String,
-    default_project_id: String,
-    region: String,
-    scw_api_url: String,
-  )
-}
-
-fn must_load_scaleway_client_from_env() -> ScalewayClient {
   let assert Ok(scw_secret_key) = envoy.get("SCW_SECRET_KEY")
-  let assert Ok(default_project_id) = envoy.get("SCW_DEFAULT_PROJECT_ID")
-
   let region = envoy.get("SCW_REGION") |> result.unwrap(default_region)
-  let scw_api_url = envoy.get("SCW_API_URL") |> result.unwrap(default_api_url)
 
-  ScalewayClient(scw_secret_key:, default_project_id:, region:, scw_api_url:)
-}
+  let api_client =
+    client.new(fn(req) {
+      let req = request.prepend_header(req, "X-Auth-Token", scw_secret_key)
+      httpc.send(req)
+      |> result.map_error(fn(e) { "HTTP error: " <> string.inspect(e) })
+    })
 
-fn list_containers(
-  client: ScalewayClient,
-) -> client.ScalewayContainersV1beta1ListContainersResponse {
-  let url =
-    client.scw_api_url
-    <> "/containers/v1beta1/regions/"
-    <> client.region
-    <> "/containers"
-  let assert Ok(base_req) = request.to(url)
-  let req =
-    request.prepend_header(base_req, "X-Auth-Token", client.scw_secret_key)
-  let req = request.prepend_header(req, "Content-Type", "application/json")
-
-  let assert Ok(resp) = httpc.send(req)
-  assert resp.status == 200
-
-  let assert Ok(parsed) =
-    json.parse(
-      resp.body,
-      client.scaleway_containers_v1beta1_list_containers_response_decoder(),
+  let assert Ok(resp) =
+    client.list_containers(
+      api_client,
+      region,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
     )
 
-  parsed
+  list.each(
+    resp.containers,
+    fn(container: client.ScalewayContainersV1beta1Container) {
+      let url = "https://" <> container.domain_name
+      io.println(
+        "Container " <> container.name <> " (" <> container.id <> "): " <> url,
+      )
+    },
+  )
 }

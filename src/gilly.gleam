@@ -1,6 +1,7 @@
 import argv
 import clip.{type Command}
 import clip/arg
+import clip/flag
 import clip/help
 import clip/opt
 import gilly/internal/codegen
@@ -11,13 +12,17 @@ import gleam/option.{type Option, None, Some}
 import gleam/result
 import simplifile
 
+const version = "0.1.0"
+
 type Args {
-  Args(
+  Generate(
     source: String,
     output: Option(String),
     optionality: codegen.Optionality,
     indent: Int,
+    optional_query_params: Bool,
   )
+  Version
 }
 
 fn source_arg() -> arg.Arg(String) {
@@ -65,18 +70,45 @@ fn indent_opt() -> opt.Opt(Int) {
   |> opt.default(2)
 }
 
-fn command() -> Command(Args) {
+fn optional_query_params_flag() -> flag.Flag {
+  flag.new("optional-query-params")
+  |> flag.short("q")
+  |> flag.help("Make query parameters optional (default: false)")
+}
+
+fn generate_command() -> Command(Args) {
   clip.command({
     use source <- clip.parameter
     use output <- clip.parameter
     use optionality <- clip.parameter
     use indent <- clip.parameter
-    Args(source:, output:, optionality:, indent:)
+    use optional_query_params <- clip.parameter
+    Generate(source:, output:, optionality:, indent:, optional_query_params:)
   })
   |> clip.arg(source_arg())
   |> clip.opt(output_opt())
   |> clip.opt(optionality_opt())
   |> clip.opt(indent_opt())
+  |> clip.flag(optional_query_params_flag())
+  |> clip.help(help.simple(
+    "generate",
+    "Generate code from an OpenAPI specification",
+  ))
+}
+
+fn version_command() -> Command(Args) {
+  clip.return(Version)
+  |> clip.help(help.simple("version", "Print the version of Gilly"))
+}
+
+fn command() -> Command(Args) {
+  clip.subcommands_with_default(
+    [
+      #("generate", generate_command()),
+      #("version", version_command()),
+    ],
+    generate_command(),
+  )
 }
 
 pub fn main() -> Nil {
@@ -84,7 +116,7 @@ pub fn main() -> Nil {
     command()
     |> clip.help(help.simple(
       "gilly",
-      "Generate Gleam types from an OpenAPI specification",
+      "A code generator that produces type-safe API clients from OpenAPI specifications.",
     ))
     |> clip.run(argv.load().arguments)
 
@@ -95,27 +127,35 @@ pub fn main() -> Nil {
 }
 
 fn run(args: Args) -> Nil {
-  let builder =
-    gilly.new()
-    |> gilly.with_optionality(args.optionality)
-    |> gilly.with_indent(args.indent)
+  case args {
+    Version -> io.println("Gilly version " <> version)
+    Generate(source:, output:, optionality:, indent:, optional_query_params:) -> {
+      let builder =
+        gilly.new()
+        |> gilly.with_version(version)
+        |> gilly.with_optionality(optionality)
+        |> gilly.with_indent(indent)
+        |> gilly.with_optional_query_params(optional_query_params)
 
-  case gilly.generate_code_from_file(builder, args.source) {
-    Ok(code) -> {
-      case args.output {
-        Some(path) -> {
-          let _ =
-            simplifile.write(path, code)
-            |> result.map_error(fn(e) {
-              io.println_error(
-                "Error writing file: " <> simplifile.describe_error(e),
-              )
-            })
-          Nil
+      case gilly.generate_code_from_file(builder, source) {
+        Ok(code) -> {
+          case output {
+            Some(path) -> {
+              let _ =
+                simplifile.write(path, code)
+                |> result.map_error(fn(e) {
+                  io.println_error(
+                    "Error writing file: " <> simplifile.describe_error(e),
+                  )
+                })
+              Nil
+            }
+            None -> io.println(code)
+          }
         }
-        None -> io.println(code)
+        Error(e) ->
+          io.println_error("Error generating code: " <> describe_error(e))
       }
     }
-    Error(e) -> io.println_error("Error generating code: " <> describe_error(e))
   }
 }

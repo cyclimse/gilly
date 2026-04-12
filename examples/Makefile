@@ -6,7 +6,9 @@ generate-petstore:
 	gleam run -m gilly -- samples/petstore.json -o src/petstore/client.gleam
 
 generate-scaleway:
-	gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/client.gleam --optionality NullableOnly
+	gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/client.gleam \
+	  --optionality NullableOnly \
+	  --optional-query-params
 
 run-petstore:
 	gleam run -m petstore/petstore

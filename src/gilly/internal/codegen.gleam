@@ -584,14 +584,7 @@ fn operation_doc(
   }
 
   let req_lines =
-    build_request_lines(
-      state,
-      method,
-      query_params,
-      body_param,
-      all_schemas,
-      indent,
-    )
+    build_request_lines(state, method, query_params, body_param, all_schemas)
 
   let #(state, decode_line) =
     build_decode_line(state, response_type, all_schemas)
@@ -846,7 +839,6 @@ fn build_request_lines(
   query_params: List(Parameter),
   body_param: Option(#(String, Document, Schema)),
   all_schemas: List(#(String, Schema)),
-  indent: Int,
 ) -> List(Document) {
   let method_line =
     doc.from_string("let req = request.set_method(req, http." <> method <> ")")
