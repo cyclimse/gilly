@@ -179,6 +179,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -207,6 +208,7 @@ Some useful links:
                         ArrayType,
                         None,
                         None,
+                        False,
                       ),
                       ArraySchema(
                         None,
@@ -222,6 +224,7 @@ Some useful links:
                         ArrayType,
                         None,
                         None,
+                        False,
                       ),
                       ArraySchema(
                         None,
@@ -274,6 +277,7 @@ Some useful links:
                   ArrayType,
                   None,
                   None,
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -283,6 +287,7 @@ Some useful links:
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -309,6 +314,7 @@ Some useful links:
                         ArrayType,
                         None,
                         None,
+                        False,
                       ),
                       ArraySchema(
                         None,
@@ -324,6 +330,7 @@ Some useful links:
                         ArrayType,
                         None,
                         None,
+                        False,
                       ),
                       ArraySchema(
                         None,
@@ -376,6 +383,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -442,6 +450,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -460,6 +469,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -479,6 +489,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -540,6 +551,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -559,6 +571,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -616,6 +629,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -634,6 +648,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -655,6 +670,7 @@ Some useful links:
                     StringType,
                     None,
                     None,
+                    False,
                   ),
                   StringSchema(
                     None,
@@ -730,6 +746,7 @@ Some useful links:
                         ObjectType,
                         None,
                         None,
+                        False,
                       ),
                       ObjectSchema(
                         [],
@@ -843,6 +860,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -911,6 +929,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1035,6 +1054,7 @@ Some useful links:
                     ArrayType,
                     None,
                     None,
+                    False,
                   ),
                   ArraySchema(
                     None,
@@ -1095,6 +1115,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1114,6 +1135,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1138,6 +1160,7 @@ Some useful links:
                         StringType,
                         None,
                         None,
+                        False,
                       ),
                       StringSchema(
                         None,
@@ -1154,6 +1177,7 @@ Some useful links:
                         StringType,
                         None,
                         None,
+                        False,
                       ),
                       StringSchema(
                         None,
@@ -1240,6 +1264,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1308,6 +1333,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1383,6 +1409,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1437,6 +1464,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -1448,6 +1476,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1463,6 +1492,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1479,6 +1509,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1499,6 +1530,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -1510,6 +1542,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1525,6 +1558,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1545,6 +1579,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -1555,6 +1590,7 @@ Some useful links:
                 BooleanType,
                 None,
                 None,
+                False,
               )),
             ),
             #(
@@ -1564,6 +1600,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1579,6 +1616,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1594,6 +1632,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1609,6 +1648,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1625,6 +1665,7 @@ Some useful links:
                   StringType,
                   None,
                   Some("Order Status"),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1649,6 +1690,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           ["name", "photoUrls"],
@@ -1664,6 +1706,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1679,6 +1722,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1695,6 +1739,7 @@ Some useful links:
                   ArrayType,
                   None,
                   None,
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -1704,6 +1749,7 @@ Some useful links:
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -1722,6 +1768,7 @@ Some useful links:
                   StringType,
                   None,
                   Some("pet status in the store"),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1742,6 +1789,7 @@ Some useful links:
                   ArrayType,
                   None,
                   None,
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -1761,6 +1809,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -1772,6 +1821,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1787,6 +1837,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1807,6 +1858,7 @@ Some useful links:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -1818,6 +1870,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1834,6 +1887,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1850,6 +1904,7 @@ Some useful links:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1865,6 +1920,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1881,6 +1937,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1897,6 +1954,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1913,6 +1971,7 @@ Some useful links:
                   IntegerType,
                   None,
                   Some("User Status"),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -1928,6 +1987,7 @@ Some useful links:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,

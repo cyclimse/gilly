@@ -29,6 +29,7 @@ OpenAPI(
                         ObjectType,
                         None,
                         None,
+                        False,
                       ),
                       ObjectSchema(
                         [],
@@ -40,6 +41,7 @@ OpenAPI(
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,

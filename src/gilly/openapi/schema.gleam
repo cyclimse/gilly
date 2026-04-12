@@ -72,6 +72,7 @@ pub type BaseSchema {
     type_name: TypeName,
     title: Option(String),
     description: Option(String),
+    nullable: Bool,
   )
 }
 
@@ -87,7 +88,8 @@ fn base_schema_decoder() -> decode.Decoder(BaseSchema) {
     option.None,
     decode.optional(decode.string),
   )
-  decode.success(BaseSchema(type_name:, title:, description:))
+  use nullable <- decode.optional_field("nullable", False, decode.bool)
+  decode.success(BaseSchema(type_name:, title:, description:, nullable:))
 }
 
 pub type StringSchema {

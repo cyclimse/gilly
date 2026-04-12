@@ -1,4 +1,4 @@
-import gilly/internal/codegen
+import gilly/internal/codegen.{type Optionality}
 import gilly/internal/error.{type Error}
 import gilly/openapi/openapi.{type OpenAPI}
 import gleam/bool
@@ -8,19 +8,38 @@ import gleam/string
 
 import simplifile
 
-pub fn generate_code_from_file(source: String) -> Result(String, Error) {
+pub opaque type Builder {
+  Builder(optionality: Optionality, indent: Int)
+}
+
+pub fn new() -> Builder {
+  Builder(optionality: codegen.RequiredOnly, indent: 2)
+}
+
+pub fn with_optionality(builder: Builder, optionality: Optionality) -> Builder {
+  Builder(..builder, optionality:)
+}
+
+pub fn with_indent(builder: Builder, indent: Int) -> Builder {
+  Builder(..builder, indent:)
+}
+
+pub fn generate_code_from_file(
+  builder: Builder,
+  source: String,
+) -> Result(String, Error) {
   use content <- result.try(read_file(source))
   use spec <- result.try(
     openapi.from_json_string(content)
     |> result.map_error(error.ParsingOpenAPI(source:, inner: _)),
   )
-  let code = generate_code(spec)
+  let code = generate_code(builder, spec)
   let header = generate_header(source)
   Ok(header <> "\n\n" <> code)
 }
 
 /// Supported file types for input OpenAPI specifications.
-/// Ideally, we should support YANL as well, but Gleam has no YAML parsing libraries ATM.
+/// Ideally, we should support YAML as well, but Gleam has no YAML parsing libraries ATM.
 /// 
 /// See: https://github.com/lpil/cymbal/pull/2
 const supported_file_types = ["json"]
@@ -60,6 +79,8 @@ fn generate_header(source: String) -> String {
   |> string.replace(source_path_sentinel, source)
 }
 
-pub fn generate_code(spec: OpenAPI) -> String {
-  codegen.generate_schemas(spec)
+pub fn generate_code(builder: Builder, spec: OpenAPI) -> String {
+  let config =
+    codegen.Config(optionality: builder.optionality, indent: builder.indent)
+  codegen.generate_schemas(spec, config)
 }

@@ -9,17 +9,35 @@ import gleam/option.{type Option, None, Some}
 import gleam/string
 import justin
 
-const indent = 2
+/// Controls how the codegen decides whether a field should be `Option(T)`.
+///
+pub type Optionality {
+  /// Only fields listed in the `required` array are non-optional.
+  /// This is the strict OpenAPI interpretation.
+  RequiredOnly
+  /// Fields are required unless marked `nullable: true`.
+  /// Useful for specs (like Scaleway) that don't use `required` arrays.
+  NullableOnly
+  /// A field is optional if it's not in `required` OR is `nullable: true`.
+  /// This combines both signals.
+  RequiredAndNullable
+}
+
+/// Configuration for the code generator.
+///
+pub type Config {
+  Config(optionality: Optionality, indent: Int)
+}
 
 /// Generate Gleam source code for the schema types in an OpenAPI spec.
 ///
-pub fn generate_schemas(spec: OpenAPI) -> String {
+pub fn generate_schemas(spec: OpenAPI, config: Config) -> String {
   let schemas = extract_schemas(spec)
 
   let type_docs =
     list.map(schemas, fn(entry) {
       let #(name, schema) = entry
-      schema_to_type_doc(name, schema, schemas)
+      schema_to_type_doc(name, schema, schemas, config)
     })
 
   let code =
@@ -41,14 +59,15 @@ fn schema_to_type_doc(
   name: String,
   schema: Schema,
   all_schemas: List(#(String, Schema)),
+  config: Config,
 ) -> Document {
   let type_name = to_type_name(name)
   case schema {
     schema.Object(base, object_schema) ->
-      object_type_doc(type_name, base, object_schema, all_schemas)
+      object_type_doc(type_name, base, object_schema, all_schemas, config)
     _ ->
       // For non-object top-level schemas, generate a type alias-like wrapper
-      simple_type_doc(type_name, schema, all_schemas)
+      simple_type_doc(type_name, schema, all_schemas, config)
   }
 }
 
@@ -57,6 +76,7 @@ fn object_type_doc(
   base: BaseSchema,
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
+  config: Config,
 ) -> Document {
   let comment = base_schema_comment(base)
 
@@ -64,15 +84,24 @@ fn object_type_doc(
     list.map(object_schema.properties, fn(prop) {
       let #(prop_name, prop_schema) = prop
       let field_name = to_field_name(prop_name)
-      let is_required = list.contains(object_schema.required, prop_name)
-      let field_type =
-        schema_to_gleam_type(prop_schema, is_required, all_schemas)
+      let in_required = list.contains(object_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      let field_type = schema_to_gleam_type(prop_schema, !optional, all_schemas)
 
-      doc.concat([
-        doc.from_string(field_name <> ": "),
-        field_type,
-      ])
+      let field_line =
+        doc.concat([
+          doc.from_string(field_name <> ": "),
+          field_type,
+        ])
+
+      case schema_description(prop_schema) {
+        Some(comment) -> doc.concat([comment, doc.line, field_line])
+        None -> field_line
+      }
     })
+
+  let indent = config.indent
 
   let body = case fields {
     [] ->
@@ -112,12 +141,13 @@ fn simple_type_doc(
   type_name: String,
   schema: Schema,
   all_schemas: List(#(String, Schema)),
+  config: Config,
 ) -> Document {
   let gleam_type = schema_to_gleam_type(schema, True, all_schemas)
   doc.concat([
     doc.from_string("pub type " <> type_name <> " ="),
-    doc.line |> doc.nest(by: indent),
-    gleam_type |> doc.nest(by: indent),
+    doc.line |> doc.nest(by: config.indent),
+    gleam_type |> doc.nest(by: config.indent),
   ])
 }
 
@@ -187,18 +217,57 @@ fn wrap_optional(inner: Document) -> Document {
   ])
 }
 
+// --- Optionality logic -------------------------------------------------------
+
+fn is_field_optional(
+  prop_schema: Schema,
+  in_required: Bool,
+  optionality: Optionality,
+) -> Bool {
+  case optionality {
+    RequiredOnly -> !in_required
+    NullableOnly -> is_nullable(prop_schema)
+    RequiredAndNullable -> !in_required || is_nullable(prop_schema)
+  }
+}
+
+fn is_nullable(s: Schema) -> Bool {
+  case s {
+    schema.Ref(_) -> False
+    schema.String(base, _)
+    | schema.Integer(base, _)
+    | schema.Number(base)
+    | schema.Boolean(base)
+    | schema.Array(base, _)
+    | schema.Object(base, _) -> base.nullable
+  }
+}
+
 // --- Comments ----------------------------------------------------------------
 
 fn base_schema_comment(base: BaseSchema) -> Option(Document) {
   case base.description {
-    Some(desc) -> {
-      let lines =
-        string.split(desc, "\n")
-        |> list.map(fn(line) { doc.from_string("/// " <> string.trim(line)) })
-      Some(doc.join(lines, with: doc.line))
-    }
+    Some(desc) -> Some(description_to_comment(desc))
     None -> None
   }
+}
+
+fn schema_description(s: Schema) -> Option(Document) {
+  case s {
+    schema.Ref(_) -> None
+    schema.String(base, _)
+    | schema.Integer(base, _)
+    | schema.Number(base)
+    | schema.Boolean(base)
+    | schema.Array(base, _)
+    | schema.Object(base, _) -> base_schema_comment(base)
+  }
+}
+
+fn description_to_comment(desc: String) -> Document {
+  string.split(desc, "\n")
+  |> list.map(fn(line) { doc.from_string("/// " <> string.trim(line)) })
+  |> doc.join(with: doc.line)
 }
 
 // --- Naming helpers ----------------------------------------------------------

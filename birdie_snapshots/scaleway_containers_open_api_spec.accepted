@@ -259,6 +259,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -282,6 +283,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -300,6 +302,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -318,6 +321,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -342,6 +346,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -361,6 +366,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -380,6 +386,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -399,6 +406,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -441,6 +449,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -466,6 +475,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -478,6 +488,7 @@ For more help using Scaleway Serverless containers, check out the following reso
                             None,
                             Some("Container arguments.
 Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -487,6 +498,7 @@ Arguments passed to the command specified in the "command" field. These override
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -506,6 +518,7 @@ Arguments passed to the command specified in the "command" field. These override
                             None,
                             Some("Container command.
 Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -515,6 +528,7 @@ Command executed when the container starts. This overrides the default command d
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -533,6 +547,7 @@ Command executed when the container starts. This overrides the default command d
                             IntegerType,
                             None,
                             Some("CPU limit of the container in mvCPU."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -548,6 +563,7 @@ Command executed when the container starts. This overrides the default command d
                             StringType,
                             None,
                             Some("Description of the container."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -564,6 +580,7 @@ Command executed when the container starts. This overrides the default command d
                             ObjectType,
                             None,
                             Some("Environment variables of the container."),
+                            True,
                           ),
                           ObjectSchema(
                             [],
@@ -575,6 +592,7 @@ Command executed when the container starts. This overrides the default command d
                                     StringType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -595,6 +613,7 @@ Command executed when the container starts. This overrides the default command d
                             ObjectType,
                             None,
                             Some("Health check configuration of the container."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -608,6 +627,7 @@ Command executed when the container starts. This overrides the default command d
                                     Some("Number of consecutive health check failures before considering the container unhealthy.
 During a deployment, if a newly created container fails to pass the health check, the deployment is aborted. 
 As a result, lowering this value can help to reduce the time it takes to detect a failed deployment."),
+                                    False,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -623,6 +643,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     ObjectType,
                                     None,
                                     Some("HTTP health check configuration."),
+                                    True,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -634,6 +655,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                             StringType,
                                             None,
                                             Some("Path to use for the HTTP health check."),
+                                            False,
                                           ),
                                           StringSchema(
                                             None,
@@ -654,6 +676,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     StringType,
                                     None,
                                     Some("Period between health checks. (in seconds)"),
+                                    True,
                                   ),
                                   StringSchema(
                                     None,
@@ -670,6 +693,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     ObjectType,
                                     None,
                                     Some("TCP health check configuration."),
+                                    True,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -691,6 +715,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
 Possible values:
  - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
  - enabled: Serve both HTTP and HTTPS traffic."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -711,6 +736,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Local storage limit of the container (in MB)."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -726,6 +752,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Number of maximum concurrent executions of the container."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -741,6 +768,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Maximum number of instances to scale the container to."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -756,6 +784,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Memory limit of the container in MB."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -771,6 +800,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Minimum number of instances to scale the container to."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -786,6 +816,7 @@ Possible values:
                             StringType,
                             None,
                             Some("Name of the container."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -802,6 +833,7 @@ Possible values:
                             StringType,
                             None,
                             Some("UUID of the namespace the container belongs to."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -818,6 +850,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Port the container listens on."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -833,6 +866,7 @@ Possible values:
                             StringType,
                             None,
                             Some("Privacy setting of the container."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -854,6 +888,7 @@ Possible values:
                             None,
                             Some("ID of the Private Network the container is connected to.
 When connected to a Private Network, the container can access other Scaleway resources in this Private Network."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -870,6 +905,7 @@ When connected to a Private Network, the container can access other Scaleway res
                             StringType,
                             None,
                             Some("Protocol the container uses."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -890,6 +926,7 @@ When connected to a Private Network, the container can access other Scaleway res
                             StringType,
                             None,
                             Some("Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag")."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -906,6 +943,7 @@ When connected to a Private Network, the container can access other Scaleway res
                             StringType,
                             None,
                             Some("Execution environment of the container."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -930,6 +968,7 @@ Possible values:
 - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
 - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
 - memory_usage_threshold: Scale depending on the memory usage of a container instance."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -941,6 +980,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -956,6 +996,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -971,6 +1012,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -990,6 +1032,7 @@ Possible values:
                             ArrayType,
                             None,
                             Some("Secret environment variables of the container."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -1005,6 +1048,7 @@ Possible values:
                             ArrayType,
                             None,
                             Some("Tags of the Serverless Container."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -1014,6 +1058,7 @@ Possible values:
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -1032,6 +1077,7 @@ Possible values:
                             StringType,
                             None,
                             Some("Processing time limit for the container. (in seconds)"),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -1086,6 +1132,7 @@ Possible values:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1109,6 +1156,7 @@ Possible values:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1153,6 +1201,7 @@ Possible values:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1176,6 +1225,7 @@ Possible values:
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1221,6 +1271,7 @@ This behavior can be changed by setting the `redeploy` field to `false` in the r
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1244,6 +1295,7 @@ This behavior can be changed by setting the `redeploy` field to `false` in the r
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1265,6 +1317,7 @@ This behavior can be changed by setting the `redeploy` field to `false` in the r
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -1277,6 +1330,7 @@ This behavior can be changed by setting the `redeploy` field to `false` in the r
                             None,
                             Some("Container arguments.
 Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters."),
+                            True,
                           ),
                           ArraySchema(
                             None,
@@ -1286,6 +1340,7 @@ Arguments passed to the command specified in the "command" field. These override
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -1305,6 +1360,7 @@ Arguments passed to the command specified in the "command" field. These override
                             None,
                             Some("Container command.
 Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run."),
+                            True,
                           ),
                           ArraySchema(
                             None,
@@ -1314,6 +1370,7 @@ Command executed when the container starts. This overrides the default command d
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -1332,6 +1389,7 @@ Command executed when the container starts. This overrides the default command d
                             IntegerType,
                             None,
                             Some("CPU limit of the container in mvCPU."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1347,6 +1405,7 @@ Command executed when the container starts. This overrides the default command d
                             StringType,
                             None,
                             Some("Description of the container."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -1363,6 +1422,7 @@ Command executed when the container starts. This overrides the default command d
                             ObjectType,
                             None,
                             Some("Environment variables of the container."),
+                            True,
                           ),
                           ObjectSchema(
                             [],
@@ -1374,6 +1434,7 @@ Command executed when the container starts. This overrides the default command d
                                     StringType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -1394,6 +1455,7 @@ Command executed when the container starts. This overrides the default command d
                             ObjectType,
                             None,
                             Some("Health check configuration of the container."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -1407,6 +1469,7 @@ Command executed when the container starts. This overrides the default command d
                                     Some("Number of consecutive health check failures before considering the container unhealthy.
 During a deployment, if a newly created container fails to pass the health check, the deployment is aborted. 
 As a result, lowering this value can help to reduce the time it takes to detect a failed deployment."),
+                                    False,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -1422,6 +1485,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     ObjectType,
                                     None,
                                     Some("HTTP health check configuration."),
+                                    True,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -1433,6 +1497,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                             StringType,
                                             None,
                                             Some("Path to use for the HTTP health check."),
+                                            False,
                                           ),
                                           StringSchema(
                                             None,
@@ -1453,6 +1518,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     StringType,
                                     None,
                                     Some("Period between health checks. (in seconds)"),
+                                    True,
                                   ),
                                   StringSchema(
                                     None,
@@ -1469,6 +1535,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                     ObjectType,
                                     None,
                                     Some("TCP health check configuration."),
+                                    True,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -1490,6 +1557,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
 Possible values:
  - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
  - enabled: Serve both HTTP and HTTPS traffic."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -1510,6 +1578,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Local storage limit of the container (in MB)."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1525,6 +1594,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Number of maximum concurrent executions of the container."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1540,6 +1610,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Maximum number of instances to scale the container to."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1555,6 +1626,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Memory limit of the container in MB."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1570,6 +1642,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Minimum number of instances to scale the container to."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1585,6 +1658,7 @@ Possible values:
                             IntegerType,
                             None,
                             Some("Port the container listens on."),
+                            True,
                           ),
                           IntegerSchema(
                             None,
@@ -1600,6 +1674,7 @@ Possible values:
                             StringType,
                             None,
                             Some("Privacy settings of the container."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -1621,6 +1696,7 @@ Possible values:
                             None,
                             Some("ID of the Private Network the container is connected to.
 When connected to a Private Network, the container can access other Scaleway resources in this Private Network."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -1637,6 +1713,7 @@ When connected to a Private Network, the container can access other Scaleway res
                             StringType,
                             None,
                             Some("Protocol the container uses."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -1660,6 +1737,7 @@ Deprecated: future versions of this API will systematically redeploy containers 
 passing `redeploy: false` will be ignored. Relying on this field is discouraged.
 
 To force the redeployment of a container, even if no configuration has changed, use the `DeployContainer` method instead."),
+                          True,
                         )),
                       ),
                       #(
@@ -1669,6 +1747,7 @@ To force the redeployment of a container, even if no configuration has changed, 
                             StringType,
                             None,
                             Some("Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag")."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -1685,6 +1764,7 @@ To force the redeployment of a container, even if no configuration has changed, 
                             StringType,
                             None,
                             Some("Execution environment of the container."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -1709,6 +1789,7 @@ Possible values:
 - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
 - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
 - memory_usage_threshold: Scale depending on the memory usage of a container instance."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -1720,6 +1801,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -1735,6 +1817,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -1750,6 +1833,7 @@ Possible values:
                                     IntegerType,
                                     None,
                                     None,
+                                    True,
                                   ),
                                   IntegerSchema(
                                     None,
@@ -1781,6 +1865,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
   ]
 }
 ```."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -1796,6 +1881,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             ArrayType,
                             None,
                             Some("Tags of the Serverless Container."),
+                            True,
                           ),
                           ArraySchema(
                             None,
@@ -1805,6 +1891,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -1823,6 +1910,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("Processing time limit for the container. (in seconds)"),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -1875,6 +1963,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1898,6 +1987,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1919,6 +2009,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema([], []),
                 ))),
@@ -1964,6 +2055,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -1987,6 +2079,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2005,6 +2098,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2023,6 +2117,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2045,6 +2140,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2087,6 +2183,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2112,6 +2209,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -2123,6 +2221,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             ObjectType,
                             None,
                             Some("Arguments to pass with the cron."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -2134,6 +2233,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                                     ObjectType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -2152,6 +2252,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("UUID of the container to invoke by the cron."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -2168,6 +2269,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("Name of the cron to create."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -2184,6 +2286,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("UNIX cron schedule."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -2238,6 +2341,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2261,6 +2365,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2305,6 +2410,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2328,6 +2434,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2370,6 +2477,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2393,6 +2501,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2414,6 +2523,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -2425,6 +2535,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             ObjectType,
                             None,
                             Some("Arguments to pass with the cron."),
+                            False,
                           ),
                           ObjectSchema(
                             [],
@@ -2436,6 +2547,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                                     ObjectType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   ObjectSchema(
                                     [],
@@ -2454,6 +2566,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("UUID of the container invoked by the cron."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -2470,6 +2583,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("Name of the cron."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -2486,6 +2600,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("UNIX cron schedule."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -2537,6 +2652,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2560,6 +2676,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2578,6 +2695,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2596,6 +2714,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2620,6 +2739,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2662,6 +2782,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2687,6 +2808,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -2698,6 +2820,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("UUID of the container to assign the domain to."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -2714,6 +2837,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                             StringType,
                             None,
                             Some("Domain to assign."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -2768,6 +2892,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2791,6 +2916,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2835,6 +2961,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2858,6 +2985,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2906,6 +3034,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2929,6 +3058,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2947,6 +3077,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -2965,6 +3096,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -2989,6 +3121,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3008,6 +3141,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3027,6 +3161,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3069,6 +3204,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3094,6 +3230,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -3105,6 +3242,7 @@ For example, the following payload will delete the `TO_DELETE` secret environmen
                           None,
                           Some("[DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
 Setting this field to true doesn't matter anymore. It will be removed in a near future."),
+                          False,
                         )),
                       ),
                       #(
@@ -3114,6 +3252,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Description of the namespace to create."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3130,6 +3269,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ObjectType,
                             None,
                             Some("Environment variables of the namespace to create."),
+                            True,
                           ),
                           ObjectSchema(
                             [],
@@ -3141,6 +3281,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                     StringType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -3161,6 +3302,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Name of the namespace to create."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -3177,6 +3319,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("UUID of the Project in which the namespace will be created."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -3193,6 +3336,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ArrayType,
                             None,
                             Some("Secret environment variables of the namespace to create."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -3208,6 +3352,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ArrayType,
                             None,
                             Some("Tags of the Serverless Container Namespace."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -3217,6 +3362,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -3273,6 +3419,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3296,6 +3443,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3340,6 +3488,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3363,6 +3512,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3405,6 +3555,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3428,6 +3579,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3449,6 +3601,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -3460,6 +3613,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Description of the namespace to update."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3476,6 +3630,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ObjectType,
                             None,
                             Some("Environment variables of the namespace to update."),
+                            True,
                           ),
                           ObjectSchema(
                             [],
@@ -3487,6 +3642,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                     StringType,
                                     None,
                                     None,
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -3507,6 +3663,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ArrayType,
                             None,
                             Some("Secret environment variables of the namespace to update."),
+                            False,
                           ),
                           ArraySchema(
                             None,
@@ -3522,6 +3679,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ArrayType,
                             None,
                             Some("Tags of the Serverless Container Namespace."),
+                            True,
                           ),
                           ArraySchema(
                             None,
@@ -3531,6 +3689,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                 StringType,
                                 None,
                                 None,
+                                False,
                               ),
                               StringSchema(
                                 None,
@@ -3584,6 +3743,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3607,6 +3767,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -3625,6 +3786,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -3643,6 +3805,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3665,6 +3828,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3684,6 +3848,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3726,6 +3891,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3751,6 +3917,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -3762,6 +3929,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("UUID of the container to create the token for."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3778,6 +3946,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Description of the token."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3794,6 +3963,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Expiry date of the token. (RFC 3339 format)"),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3810,6 +3980,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("UUID of the namespace to create the token for."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -3864,6 +4035,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3887,6 +4059,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3931,6 +4104,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -3954,6 +4128,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4002,6 +4177,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4025,6 +4201,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4043,6 +4220,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4061,6 +4239,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4106,6 +4285,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4131,6 +4311,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [
@@ -4145,6 +4326,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("ID of the container to trigger."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -4161,6 +4343,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Description of the trigger."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -4177,6 +4360,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             StringType,
                             None,
                             Some("Name of the trigger."),
+                            False,
                           ),
                           StringSchema(
                             None,
@@ -4193,6 +4377,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                             ObjectType,
                             None,
                             Some("Configuration for a Scaleway Messaging and Queuing NATS subject."),
+                            True,
                           ),
                           ObjectSchema(
                             [
@@ -4208,6 +4393,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                     StringType,
                                     None,
                                     Some("ID of the Messaging and Queuing NATS account."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4224,6 +4410,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                     StringType,
                                     None,
                                     Some("ID of the Messaging and Queuing project."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4241,6 +4428,7 @@ Setting this field to true doesn't matter anymore. It will be removed in a near 
                                     None,
                                     Some("Region in which the Messaging and Queuing project is activated.
 Currently, only the `fr-par` and `nl-ams` regions are available."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4257,6 +4445,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                                     StringType,
                                     None,
                                     Some("Name of the NATS subject the trigger should listen to."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4277,6 +4466,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                             ObjectType,
                             None,
                             Some("Configuration for a Scaleway Messaging and Queuing SQS queue."),
+                            True,
                           ),
                           ObjectSchema(
                             [
@@ -4293,6 +4483,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                                     None,
                                     Some("ID of the Messaging and Queuing project.
 You must have activated SQS on this project."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4310,6 +4501,7 @@ You must have activated SQS on this project."),
                                     None,
                                     Some("Region in which the Messaging and Queuing project is activated.
 Currently, only the `fr-par` and `nl-ams` regions are available."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4326,6 +4518,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                                     StringType,
                                     None,
                                     Some("Name of the SQS queue the trigger should listen to."),
+                                    False,
                                   ),
                                   StringSchema(
                                     None,
@@ -4384,6 +4577,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4407,6 +4601,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4451,6 +4646,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4474,6 +4670,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4516,6 +4713,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4539,6 +4737,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4560,6 +4759,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                     ObjectType,
                     None,
                     None,
+                    False,
                   ),
                   ObjectSchema(
                     [],
@@ -4571,6 +4771,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                             StringType,
                             None,
                             Some("Description of the trigger."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -4587,6 +4788,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                             StringType,
                             None,
                             Some("Name of the trigger."),
+                            True,
                           ),
                           StringSchema(
                             None,
@@ -4628,6 +4830,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
           StringType,
           None,
           None,
+          True,
         ),
         StringSchema(
           None,
@@ -4644,6 +4847,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -4656,6 +4860,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   None,
                   Some("Container arguments.
 Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -4665,6 +4870,7 @@ Arguments passed to the command specified in the "command" field. These override
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -4684,6 +4890,7 @@ Arguments passed to the command specified in the "command" field. These override
                   None,
                   Some("Container command.
 Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -4693,6 +4900,7 @@ Command executed when the container starts. This overrides the default command d
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -4711,6 +4919,7 @@ Command executed when the container starts. This overrides the default command d
                   IntegerType,
                   None,
                   Some("CPU limit of the container in mvCPU."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4726,6 +4935,7 @@ Command executed when the container starts. This overrides the default command d
                   StringType,
                   None,
                   Some("Creation date of the container. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -4742,6 +4952,7 @@ Command executed when the container starts. This overrides the default command d
                   StringType,
                   None,
                   Some("Description of the container."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -4758,6 +4969,7 @@ Command executed when the container starts. This overrides the default command d
                   StringType,
                   None,
                   Some("Domain name attributed to the contaioner."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4774,6 +4986,7 @@ Command executed when the container starts. This overrides the default command d
                   ObjectType,
                   None,
                   Some("Environment variables of the container."),
+                  False,
                 ),
                 ObjectSchema(
                   [],
@@ -4785,6 +4998,7 @@ Command executed when the container starts. This overrides the default command d
                           StringType,
                           None,
                           Some("Environment variables of the container."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -4805,6 +5019,7 @@ Command executed when the container starts. This overrides the default command d
                   StringType,
                   None,
                   Some("Last error message of the container."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -4821,6 +5036,7 @@ Command executed when the container starts. This overrides the default command d
                   ObjectType,
                   None,
                   Some("Health check configuration of the container."),
+                  False,
                 ),
                 ObjectSchema(
                   [],
@@ -4834,6 +5050,7 @@ Command executed when the container starts. This overrides the default command d
                           Some("Number of consecutive health check failures before considering the container unhealthy.
 During a deployment, if a newly created container fails to pass the health check, the deployment is aborted. 
 As a result, lowering this value can help to reduce the time it takes to detect a failed deployment."),
+                          False,
                         ),
                         IntegerSchema(
                           None,
@@ -4849,6 +5066,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                           ObjectType,
                           None,
                           Some("HTTP health check configuration."),
+                          True,
                         ),
                         ObjectSchema(
                           [],
@@ -4860,6 +5078,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                                   StringType,
                                   None,
                                   Some("Path to use for the HTTP health check."),
+                                  False,
                                 ),
                                 StringSchema(
                                   None,
@@ -4880,6 +5099,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                           StringType,
                           None,
                           Some("Period between health checks. (in seconds)"),
+                          True,
                         ),
                         StringSchema(
                           None,
@@ -4896,6 +5116,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
                           ObjectType,
                           None,
                           Some("TCP health check configuration."),
+                          True,
                         ),
                         ObjectSchema(
                           [],
@@ -4917,6 +5138,7 @@ As a result, lowering this value can help to reduce the time it takes to detect 
 Possible values:
  - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
  - enabled: Serve both HTTP and HTTPS traffic."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4937,6 +5159,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -4953,6 +5176,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Local storage limit of the container (in MB)."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4968,6 +5192,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Number of maximum concurrent executions of the container."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4983,6 +5208,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Maximum number of instances to scale the container to."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -4998,6 +5224,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Memory limit of the container in MB."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5013,6 +5240,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Minimum number of instances to scale the container to."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5028,6 +5256,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Name of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5044,6 +5273,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the namespace the container belongs to."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5060,6 +5290,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Port the container listens on."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5075,6 +5306,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Privacy setting of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5096,6 +5328,7 @@ Possible values:
                   None,
                   Some("ID of the Private Network the container is connected to.
 When connected to a Private Network, the container can access other Scaleway resources in this Private Network."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5112,6 +5345,7 @@ When connected to a Private Network, the container can access other Scaleway res
                   StringType,
                   None,
                   Some("Protocol the container uses."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5132,6 +5366,7 @@ When connected to a Private Network, the container can access other Scaleway res
                   StringType,
                   None,
                   Some("Last date when the container was successfully deployed and set to ready. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5148,6 +5383,7 @@ When connected to a Private Network, the container can access other Scaleway res
                   StringType,
                   None,
                   Some("Region in which the container will be deployed."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5164,6 +5400,7 @@ When connected to a Private Network, the container can access other Scaleway res
                   StringType,
                   None,
                   Some("Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag")."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5180,6 +5417,7 @@ When connected to a Private Network, the container can access other Scaleway res
                   StringType,
                   None,
                   Some("Execution environment of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5204,6 +5442,7 @@ Possible values:
 - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
 - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
 - memory_usage_threshold: Scale depending on the memory usage of a container instance."),
+                  False,
                 ),
                 ObjectSchema(
                   [],
@@ -5215,6 +5454,7 @@ Possible values:
                           IntegerType,
                           None,
                           None,
+                          True,
                         ),
                         IntegerSchema(
                           None,
@@ -5230,6 +5470,7 @@ Possible values:
                           IntegerType,
                           None,
                           None,
+                          True,
                         ),
                         IntegerSchema(
                           None,
@@ -5245,6 +5486,7 @@ Possible values:
                           IntegerType,
                           None,
                           None,
+                          True,
                         ),
                         IntegerSchema(
                           None,
@@ -5264,6 +5506,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Secret environment variables of the container."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5279,6 +5522,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Status of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5306,6 +5550,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("List of tags applied to the Serverless Container."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5315,6 +5560,7 @@ Possible values:
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -5333,6 +5579,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Processing time limit for the container. (in seconds)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5349,6 +5596,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Last update date of the container. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5369,6 +5617,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5380,6 +5629,7 @@ Possible values:
                   ObjectType,
                   None,
                   Some("Arguments to pass with the cron."),
+                  False,
                 ),
                 ObjectSchema(
                   [],
@@ -5391,6 +5641,7 @@ Possible values:
                           ObjectType,
                           None,
                           None,
+                          False,
                         ),
                         ObjectSchema(
                           [],
@@ -5409,6 +5660,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the container invoked by this cron."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5425,6 +5677,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the cron."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5441,6 +5694,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Name of the cron."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5457,6 +5711,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UNIX cron schedule."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5473,6 +5728,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Status of the cron."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5504,6 +5760,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5515,6 +5772,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5531,6 +5789,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Last error message of the domain."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5547,6 +5806,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Domain assigned to the container."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5563,6 +5823,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the domain."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5579,6 +5840,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Status of the domain."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5605,6 +5867,7 @@ Possible values:
                   StringType,
                   None,
                   Some("URL (TBD)."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -5625,6 +5888,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5636,6 +5900,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Array of containers."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5651,6 +5916,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Total number of containers."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5670,6 +5936,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5681,6 +5948,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Array of crons."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5696,6 +5964,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Total number of crons."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5715,6 +5984,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5726,6 +5996,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Array of domains."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5741,6 +6012,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Total number of domains."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5760,6 +6032,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5771,6 +6044,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Array of the namespaces."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5786,6 +6060,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Total number of namespaces."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5805,6 +6080,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5816,6 +6092,7 @@ Possible values:
                   ArrayType,
                   None,
                   None,
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5831,6 +6108,7 @@ Possible values:
                   IntegerType,
                   None,
                   None,
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5850,6 +6128,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5861,6 +6140,7 @@ Possible values:
                   IntegerType,
                   None,
                   Some("Total count of existing triggers (matching any filters specified)."),
+                  False,
                 ),
                 IntegerSchema(
                   None,
@@ -5876,6 +6156,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Triggers on this page."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -5895,6 +6176,7 @@ Possible values:
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -5906,6 +6188,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Creation date of the namespace. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5922,6 +6205,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Description of the endpoint."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5938,6 +6222,7 @@ Possible values:
                   ObjectType,
                   None,
                   Some("Environment variables of the namespace."),
+                  False,
                 ),
                 ObjectSchema(
                   [],
@@ -5949,6 +6234,7 @@ Possible values:
                           StringType,
                           None,
                           Some("Environment variables of the namespace."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -5969,6 +6255,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Last error message of the namesace."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -5985,6 +6272,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the namespace."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6001,6 +6289,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Name of the namespace."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6017,6 +6306,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the Organization the namespace belongs to."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6033,6 +6323,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the Project the namespace belongs to."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6049,6 +6340,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Region in which the namespace will be created."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6065,6 +6357,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Registry endpoint of the namespace."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6081,6 +6374,7 @@ Possible values:
                   StringType,
                   None,
                   Some("UUID of the registry namespace."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6097,6 +6391,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("Secret environment variables of the namespace."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -6112,6 +6407,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Status of the namespace."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6138,6 +6434,7 @@ Possible values:
                   ArrayType,
                   None,
                   Some("List of tags applied to the Serverless Container Namespace."),
+                  False,
                 ),
                 ArraySchema(
                   None,
@@ -6147,6 +6444,7 @@ Possible values:
                       StringType,
                       None,
                       None,
+                      False,
                     ),
                     StringSchema(
                       None,
@@ -6165,6 +6463,7 @@ Possible values:
                   StringType,
                   None,
                   Some("Last update date of the namespace. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6181,6 +6480,7 @@ Possible values:
                 None,
                 Some("[DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
 The value of this field doesn't matter anymore, and will be removed in a near future."),
+                False,
               )),
             ),
           ],
@@ -6194,6 +6494,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -6205,6 +6506,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6229,6 +6531,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -6240,6 +6543,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6256,6 +6560,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   None,
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6276,6 +6581,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -6287,6 +6593,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("UUID of the container the token belongs to."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6303,6 +6610,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Description of the token."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6319,6 +6627,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Expiry date of the token. (RFC 3339 format)"),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6335,6 +6644,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("UUID of the token."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6351,6 +6661,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("UUID of the namespace the token belongs to."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6367,6 +6678,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Public key of the token."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6383,6 +6695,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Status of the token."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6405,6 +6718,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Identifier of the token."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6425,6 +6739,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
           ObjectType,
           None,
           None,
+          False,
         ),
         ObjectSchema(
           [],
@@ -6436,6 +6751,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("ID of the container to trigger."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6452,6 +6768,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Description of the trigger."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6468,6 +6785,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Error message of the trigger."),
+                  True,
                 ),
                 StringSchema(
                   None,
@@ -6484,6 +6802,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("ID of the trigger."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6500,6 +6819,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Type of the input."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6522,6 +6842,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   StringType,
                   None,
                   Some("Name of the trigger."),
+                  False,
                 ),
                 StringSchema(
                   None,
@@ -6538,6 +6859,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                   ObjectType,
                   None,
                   Some("Configuration for a Scaleway Messaging and Queuing NATS subject."),
+                  True,
                 ),
                 ObjectSchema(
                   [],
@@ -6549,6 +6871,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                           StringType,
                           None,
                           Some("ID of the Messaging and Queuing credentials used to subscribe to the NATS subject."),
+                          True,
                         ),
                         StringSchema(
                           None,
@@ -6565,6 +6888,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                           StringType,
                           None,
                           Some("ID of the Messaging and Queuing NATS account."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6581,6 +6905,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                           StringType,
                           None,
                           Some("ID of the Messaging and Queuing project."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6598,6 +6923,7 @@ The value of this field doesn't matter anymore, and will be removed in a near fu
                           None,
                           Some("Region in which the Messaging and Queuing project is activated.
 Currently, only the `fr-par` and `nl-ams` regions are available."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6614,6 +6940,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                           StringType,
                           None,
                           Some("Name of the NATS subject the trigger listens to."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6634,6 +6961,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   ObjectType,
                   None,
                   Some("Configuration for a Scaleway Messaging and Queuing SQS queue."),
+                  True,
                 ),
                 ObjectSchema(
                   [],
@@ -6645,6 +6973,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                           StringType,
                           None,
                           Some("ID of the Messaging and Queuing credentials used to read from the SQS queue."),
+                          True,
                         ),
                         StringSchema(
                           None,
@@ -6661,6 +6990,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                           StringType,
                           None,
                           Some("ID of the Messaging and Queuing project."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6678,6 +7008,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                           None,
                           Some("Region in which the Messaging and Queuing project is activated.
 Currently, only the `fr-par` and `nl-ams` regions are available."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6694,6 +7025,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                           StringType,
                           None,
                           Some("Name of the SQS queue the trigger listens to."),
+                          False,
                         ),
                         StringSchema(
                           None,
@@ -6714,6 +7046,7 @@ Currently, only the `fr-par` and `nl-ams` regions are available."),
                   StringType,
                   None,
                   Some("Status of the trigger."),
+                  False,
                 ),
                 StringSchema(
                   None,
