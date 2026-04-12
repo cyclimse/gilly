@@ -3,8 +3,20 @@ version: 2
 project_name: gilly
 
 builds:
-  # Not doing GoReleaser's default build, since we don't have any Go code to build.
   - skip: true
+
+archives:
+  - id: meta
+    formats: [tar.gz]
+    meta: true
+    name_template: "{{ .ProjectName }}_{{ .Version }}"
+    files:
+      - gleam.toml
+      - manifest.toml
+      - src/**/*
+      - test/**/*
+      - LICENSE*
+      - README*
 
 checksum:
   name_template: "checksums.txt"
@@ -16,21 +28,6 @@ publishers:
       echo 'I am not using semantic versioning' | gleam publish -y
     env:
       - HEXPM_API_KEY={{ .Env.HEXPM_API_KEY }}
-
-archives:
-  - formats: [tar.gz]
-    # this name template makes the OS and Arch compatible with the results of `uname`.
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        formats: [zip]
 
 changelog:
   sort: asc

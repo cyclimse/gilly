@@ -48,6 +48,16 @@ gleam run   # Run the project
 gleam test  # Run the tests
 ```
 
+### Releases
+
+Releases are handled with [goreleaser](https://goreleaser.com/) and GitHub Actions.
+
+To dry-run a release, you can use:
+
+```bash
+goreleaser release --snapshot --skip=publish --clean
+```
+
 ## References
 
 - [giacomocavalieri/squirrel](https://github.com/giacomocavalieri/squirrel) a Postgres client generator for Gleam, which inspired the design of this project.
