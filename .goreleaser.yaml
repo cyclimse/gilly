@@ -23,9 +23,8 @@ checksum:
 
 publishers:
   - name: Hex
-    # use a custom publish command since goreleaser doesn't have built-in support for publishing to Hex.
-    cmd: |
-      echo 'I am not using semantic versioning' | gleam publish -y
+    # Use a custom publish command since goreleaser doesn't have built-in support for publishing to Hex.
+    cmd: hack/gleam_publish.sh {{ .ArtifactName }}
     env:
       - HEXPM_API_KEY={{ .Env.HEXPM_API_KEY }}
 
