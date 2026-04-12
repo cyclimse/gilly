@@ -5,13 +5,13 @@ licences = ["Unlicense"]
 repository = { type = "github", user = "cyclimse", repo = "gilly" }
 
 [dependencies]
-gleam_stdlib = "== 0.71.0"
-gleam_json = "== 3.1.0"
-glam = "== 2.0.3"
-justin = "== 1.0.1"
-argv = "== 1.0.2"
-simplifile = "== 2.4.0"
-clip = "== 1.2.0"
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+glam = ">= 2.0.3 and < 3.0.0"
+justin = ">= 1.0.1 and < 2.0.0"
+argv = ">= 1.0.2 and < 2.0.0"
+simplifile = ">= 2.4.0 and < 3.0.0"
+clip = ">= 1.2.0 and < 2.0.0"
 
 [dev_dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

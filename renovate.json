@@ -6,6 +6,5 @@
     ],
     "lockFileMaintenance": {
         "enabled": true
-    },
-    "rangeStrategy": "pin"
+    }
 }
