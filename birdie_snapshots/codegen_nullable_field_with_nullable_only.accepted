@@ -6,7 +6,7 @@ test_name: nullable_field_with_nullable_only_test
 ---
 import gleam/dynamic/decode
 import gleam/json
-import gleam/option.{None, type Option}
+import gleam/option.{None, Some, type Option}
 
 pub type Config {
   Config(
@@ -26,5 +26,18 @@ pub fn config_to_json(value: Config) -> json.Json {
     #("name", json.string(value.name)),
     #("label", json.nullable(value.label, json.string)),
   ])
+}
+
+pub fn new_config(
+  name: String,
+) -> Config {
+  Config(name:, label: None)
+}
+
+pub fn config_with_label(
+  config: Config,
+  label: String,
+) -> Config {
+  Config(..config, label: Some(label))
 }
 

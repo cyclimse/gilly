@@ -24,3 +24,9 @@ pub fn pet_to_json(value: Pet) -> json.Json {
   ])
 }
 
+pub fn new_pet(
+  category: Category,
+) -> Pet {
+  Pet(category:)
+}
+

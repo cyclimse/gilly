@@ -24,3 +24,9 @@ pub fn resource_to_json(value: Resource) -> json.Json {
   ])
 }
 
+pub fn new_resource(
+  type_: String,
+) -> Resource {
+  Resource(type_:)
+}
+

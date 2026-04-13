@@ -1081,8 +1081,27 @@ fn object_type_doc(
     record_decoder_doc(state, type_name, object_schema, all_schemas, config)
   let #(state, encoder) =
     record_to_json_doc(state, type_name, object_schema, all_schemas, config)
+  let #(state, constructor) =
+    record_new_doc(state, type_name, object_schema, all_schemas, config)
+  let #(state, setters) =
+    record_with_field_docs(state, type_name, object_schema, all_schemas, config)
+
+  let setter_docs = case setters {
+    [] -> doc.empty
+    _ -> doc.concat([doc.lines(2), doc.join(setters, with: doc.lines(2))])
+  }
+
   let result =
-    doc.concat([result, doc.lines(2), decoder, doc.lines(2), encoder])
+    doc.concat([
+      result,
+      doc.lines(2),
+      decoder,
+      doc.lines(2),
+      encoder,
+      doc.lines(2),
+      constructor,
+      setter_docs,
+    ])
 
   #(state, result)
 }
@@ -1509,10 +1528,16 @@ fn is_field_optional(
   in_required: Bool,
   optionality: Optionality,
 ) -> Bool {
-  case optionality {
-    RequiredOnly -> !in_required
-    NullableOnly -> is_nullable(prop_schema)
-    RequiredAndNullable -> !in_required || is_nullable(prop_schema)
+  // Inline objects map to Dynamic, which can't be constructed directly,
+  // so always treat them as optional regardless of the optionality strategy.
+  case prop_schema {
+    schema.Object(_, _) -> True
+    _ ->
+      case optionality {
+        RequiredOnly -> !in_required
+        NullableOnly -> is_nullable(prop_schema)
+        RequiredAndNullable -> !in_required || is_nullable(prop_schema)
+      }
   }
 }
 
@@ -1760,6 +1785,175 @@ fn record_to_json_doc(
     ])
 
   #(state, result)
+}
+
+// --- Record constructor codegen ----------------------------------------------
+
+fn record_new_doc(
+  state: State,
+  type_name: String,
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, Document) {
+  let fn_name = "new_" <> justin.snake_case(type_name)
+  let indent = config.indent
+
+  // Classify each field as required or optional
+  let field_info =
+    list.map(object_schema.properties, fn(prop) {
+      let #(prop_name, prop_schema) = prop
+      let field_name = to_field_name(prop_name)
+      let in_required = list.contains(object_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      #(prop_name, field_name, prop_schema, optional)
+    })
+
+  let has_optional = list.any(field_info, fn(f) { f.3 })
+
+  // Import None if we have optional fields
+  let state = case has_optional {
+    True -> import_qualified(state, "gleam/option", "None")
+    False -> state
+  }
+
+  // Build function parameter list (required fields only)
+  let #(state, required_args) =
+    list.fold(field_info, #(state, []), fn(acc, f) {
+      let #(state, args) = acc
+      let #(prop_name, field_name, prop_schema, optional) = f
+      case optional {
+        True -> #(state, args)
+        False -> {
+          let enum_hint = type_name <> to_type_name(prop_name)
+          let #(state, field_type) =
+            schema_to_gleam_type(
+              state,
+              prop_schema,
+              True,
+              all_schemas,
+              enum_hint,
+            )
+          let arg =
+            doc.concat([doc.from_string(field_name <> ": "), field_type])
+          #(state, list.append(args, [arg]))
+        }
+      }
+    })
+
+  // Build record field initializers
+  let field_inits =
+    list.map(field_info, fn(f) {
+      let #(_prop_name, field_name, _prop_schema, optional) = f
+      case optional {
+        True -> field_name <> ": None"
+        False -> field_name <> ":"
+      }
+    })
+
+  let constructor_body = case field_inits {
+    [] -> doc.from_string(type_name)
+    _ ->
+      doc.from_string(type_name <> "(" <> string.join(field_inits, ", ") <> ")")
+  }
+
+  let result = case required_args {
+    [] ->
+      doc.concat([
+        doc.from_string("pub fn " <> fn_name <> "() -> " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+    _ ->
+      doc.concat([
+        doc.from_string("pub fn " <> fn_name <> "("),
+        doc.line |> doc.nest(by: indent),
+        doc.join(
+          required_args,
+          with: doc.concat([doc.from_string(","), doc.line]),
+        )
+          |> doc.nest(by: indent),
+        doc.concat([doc.from_string(","), doc.line]),
+        doc.from_string(") -> " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+  }
+
+  #(state, result)
+}
+
+// --- Record setter codegen ---------------------------------------------------
+
+fn record_with_field_docs(
+  state: State,
+  type_name: String,
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document)) {
+  let indent = config.indent
+  let var_name = justin.snake_case(type_name)
+
+  list.fold(object_schema.properties, #(state, []), fn(acc, prop) {
+    let #(state, docs) = acc
+    let #(prop_name, prop_schema) = prop
+    let field_name = to_field_name(prop_name)
+    let in_required = list.contains(object_schema.required, prop_name)
+    let optional =
+      is_field_optional(prop_schema, in_required, config.optionality)
+
+    case optional {
+      False -> #(state, docs)
+      True -> {
+        let fn_name = justin.snake_case(type_name) <> "_with_" <> field_name
+        let enum_hint = type_name <> to_type_name(prop_name)
+        // Get the inner type (not wrapped in Option)
+        let #(state, inner_type) =
+          schema_to_gleam_type(state, prop_schema, True, all_schemas, enum_hint)
+
+        let state = import_qualified(state, "gleam/option", "Some")
+
+        let setter_doc =
+          doc.concat([
+            doc.from_string("pub fn " <> fn_name <> "("),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(var_name <> ": " <> type_name <> ",")
+              |> doc.nest(by: indent),
+            doc.line |> doc.nest(by: indent),
+            doc.concat([
+              doc.from_string(field_name <> ": "),
+              inner_type,
+              doc.from_string(","),
+            ])
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string(") -> " <> type_name <> " {"),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(
+              type_name
+              <> "(.."
+              <> var_name
+              <> ", "
+              <> field_name
+              <> ": Some("
+              <> field_name
+              <> "))",
+            )
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string("}"),
+          ])
+
+        #(state, list.append(docs, [setter_doc]))
+      }
+    }
+  })
 }
 
 // --- Enum codegen ------------------------------------------------------------
