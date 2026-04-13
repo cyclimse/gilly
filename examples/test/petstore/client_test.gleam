@@ -56,7 +56,8 @@ pub fn create_and_delete_pet_test() {
   created |> pprint.format |> birdie.snap(title: "Created Lucy (20)")
 
   let assert Some(pet_id) = created.id
-  let assert Ok(Nil) = client.delete_pet(api_client, pet_id)
+  let assert Ok(Nil) =
+    client.delete_pet(api_client, client.new_delete_pet_params(pet_id))
 }
 
 pub fn create_and_update_pet_test() {
@@ -97,7 +98,11 @@ pub fn list_pets_by_status_test() {
     assert pet.id == created.id
   })
 
-  let assert Ok(pets) = client.find_pets_by_status(api_client, "available")
+  let assert Ok(pets) =
+    client.find_pets_by_status(
+      api_client,
+      client.new_find_pets_by_status_params("available"),
+    )
   let found_test_pets =
     list.filter(pets, fn(p) {
       case p.id {

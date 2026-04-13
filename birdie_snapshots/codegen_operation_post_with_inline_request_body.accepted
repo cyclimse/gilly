@@ -38,6 +38,18 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
+pub opaque type CreateContainerParams {
+  CreateContainerParams(
+    region: String,
+  )
+}
+
+pub fn new_create_container_params(
+  region region: String,
+) -> CreateContainerParams {
+  CreateContainerParams(region:)
+}
+
 pub type CreateContainerRequest {
   CreateContainerRequest(
     name: String,
@@ -62,21 +74,21 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
 }
 
 pub fn new_create_container_request(
-  name: String,
+  name name: String,
 ) -> CreateContainerRequest {
   CreateContainerRequest(name:, description: None, min_scale: None)
 }
 
 pub fn create_container_request_with_description(
   create_container_request: CreateContainerRequest,
-  description: String,
+  description description: String,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, description: Some(description))
 }
 
 pub fn create_container_request_with_min_scale(
   create_container_request: CreateContainerRequest,
-  min_scale: Int,
+  min_scale min_scale: Int,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, min_scale: Some(min_scale))
 }
@@ -84,10 +96,10 @@ pub fn create_container_request_with_min_scale(
 /// Create a new container
 pub fn create_container(
   client: Client(err),
-  region: String,
-  body: CreateContainerRequest,
+  params params: CreateContainerParams,
+  body body: CreateContainerRequest,
 ) -> Result(Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/" <> region <> "/containers")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/" <> params.region <> "/containers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_container_request_to_json(body)))

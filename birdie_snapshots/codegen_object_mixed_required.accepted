@@ -29,14 +29,14 @@ pub fn user_to_json(value: User) -> json.Json {
 }
 
 pub fn new_user(
-  name: String,
+  name name: String,
 ) -> User {
   User(name:, email: None)
 }
 
 pub fn user_with_email(
   user: User,
-  email: String,
+  email email: String,
 ) -> User {
   User(..user, email: Some(email))
 }

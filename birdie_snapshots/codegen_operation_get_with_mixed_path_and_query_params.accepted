@@ -1,0 +1,97 @@
+---
+version: 1.5.4
+title: codegen operation get with mixed path and query params
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: get_with_mixed_path_and_query_params_test
+---
+import gleam/dynamic/decode
+import gleam/http
+import gleam/http/request
+import gleam/http/response
+import gleam/int
+import gleam/json
+import gleam/list
+import gleam/option.{None, Some, type Option}
+import gleam/result
+
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+) -> Client(err) {
+  Client(http_client:, base_url: "")
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
+pub opaque type ListRegionContainersParams {
+  ListRegionContainersParams(
+    region: String,
+    page: Option(Int),
+    page_size: Option(Int),
+    name: Option(String),
+  )
+}
+
+pub fn new_list_region_containers_params(
+  region region: String,
+) -> ListRegionContainersParams {
+  ListRegionContainersParams(region:, page: None, page_size: None, name: None)
+}
+
+pub fn list_region_containers_params_with_page(
+  list_region_containers_params: ListRegionContainersParams,
+  page page: Int,
+) -> ListRegionContainersParams {
+  ListRegionContainersParams(..list_region_containers_params, page: Some(page))
+}
+
+pub fn list_region_containers_params_with_page_size(
+  list_region_containers_params: ListRegionContainersParams,
+  page_size page_size: Int,
+) -> ListRegionContainersParams {
+  ListRegionContainersParams(..list_region_containers_params, page_size: Some(page_size))
+}
+
+pub fn list_region_containers_params_with_name(
+  list_region_containers_params: ListRegionContainersParams,
+  name name: String,
+) -> ListRegionContainersParams {
+  ListRegionContainersParams(..list_region_containers_params, name: Some(name))
+}
+
+/// List containers in region
+pub fn list_region_containers(
+  client: Client(err),
+  params params: ListRegionContainersParams,
+) -> Result(Nil, ApiError(err)) {
+  let assert Ok(req) = request.to(client.base_url <> "/regions/" <> params.region <> "/containers")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let query = []
+  let query = list.append(query, option.values([
+    option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
+    option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
+    option.map(params.name, fn(v) { #("name", v) }),
+  ]))
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  let _ = resp
+  Ok(Nil)
+}
+

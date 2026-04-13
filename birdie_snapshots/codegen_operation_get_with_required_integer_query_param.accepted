@@ -1,8 +1,8 @@
 ---
 version: 1.5.4
-title: codegen operation get with path param
+title: codegen operation get with required integer query param
 file: ./test/gilly/internal/codegen_test.gleam
-test_name: get_with_path_param_test
+test_name: get_with_required_integer_query_param_test
 ---
 import gleam/dynamic/decode
 import gleam/http
@@ -37,28 +37,30 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type GetPetByIdParams {
-  GetPetByIdParams(
-    pet_id: Int,
+pub opaque type ListItemsParams {
+  ListItemsParams(
+    limit: Int,
   )
 }
 
-pub fn new_get_pet_by_id_params(
-  pet_id pet_id: Int,
-) -> GetPetByIdParams {
-  GetPetByIdParams(pet_id:)
+pub fn new_list_items_params(
+  limit limit: Int,
+) -> ListItemsParams {
+  ListItemsParams(limit:)
 }
 
-/// Find pet by ID
-pub fn get_pet_by_id(
+/// List items
+pub fn list_items(
   client: Client(err),
-  params params: GetPetByIdParams,
-) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
+  params params: ListItemsParams,
+) -> Result(Nil, ApiError(err)) {
+  let assert Ok(req) = request.to(client.base_url <> "/items")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
+  let query = [#("limit", int.to_string(params.limit))]
+  let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, pet_decoder())
-  |> result.map_error(JsonDecodeError)
+  let _ = resp
+  Ok(Nil)
 }
 

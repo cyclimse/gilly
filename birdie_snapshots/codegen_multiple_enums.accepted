@@ -28,8 +28,8 @@ pub fn pet_to_json(value: Pet) -> json.Json {
 }
 
 pub fn new_pet(
-  status: PetStatus,
-  size: PetSize,
+  status status: PetStatus,
+  size size: PetSize,
 ) -> Pet {
   Pet(status:, size:)
 }

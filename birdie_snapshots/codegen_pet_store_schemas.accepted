@@ -54,14 +54,14 @@ pub fn new_category() -> Category {
 
 pub fn category_with_id(
   category: Category,
-  id: Int,
+  id id: Int,
 ) -> Category {
   Category(..category, id: Some(id))
 }
 
 pub fn category_with_name(
   category: Category,
-  name: String,
+  name name: String,
 ) -> Category {
   Category(..category, name: Some(name))
 }
@@ -105,42 +105,42 @@ pub fn new_order() -> Order {
 
 pub fn order_with_complete(
   order: Order,
-  complete: Bool,
+  complete complete: Bool,
 ) -> Order {
   Order(..order, complete: Some(complete))
 }
 
 pub fn order_with_id(
   order: Order,
-  id: Int,
+  id id: Int,
 ) -> Order {
   Order(..order, id: Some(id))
 }
 
 pub fn order_with_pet_id(
   order: Order,
-  pet_id: Int,
+  pet_id pet_id: Int,
 ) -> Order {
   Order(..order, pet_id: Some(pet_id))
 }
 
 pub fn order_with_quantity(
   order: Order,
-  quantity: Int,
+  quantity quantity: Int,
 ) -> Order {
   Order(..order, quantity: Some(quantity))
 }
 
 pub fn order_with_ship_date(
   order: Order,
-  ship_date: String,
+  ship_date ship_date: String,
 ) -> Order {
   Order(..order, ship_date: Some(ship_date))
 }
 
 pub fn order_with_status(
   order: Order,
-  status: OrderStatus,
+  status status: OrderStatus,
 ) -> Order {
   Order(..order, status: Some(status))
 }
@@ -179,36 +179,36 @@ pub fn pet_to_json(value: Pet) -> json.Json {
 }
 
 pub fn new_pet(
-  name: String,
-  photo_urls: List(String),
+  name name: String,
+  photo_urls photo_urls: List(String),
 ) -> Pet {
   Pet(category: None, id: None, name:, photo_urls:, status: None, tags: None)
 }
 
 pub fn pet_with_category(
   pet: Pet,
-  category: Category,
+  category category: Category,
 ) -> Pet {
   Pet(..pet, category: Some(category))
 }
 
 pub fn pet_with_id(
   pet: Pet,
-  id: Int,
+  id id: Int,
 ) -> Pet {
   Pet(..pet, id: Some(id))
 }
 
 pub fn pet_with_status(
   pet: Pet,
-  status: PetStatus,
+  status status: PetStatus,
 ) -> Pet {
   Pet(..pet, status: Some(status))
 }
 
 pub fn pet_with_tags(
   pet: Pet,
-  tags: List(Tag),
+  tags tags: List(Tag),
 ) -> Pet {
   Pet(..pet, tags: Some(tags))
 }
@@ -239,14 +239,14 @@ pub fn new_tag() -> Tag {
 
 pub fn tag_with_id(
   tag: Tag,
-  id: Int,
+  id id: Int,
 ) -> Tag {
   Tag(..tag, id: Some(id))
 }
 
 pub fn tag_with_name(
   tag: Tag,
-  name: String,
+  name name: String,
 ) -> Tag {
   Tag(..tag, name: Some(name))
 }
@@ -296,56 +296,56 @@ pub fn new_user() -> User {
 
 pub fn user_with_email(
   user: User,
-  email: String,
+  email email: String,
 ) -> User {
   User(..user, email: Some(email))
 }
 
 pub fn user_with_first_name(
   user: User,
-  first_name: String,
+  first_name first_name: String,
 ) -> User {
   User(..user, first_name: Some(first_name))
 }
 
 pub fn user_with_id(
   user: User,
-  id: Int,
+  id id: Int,
 ) -> User {
   User(..user, id: Some(id))
 }
 
 pub fn user_with_last_name(
   user: User,
-  last_name: String,
+  last_name last_name: String,
 ) -> User {
   User(..user, last_name: Some(last_name))
 }
 
 pub fn user_with_password(
   user: User,
-  password: String,
+  password password: String,
 ) -> User {
   User(..user, password: Some(password))
 }
 
 pub fn user_with_phone(
   user: User,
-  phone: String,
+  phone phone: String,
 ) -> User {
   User(..user, phone: Some(phone))
 }
 
 pub fn user_with_user_status(
   user: User,
-  user_status: Int,
+  user_status user_status: Int,
 ) -> User {
   User(..user, user_status: Some(user_status))
 }
 
 pub fn user_with_username(
   user: User,
-  username: String,
+  username username: String,
 ) -> User {
   User(..user, username: Some(username))
 }
@@ -447,7 +447,7 @@ pub fn with_base_url(
 /// Add a new pet to the store.
 pub fn add_pet(
   client: Client(err),
-  body: Pet,
+  body body: Pet,
 ) -> Result(Pet, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Post)
@@ -461,7 +461,7 @@ pub fn add_pet(
 /// Update an existing pet.
 pub fn update_pet(
   client: Client(err),
-  body: Pet,
+  body body: Pet,
 ) -> Result(Pet, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Put)
@@ -472,42 +472,79 @@ pub fn update_pet(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type FindPetsByStatusParams {
+  FindPetsByStatusParams(
+    status: String,
+  )
+}
+
+pub fn new_find_pets_by_status_params(
+  status status: String,
+) -> FindPetsByStatusParams {
+  FindPetsByStatusParams(status:)
+}
+
 /// Finds Pets by status.
 pub fn find_pets_by_status(
   client: Client(err),
-  status: String,
+  params params: FindPetsByStatusParams,
 ) -> Result(List(Pet), ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/findByStatus")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = [#("status", status)]
+  let query = [#("status", params.status)]
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.list(pet_decoder()))
   |> result.map_error(JsonDecodeError)
+}
+
+pub opaque type FindPetsByTagsParams {
+  FindPetsByTagsParams(
+    tags: List(String),
+  )
+}
+
+pub fn new_find_pets_by_tags_params(
+  tags tags: List(String),
+) -> FindPetsByTagsParams {
+  FindPetsByTagsParams(tags:)
 }
 
 /// Finds Pets by tags.
 pub fn find_pets_by_tags(
   client: Client(err),
-  tags: String,
+  params params: FindPetsByTagsParams,
 ) -> Result(List(Pet), ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/findByTags")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = [#("tags", tags)]
+  let query = []
+  let query = list.append(query, list.map(params.tags, fn(v) { #("tags", v) }))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.list(pet_decoder()))
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type GetPetByIdParams {
+  GetPetByIdParams(
+    pet_id: Int,
+  )
+}
+
+pub fn new_get_pet_by_id_params(
+  pet_id pet_id: Int,
+) -> GetPetByIdParams {
+  GetPetByIdParams(pet_id:)
+}
+
 /// Find pet by ID.
 pub fn get_pet_by_id(
   client: Client(err),
-  pet_id: Int,
+  params params: GetPetByIdParams,
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -515,20 +552,46 @@ pub fn get_pet_by_id(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type UpdatePetWithFormParams {
+  UpdatePetWithFormParams(
+    pet_id: Int,
+    name: Option(String),
+    status: Option(String),
+  )
+}
+
+pub fn new_update_pet_with_form_params(
+  pet_id pet_id: Int,
+) -> UpdatePetWithFormParams {
+  UpdatePetWithFormParams(pet_id:, name: None, status: None)
+}
+
+pub fn update_pet_with_form_params_with_name(
+  update_pet_with_form_params: UpdatePetWithFormParams,
+  name name: String,
+) -> UpdatePetWithFormParams {
+  UpdatePetWithFormParams(..update_pet_with_form_params, name: Some(name))
+}
+
+pub fn update_pet_with_form_params_with_status(
+  update_pet_with_form_params: UpdatePetWithFormParams,
+  status status: String,
+) -> UpdatePetWithFormParams {
+  UpdatePetWithFormParams(..update_pet_with_form_params, status: Some(status))
+}
+
 /// Updates a pet in the store with form data.
 pub fn update_pet_with_form(
   client: Client(err),
-  pet_id: Int,
-  name: Option(String),
-  status: Option(String),
+  params params: UpdatePetWithFormParams,
 ) -> Result(Pet, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
   let query = list.append(query, option.values([
-    option.map(name, fn(v) { #("name", v) }),
-    option.map(status, fn(v) { #("status", v) }),
+    option.map(params.name, fn(v) { #("name", v) }),
+    option.map(params.status, fn(v) { #("status", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -536,12 +599,24 @@ pub fn update_pet_with_form(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type DeletePetParams {
+  DeletePetParams(
+    pet_id: Int,
+  )
+}
+
+pub fn new_delete_pet_params(
+  pet_id pet_id: Int,
+) -> DeletePetParams {
+  DeletePetParams(pet_id:)
+}
+
 /// Deletes a pet.
 pub fn delete_pet(
   client: Client(err),
-  pet_id: Int,
+  params params: DeletePetParams,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -549,18 +624,37 @@ pub fn delete_pet(
   Ok(Nil)
 }
 
+pub opaque type UploadFileParams {
+  UploadFileParams(
+    pet_id: Int,
+    additional_metadata: Option(String),
+  )
+}
+
+pub fn new_upload_file_params(
+  pet_id pet_id: Int,
+) -> UploadFileParams {
+  UploadFileParams(pet_id:, additional_metadata: None)
+}
+
+pub fn upload_file_params_with_additional_metadata(
+  upload_file_params: UploadFileParams,
+  additional_metadata additional_metadata: String,
+) -> UploadFileParams {
+  UploadFileParams(..upload_file_params, additional_metadata: Some(additional_metadata))
+}
+
 /// Uploads an image.
 pub fn upload_file(
   client: Client(err),
-  pet_id: Int,
-  additional_metadata: Option(String),
+  params params: UploadFileParams,
 ) -> Result(ApiResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id) <> "/uploadImage")
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id) <> "/uploadImage")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
   let query = list.append(query, option.values([
-    option.map(additional_metadata, fn(v) { #("additionalMetadata", v) }),
+    option.map(params.additional_metadata, fn(v) { #("additionalMetadata", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -583,7 +677,7 @@ pub fn get_inventory(
 /// Place an order for a pet.
 pub fn place_order(
   client: Client(err),
-  body: Order,
+  body body: Order,
 ) -> Result(Order, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/store/order")
   let req = request.set_method(req, http.Post)
@@ -594,12 +688,24 @@ pub fn place_order(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type GetOrderByIdParams {
+  GetOrderByIdParams(
+    order_id: Int,
+  )
+}
+
+pub fn new_get_order_by_id_params(
+  order_id order_id: Int,
+) -> GetOrderByIdParams {
+  GetOrderByIdParams(order_id:)
+}
+
 /// Find purchase order by ID.
 pub fn get_order_by_id(
   client: Client(err),
-  order_id: Int,
+  params params: GetOrderByIdParams,
 ) -> Result(Order, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(order_id))
+  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(params.order_id))
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -607,12 +713,24 @@ pub fn get_order_by_id(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type DeleteOrderParams {
+  DeleteOrderParams(
+    order_id: Int,
+  )
+}
+
+pub fn new_delete_order_params(
+  order_id order_id: Int,
+) -> DeleteOrderParams {
+  DeleteOrderParams(order_id:)
+}
+
 /// Delete purchase order by identifier.
 pub fn delete_order(
   client: Client(err),
-  order_id: Int,
+  params params: DeleteOrderParams,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(order_id))
+  let assert Ok(req) = request.to(client.base_url <> "/store/order/" <> int.to_string(params.order_id))
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -623,7 +741,7 @@ pub fn delete_order(
 /// Create user.
 pub fn create_user(
   client: Client(err),
-  body: User,
+  body body: User,
 ) -> Result(User, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/user")
   let req = request.set_method(req, http.Post)
@@ -637,7 +755,7 @@ pub fn create_user(
 /// Creates list of users with given input array.
 pub fn create_users_with_list_input(
   client: Client(err),
-  body: List(User),
+  body body: List(User),
 ) -> Result(User, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/user/createWithList")
   let req = request.set_method(req, http.Post)
@@ -648,19 +766,43 @@ pub fn create_users_with_list_input(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type LoginUserParams {
+  LoginUserParams(
+    username: Option(String),
+    password: Option(String),
+  )
+}
+
+pub fn new_login_user_params() -> LoginUserParams {
+  LoginUserParams(username: None, password: None)
+}
+
+pub fn login_user_params_with_username(
+  login_user_params: LoginUserParams,
+  username username: String,
+) -> LoginUserParams {
+  LoginUserParams(..login_user_params, username: Some(username))
+}
+
+pub fn login_user_params_with_password(
+  login_user_params: LoginUserParams,
+  password password: String,
+) -> LoginUserParams {
+  LoginUserParams(..login_user_params, password: Some(password))
+}
+
 /// Logs user into the system.
 pub fn login_user(
   client: Client(err),
-  username: Option(String),
-  password: Option(String),
+  params params: LoginUserParams,
 ) -> Result(String, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/user/login")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
   let query = list.append(query, option.values([
-    option.map(username, fn(v) { #("username", v) }),
-    option.map(password, fn(v) { #("password", v) }),
+    option.map(params.username, fn(v) { #("username", v) }),
+    option.map(params.password, fn(v) { #("password", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -680,12 +822,24 @@ pub fn logout_user(
   Ok(Nil)
 }
 
+pub opaque type GetUserByNameParams {
+  GetUserByNameParams(
+    username: String,
+  )
+}
+
+pub fn new_get_user_by_name_params(
+  username username: String,
+) -> GetUserByNameParams {
+  GetUserByNameParams(username:)
+}
+
 /// Get user by user name.
 pub fn get_user_by_name(
   client: Client(err),
-  username: String,
+  params params: GetUserByNameParams,
 ) -> Result(User, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> params.username)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -693,13 +847,25 @@ pub fn get_user_by_name(
   |> result.map_error(JsonDecodeError)
 }
 
+pub opaque type UpdateUserParams {
+  UpdateUserParams(
+    username: String,
+  )
+}
+
+pub fn new_update_user_params(
+  username username: String,
+) -> UpdateUserParams {
+  UpdateUserParams(username:)
+}
+
 /// Update user resource.
 pub fn update_user(
   client: Client(err),
-  username: String,
-  body: User,
+  params params: UpdateUserParams,
+  body body: User,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> params.username)
   let req = request.set_method(req, http.Put)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(user_to_json(body)))
@@ -708,12 +874,24 @@ pub fn update_user(
   Ok(Nil)
 }
 
+pub opaque type DeleteUserParams {
+  DeleteUserParams(
+    username: String,
+  )
+}
+
+pub fn new_delete_user_params(
+  username username: String,
+) -> DeleteUserParams {
+  DeleteUserParams(username:)
+}
+
 /// Delete user resource.
 pub fn delete_user(
   client: Client(err),
-  username: String,
+  params params: DeleteUserParams,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/user/" <> username)
+  let assert Ok(req) = request.to(client.base_url <> "/user/" <> params.username)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))

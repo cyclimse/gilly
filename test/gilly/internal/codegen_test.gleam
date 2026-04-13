@@ -888,3 +888,234 @@ pub fn delete_with_path_param_test() {
   |> generate_ops
   |> birdie.snap(title: "codegen operation delete with path param")
 }
+
+pub fn get_with_optional_query_params_test() {
+  spec_with_paths(
+    [
+      #(
+        "/containers",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listContainers"),
+              summary: Some("List containers"),
+              parameters: [
+                Parameter(
+                  name: "name",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "page",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with optional query params")
+}
+
+pub fn get_with_mixed_path_and_query_params_test() {
+  spec_with_paths(
+    [
+      #(
+        "/regions/{region}/containers",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listRegionContainers"),
+              summary: Some("List containers in region"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "page",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+                Parameter(
+                  name: "page_size",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+                Parameter(
+                  name: "name",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(
+    title: "codegen operation get with mixed path and query params",
+  )
+}
+
+pub fn get_with_required_integer_query_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/items",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listItems"),
+              summary: Some("List items"),
+              parameters: [
+                Parameter(
+                  name: "limit",
+                  in_: Query,
+                  description: Some("Maximum number of items"),
+                  required: True,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(
+    title: "codegen operation get with required integer query param",
+  )
+}
+
+pub fn get_with_array_query_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet/findByTags",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("findPetsByTags"),
+              summary: Some("Find pets by tags"),
+              parameters: [
+                Parameter(
+                  name: "tags",
+                  in_: Query,
+                  description: Some("Tags to filter by"),
+                  required: True,
+                  schema: Some(schema.Array(
+                    base(schema.ArrayType),
+                    ArraySchema(
+                      min_items: None,
+                      max_items: None,
+                      items: schema.String(
+                        base(StringType),
+                        StringSchema(
+                          min_length: None,
+                          max_length: None,
+                          enum: None,
+                          format: None,
+                        ),
+                      ),
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with array query param")
+}

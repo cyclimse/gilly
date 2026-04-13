@@ -36,15 +36,27 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
+pub opaque type FindPetsByStatusParams {
+  FindPetsByStatusParams(
+    status: String,
+  )
+}
+
+pub fn new_find_pets_by_status_params(
+  status status: String,
+) -> FindPetsByStatusParams {
+  FindPetsByStatusParams(status:)
+}
+
 /// Finds pets by status
 pub fn find_pets_by_status(
   client: Client(err),
-  status: String,
+  params params: FindPetsByStatusParams,
 ) -> Result(List(Pet), ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/findByStatus")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = [#("status", status)]
+  let query = [#("status", params.status)]
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, decode.list(pet_decoder()))

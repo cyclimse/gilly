@@ -25,7 +25,7 @@ pub fn tag_list_to_json(value: TagList) -> json.Json {
 }
 
 pub fn new_tag_list(
-  tags: List(String),
+  tags tags: List(String),
 ) -> TagList {
   TagList(tags:)
 }

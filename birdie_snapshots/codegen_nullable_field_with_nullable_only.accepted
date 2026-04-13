@@ -29,14 +29,14 @@ pub fn config_to_json(value: Config) -> json.Json {
 }
 
 pub fn new_config(
-  name: String,
+  name name: String,
 ) -> Config {
   Config(name:, label: None)
 }
 
 pub fn config_with_label(
   config: Config,
-  label: String,
+  label label: String,
 ) -> Config {
   Config(..config, label: Some(label))
 }
