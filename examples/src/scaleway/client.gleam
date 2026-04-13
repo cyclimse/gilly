@@ -1150,6 +1150,7 @@ pub fn new_list_containers_params(
   ListContainersParams(region:, page: None, page_size: None, order_by: None, namespace_id: None, name: None, organization_id: None, project_id: None)
 }
 
+/// Page number.
 pub fn list_containers_params_with_page(
   list_containers_params: ListContainersParams,
   page page: Int,
@@ -1157,6 +1158,7 @@ pub fn list_containers_params_with_page(
   ListContainersParams(..list_containers_params, page: Some(page))
 }
 
+/// Number of containers per page.
 pub fn list_containers_params_with_page_size(
   list_containers_params: ListContainersParams,
   page_size page_size: Int,
@@ -1164,6 +1166,7 @@ pub fn list_containers_params_with_page_size(
   ListContainersParams(..list_containers_params, page_size: Some(page_size))
 }
 
+/// Order of the containers.
 pub fn list_containers_params_with_order_by(
   list_containers_params: ListContainersParams,
   order_by order_by: String,
@@ -1171,6 +1174,7 @@ pub fn list_containers_params_with_order_by(
   ListContainersParams(..list_containers_params, order_by: Some(order_by))
 }
 
+/// UUID of the namespace the container belongs to.
 pub fn list_containers_params_with_namespace_id(
   list_containers_params: ListContainersParams,
   namespace_id namespace_id: String,
@@ -1178,6 +1182,7 @@ pub fn list_containers_params_with_namespace_id(
   ListContainersParams(..list_containers_params, namespace_id: Some(namespace_id))
 }
 
+/// Name of the container.
 pub fn list_containers_params_with_name(
   list_containers_params: ListContainersParams,
   name name: String,
@@ -1185,6 +1190,7 @@ pub fn list_containers_params_with_name(
   ListContainersParams(..list_containers_params, name: Some(name))
 }
 
+/// UUID of the Organization the container belongs to.
 pub fn list_containers_params_with_organization_id(
   list_containers_params: ListContainersParams,
   organization_id organization_id: String,
@@ -1192,6 +1198,7 @@ pub fn list_containers_params_with_organization_id(
   ListContainersParams(..list_containers_params, organization_id: Some(organization_id))
 }
 
+/// UUID of the Project the container belongs to.
 pub fn list_containers_params_with_project_id(
   list_containers_params: ListContainersParams,
   project_id project_id: String,
@@ -1482,6 +1489,7 @@ pub fn new_create_container_request(
   CreateContainerRequest(args:, command:, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags:, timeout: None)
 }
 
+/// CPU limit of the container in mvCPU.
 pub fn create_container_request_with_cpu_limit(
   create_container_request: CreateContainerRequest,
   cpu_limit cpu_limit: Int,
@@ -1489,6 +1497,7 @@ pub fn create_container_request_with_cpu_limit(
   CreateContainerRequest(..create_container_request, cpu_limit: Some(cpu_limit))
 }
 
+/// Description of the container.
 pub fn create_container_request_with_description(
   create_container_request: CreateContainerRequest,
   description description: String,
@@ -1496,6 +1505,7 @@ pub fn create_container_request_with_description(
   CreateContainerRequest(..create_container_request, description: Some(description))
 }
 
+/// Environment variables of the container.
 pub fn create_container_request_with_environment_variables(
   create_container_request: CreateContainerRequest,
   environment_variables environment_variables: Dynamic,
@@ -1503,6 +1513,7 @@ pub fn create_container_request_with_environment_variables(
   CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
 }
 
+/// Health check configuration of the container.
 pub fn create_container_request_with_health_check(
   create_container_request: CreateContainerRequest,
   health_check health_check: Dynamic,
@@ -1510,6 +1521,7 @@ pub fn create_container_request_with_health_check(
   CreateContainerRequest(..create_container_request, health_check: Some(health_check))
 }
 
+/// Local storage limit of the container (in MB).
 pub fn create_container_request_with_local_storage_limit(
   create_container_request: CreateContainerRequest,
   local_storage_limit local_storage_limit: Int,
@@ -1517,6 +1529,7 @@ pub fn create_container_request_with_local_storage_limit(
   CreateContainerRequest(..create_container_request, local_storage_limit: Some(local_storage_limit))
 }
 
+/// Number of maximum concurrent executions of the container.
 pub fn create_container_request_with_max_concurrency(
   create_container_request: CreateContainerRequest,
   max_concurrency max_concurrency: Int,
@@ -1524,6 +1537,7 @@ pub fn create_container_request_with_max_concurrency(
   CreateContainerRequest(..create_container_request, max_concurrency: Some(max_concurrency))
 }
 
+/// Maximum number of instances to scale the container to.
 pub fn create_container_request_with_max_scale(
   create_container_request: CreateContainerRequest,
   max_scale max_scale: Int,
@@ -1531,6 +1545,7 @@ pub fn create_container_request_with_max_scale(
   CreateContainerRequest(..create_container_request, max_scale: Some(max_scale))
 }
 
+/// Memory limit of the container in MB.
 pub fn create_container_request_with_memory_limit(
   create_container_request: CreateContainerRequest,
   memory_limit memory_limit: Int,
@@ -1538,6 +1553,7 @@ pub fn create_container_request_with_memory_limit(
   CreateContainerRequest(..create_container_request, memory_limit: Some(memory_limit))
 }
 
+/// Minimum number of instances to scale the container to.
 pub fn create_container_request_with_min_scale(
   create_container_request: CreateContainerRequest,
   min_scale min_scale: Int,
@@ -1545,6 +1561,7 @@ pub fn create_container_request_with_min_scale(
   CreateContainerRequest(..create_container_request, min_scale: Some(min_scale))
 }
 
+/// Port the container listens on.
 pub fn create_container_request_with_port(
   create_container_request: CreateContainerRequest,
   port port: Int,
@@ -1552,6 +1569,8 @@ pub fn create_container_request_with_port(
   CreateContainerRequest(..create_container_request, port: Some(port))
 }
 
+/// ID of the Private Network the container is connected to.
+/// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
 pub fn create_container_request_with_private_network_id(
   create_container_request: CreateContainerRequest,
   private_network_id private_network_id: String,
@@ -1559,6 +1578,7 @@ pub fn create_container_request_with_private_network_id(
   CreateContainerRequest(..create_container_request, private_network_id: Some(private_network_id))
 }
 
+/// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
 pub fn create_container_request_with_registry_image(
   create_container_request: CreateContainerRequest,
   registry_image registry_image: String,
@@ -1566,6 +1586,11 @@ pub fn create_container_request_with_registry_image(
   CreateContainerRequest(..create_container_request, registry_image: Some(registry_image))
 }
 
+/// Configuration used to decide when to scale up or down.
+/// Possible values:
+/// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
+/// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
+/// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
 pub fn create_container_request_with_scaling_option(
   create_container_request: CreateContainerRequest,
   scaling_option scaling_option: Dynamic,
@@ -1573,6 +1598,7 @@ pub fn create_container_request_with_scaling_option(
   CreateContainerRequest(..create_container_request, scaling_option: Some(scaling_option))
 }
 
+/// Processing time limit for the container. (in seconds)
 pub fn create_container_request_with_timeout(
   create_container_request: CreateContainerRequest,
   timeout timeout: String,
@@ -1917,6 +1943,8 @@ pub fn new_update_container_request(
   UpdateContainerRequest(args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy:, private_network_id: None, protocol:, redeploy: None, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags: None, timeout: None)
 }
 
+/// Container arguments.
+/// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
 pub fn update_container_request_with_args(
   update_container_request: UpdateContainerRequest,
   args args: List(String),
@@ -1924,6 +1952,8 @@ pub fn update_container_request_with_args(
   UpdateContainerRequest(..update_container_request, args: Some(args))
 }
 
+/// Container command.
+/// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
 pub fn update_container_request_with_command(
   update_container_request: UpdateContainerRequest,
   command command: List(String),
@@ -1931,6 +1961,7 @@ pub fn update_container_request_with_command(
   UpdateContainerRequest(..update_container_request, command: Some(command))
 }
 
+/// CPU limit of the container in mvCPU.
 pub fn update_container_request_with_cpu_limit(
   update_container_request: UpdateContainerRequest,
   cpu_limit cpu_limit: Int,
@@ -1938,6 +1969,7 @@ pub fn update_container_request_with_cpu_limit(
   UpdateContainerRequest(..update_container_request, cpu_limit: Some(cpu_limit))
 }
 
+/// Description of the container.
 pub fn update_container_request_with_description(
   update_container_request: UpdateContainerRequest,
   description description: String,
@@ -1945,6 +1977,7 @@ pub fn update_container_request_with_description(
   UpdateContainerRequest(..update_container_request, description: Some(description))
 }
 
+/// Environment variables of the container.
 pub fn update_container_request_with_environment_variables(
   update_container_request: UpdateContainerRequest,
   environment_variables environment_variables: Dynamic,
@@ -1952,6 +1985,7 @@ pub fn update_container_request_with_environment_variables(
   UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
 }
 
+/// Health check configuration of the container.
 pub fn update_container_request_with_health_check(
   update_container_request: UpdateContainerRequest,
   health_check health_check: Dynamic,
@@ -1959,6 +1993,7 @@ pub fn update_container_request_with_health_check(
   UpdateContainerRequest(..update_container_request, health_check: Some(health_check))
 }
 
+/// Local storage limit of the container (in MB).
 pub fn update_container_request_with_local_storage_limit(
   update_container_request: UpdateContainerRequest,
   local_storage_limit local_storage_limit: Int,
@@ -1966,6 +2001,7 @@ pub fn update_container_request_with_local_storage_limit(
   UpdateContainerRequest(..update_container_request, local_storage_limit: Some(local_storage_limit))
 }
 
+/// Number of maximum concurrent executions of the container.
 pub fn update_container_request_with_max_concurrency(
   update_container_request: UpdateContainerRequest,
   max_concurrency max_concurrency: Int,
@@ -1973,6 +2009,7 @@ pub fn update_container_request_with_max_concurrency(
   UpdateContainerRequest(..update_container_request, max_concurrency: Some(max_concurrency))
 }
 
+/// Maximum number of instances to scale the container to.
 pub fn update_container_request_with_max_scale(
   update_container_request: UpdateContainerRequest,
   max_scale max_scale: Int,
@@ -1980,6 +2017,7 @@ pub fn update_container_request_with_max_scale(
   UpdateContainerRequest(..update_container_request, max_scale: Some(max_scale))
 }
 
+/// Memory limit of the container in MB.
 pub fn update_container_request_with_memory_limit(
   update_container_request: UpdateContainerRequest,
   memory_limit memory_limit: Int,
@@ -1987,6 +2025,7 @@ pub fn update_container_request_with_memory_limit(
   UpdateContainerRequest(..update_container_request, memory_limit: Some(memory_limit))
 }
 
+/// Minimum number of instances to scale the container to.
 pub fn update_container_request_with_min_scale(
   update_container_request: UpdateContainerRequest,
   min_scale min_scale: Int,
@@ -1994,6 +2033,7 @@ pub fn update_container_request_with_min_scale(
   UpdateContainerRequest(..update_container_request, min_scale: Some(min_scale))
 }
 
+/// Port the container listens on.
 pub fn update_container_request_with_port(
   update_container_request: UpdateContainerRequest,
   port port: Int,
@@ -2001,6 +2041,8 @@ pub fn update_container_request_with_port(
   UpdateContainerRequest(..update_container_request, port: Some(port))
 }
 
+/// ID of the Private Network the container is connected to.
+/// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
 pub fn update_container_request_with_private_network_id(
   update_container_request: UpdateContainerRequest,
   private_network_id private_network_id: String,
@@ -2008,6 +2050,11 @@ pub fn update_container_request_with_private_network_id(
   UpdateContainerRequest(..update_container_request, private_network_id: Some(private_network_id))
 }
 
+/// Defines whether to redeploy failed containers.
+/// Deprecated: future versions of this API will systematically redeploy containers when needed. As such,
+/// passing `redeploy: false` will be ignored. Relying on this field is discouraged.
+/// 
+/// To force the redeployment of a container, even if no configuration has changed, use the `DeployContainer` method instead.
 pub fn update_container_request_with_redeploy(
   update_container_request: UpdateContainerRequest,
   redeploy redeploy: Bool,
@@ -2015,6 +2062,7 @@ pub fn update_container_request_with_redeploy(
   UpdateContainerRequest(..update_container_request, redeploy: Some(redeploy))
 }
 
+/// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
 pub fn update_container_request_with_registry_image(
   update_container_request: UpdateContainerRequest,
   registry_image registry_image: String,
@@ -2022,6 +2070,11 @@ pub fn update_container_request_with_registry_image(
   UpdateContainerRequest(..update_container_request, registry_image: Some(registry_image))
 }
 
+/// Configuration used to decide when to scale up or down.
+/// Possible values:
+/// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
+/// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
+/// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
 pub fn update_container_request_with_scaling_option(
   update_container_request: UpdateContainerRequest,
   scaling_option scaling_option: Dynamic,
@@ -2029,6 +2082,7 @@ pub fn update_container_request_with_scaling_option(
   UpdateContainerRequest(..update_container_request, scaling_option: Some(scaling_option))
 }
 
+/// Tags of the Serverless Container.
 pub fn update_container_request_with_tags(
   update_container_request: UpdateContainerRequest,
   tags tags: List(String),
@@ -2036,6 +2090,7 @@ pub fn update_container_request_with_tags(
   UpdateContainerRequest(..update_container_request, tags: Some(tags))
 }
 
+/// Processing time limit for the container. (in seconds)
 pub fn update_container_request_with_timeout(
   update_container_request: UpdateContainerRequest,
   timeout timeout: String,
@@ -2119,6 +2174,7 @@ pub fn new_list_crons_params(
   ListCronsParams(region:, page: None, page_size: None, order_by: None, container_id: None)
 }
 
+/// Page number.
 pub fn list_crons_params_with_page(
   list_crons_params: ListCronsParams,
   page page: Int,
@@ -2126,6 +2182,7 @@ pub fn list_crons_params_with_page(
   ListCronsParams(..list_crons_params, page: Some(page))
 }
 
+/// Number of crons per page.
 pub fn list_crons_params_with_page_size(
   list_crons_params: ListCronsParams,
   page_size page_size: Int,
@@ -2133,6 +2190,7 @@ pub fn list_crons_params_with_page_size(
   ListCronsParams(..list_crons_params, page_size: Some(page_size))
 }
 
+/// Order of the crons.
 pub fn list_crons_params_with_order_by(
   list_crons_params: ListCronsParams,
   order_by order_by: String,
@@ -2140,6 +2198,7 @@ pub fn list_crons_params_with_order_by(
   ListCronsParams(..list_crons_params, order_by: Some(order_by))
 }
 
+/// UUID of the container invoked by the cron.
 pub fn list_crons_params_with_container_id(
   list_crons_params: ListCronsParams,
   container_id container_id: String,
@@ -2217,6 +2276,7 @@ pub fn new_create_cron_request(
   CreateCronRequest(args: None, container_id:, name: None, schedule:)
 }
 
+/// Arguments to pass with the cron.
 pub fn create_cron_request_with_args(
   create_cron_request: CreateCronRequest,
   args args: Dynamic,
@@ -2224,6 +2284,7 @@ pub fn create_cron_request_with_args(
   CreateCronRequest(..create_cron_request, args: Some(args))
 }
 
+/// Name of the cron to create.
 pub fn create_cron_request_with_name(
   create_cron_request: CreateCronRequest,
   name name: String,
@@ -2348,6 +2409,7 @@ pub fn new_update_cron_request() -> UpdateCronRequest {
   UpdateCronRequest(args: None, container_id: None, name: None, schedule: None)
 }
 
+/// Arguments to pass with the cron.
 pub fn update_cron_request_with_args(
   update_cron_request: UpdateCronRequest,
   args args: Dynamic,
@@ -2355,6 +2417,7 @@ pub fn update_cron_request_with_args(
   UpdateCronRequest(..update_cron_request, args: Some(args))
 }
 
+/// UUID of the container invoked by the cron.
 pub fn update_cron_request_with_container_id(
   update_cron_request: UpdateCronRequest,
   container_id container_id: String,
@@ -2362,6 +2425,7 @@ pub fn update_cron_request_with_container_id(
   UpdateCronRequest(..update_cron_request, container_id: Some(container_id))
 }
 
+/// Name of the cron.
 pub fn update_cron_request_with_name(
   update_cron_request: UpdateCronRequest,
   name name: String,
@@ -2369,6 +2433,7 @@ pub fn update_cron_request_with_name(
   UpdateCronRequest(..update_cron_request, name: Some(name))
 }
 
+/// UNIX cron schedule.
 pub fn update_cron_request_with_schedule(
   update_cron_request: UpdateCronRequest,
   schedule schedule: String,
@@ -2407,6 +2472,7 @@ pub fn new_list_domains_params(
   ListDomainsParams(region:, page: None, page_size: None, order_by: None, container_id: None)
 }
 
+/// Page number.
 pub fn list_domains_params_with_page(
   list_domains_params: ListDomainsParams,
   page page: Int,
@@ -2414,6 +2480,7 @@ pub fn list_domains_params_with_page(
   ListDomainsParams(..list_domains_params, page: Some(page))
 }
 
+/// Number of domains per page.
 pub fn list_domains_params_with_page_size(
   list_domains_params: ListDomainsParams,
   page_size page_size: Int,
@@ -2421,6 +2488,7 @@ pub fn list_domains_params_with_page_size(
   ListDomainsParams(..list_domains_params, page_size: Some(page_size))
 }
 
+/// Order of the domains.
 pub fn list_domains_params_with_order_by(
   list_domains_params: ListDomainsParams,
   order_by order_by: String,
@@ -2428,6 +2496,7 @@ pub fn list_domains_params_with_order_by(
   ListDomainsParams(..list_domains_params, order_by: Some(order_by))
 }
 
+/// UUID of the container the domain belongs to.
 pub fn list_domains_params_with_container_id(
   list_domains_params: ListDomainsParams,
   container_id container_id: String,
@@ -2584,6 +2653,7 @@ pub fn new_list_namespaces_params(
   ListNamespacesParams(region:, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
 }
 
+/// Page number.
 pub fn list_namespaces_params_with_page(
   list_namespaces_params: ListNamespacesParams,
   page page: Int,
@@ -2591,6 +2661,7 @@ pub fn list_namespaces_params_with_page(
   ListNamespacesParams(..list_namespaces_params, page: Some(page))
 }
 
+/// Number of namespaces per page.
 pub fn list_namespaces_params_with_page_size(
   list_namespaces_params: ListNamespacesParams,
   page_size page_size: Int,
@@ -2598,6 +2669,7 @@ pub fn list_namespaces_params_with_page_size(
   ListNamespacesParams(..list_namespaces_params, page_size: Some(page_size))
 }
 
+/// Order of the namespaces.
 pub fn list_namespaces_params_with_order_by(
   list_namespaces_params: ListNamespacesParams,
   order_by order_by: String,
@@ -2605,6 +2677,7 @@ pub fn list_namespaces_params_with_order_by(
   ListNamespacesParams(..list_namespaces_params, order_by: Some(order_by))
 }
 
+/// Name of the namespaces.
 pub fn list_namespaces_params_with_name(
   list_namespaces_params: ListNamespacesParams,
   name name: String,
@@ -2612,6 +2685,7 @@ pub fn list_namespaces_params_with_name(
   ListNamespacesParams(..list_namespaces_params, name: Some(name))
 }
 
+/// UUID of the Organization the namespace belongs to.
 pub fn list_namespaces_params_with_organization_id(
   list_namespaces_params: ListNamespacesParams,
   organization_id organization_id: String,
@@ -2619,6 +2693,7 @@ pub fn list_namespaces_params_with_organization_id(
   ListNamespacesParams(..list_namespaces_params, organization_id: Some(organization_id))
 }
 
+/// UUID of the Project the namespace belongs to.
 pub fn list_namespaces_params_with_project_id(
   list_namespaces_params: ListNamespacesParams,
   project_id project_id: String,
@@ -2714,6 +2789,7 @@ pub fn new_create_namespace_request(
   CreateNamespaceRequest(activate_vpc_integration:, description: None, environment_variables: None, name:, project_id:, secret_environment_variables:, tags:)
 }
 
+/// Description of the namespace to create.
 pub fn create_namespace_request_with_description(
   create_namespace_request: CreateNamespaceRequest,
   description description: String,
@@ -2721,6 +2797,7 @@ pub fn create_namespace_request_with_description(
   CreateNamespaceRequest(..create_namespace_request, description: Some(description))
 }
 
+/// Environment variables of the namespace to create.
 pub fn create_namespace_request_with_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
   environment_variables environment_variables: Dynamic,
@@ -2847,6 +2924,7 @@ pub fn new_update_namespace_request(
   UpdateNamespaceRequest(description: None, environment_variables: None, secret_environment_variables:, tags: None)
 }
 
+/// Description of the namespace to update.
 pub fn update_namespace_request_with_description(
   update_namespace_request: UpdateNamespaceRequest,
   description description: String,
@@ -2854,6 +2932,7 @@ pub fn update_namespace_request_with_description(
   UpdateNamespaceRequest(..update_namespace_request, description: Some(description))
 }
 
+/// Environment variables of the namespace to update.
 pub fn update_namespace_request_with_environment_variables(
   update_namespace_request: UpdateNamespaceRequest,
   environment_variables environment_variables: Dynamic,
@@ -2861,6 +2940,7 @@ pub fn update_namespace_request_with_environment_variables(
   UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
 }
 
+/// Tags of the Serverless Container Namespace.
 pub fn update_namespace_request_with_tags(
   update_namespace_request: UpdateNamespaceRequest,
   tags tags: List(String),
@@ -2900,6 +2980,7 @@ pub fn new_list_tokens_params(
   ListTokensParams(region:, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
 }
 
+/// Page number.
 pub fn list_tokens_params_with_page(
   list_tokens_params: ListTokensParams,
   page page: Int,
@@ -2907,6 +2988,7 @@ pub fn list_tokens_params_with_page(
   ListTokensParams(..list_tokens_params, page: Some(page))
 }
 
+/// Number of tokens per page.
 pub fn list_tokens_params_with_page_size(
   list_tokens_params: ListTokensParams,
   page_size page_size: Int,
@@ -2914,6 +2996,7 @@ pub fn list_tokens_params_with_page_size(
   ListTokensParams(..list_tokens_params, page_size: Some(page_size))
 }
 
+/// Order of the tokens.
 pub fn list_tokens_params_with_order_by(
   list_tokens_params: ListTokensParams,
   order_by order_by: String,
@@ -2921,6 +3004,7 @@ pub fn list_tokens_params_with_order_by(
   ListTokensParams(..list_tokens_params, order_by: Some(order_by))
 }
 
+/// UUID of the container the token belongs to.
 pub fn list_tokens_params_with_container_id(
   list_tokens_params: ListTokensParams,
   container_id container_id: String,
@@ -2928,6 +3012,7 @@ pub fn list_tokens_params_with_container_id(
   ListTokensParams(..list_tokens_params, container_id: Some(container_id))
 }
 
+/// UUID of the namespace the token belongs to.
 pub fn list_tokens_params_with_namespace_id(
   list_tokens_params: ListTokensParams,
   namespace_id namespace_id: String,
@@ -3003,6 +3088,7 @@ pub fn new_create_token_request() -> CreateTokenRequest {
   CreateTokenRequest(container_id: None, description: None, expires_at: None, namespace_id: None)
 }
 
+/// UUID of the container to create the token for.
 pub fn create_token_request_with_container_id(
   create_token_request: CreateTokenRequest,
   container_id container_id: String,
@@ -3010,6 +3096,7 @@ pub fn create_token_request_with_container_id(
   CreateTokenRequest(..create_token_request, container_id: Some(container_id))
 }
 
+/// Description of the token.
 pub fn create_token_request_with_description(
   create_token_request: CreateTokenRequest,
   description description: String,
@@ -3017,6 +3104,7 @@ pub fn create_token_request_with_description(
   CreateTokenRequest(..create_token_request, description: Some(description))
 }
 
+/// Expiry date of the token. (RFC 3339 format)
 pub fn create_token_request_with_expires_at(
   create_token_request: CreateTokenRequest,
   expires_at expires_at: String,
@@ -3024,6 +3112,7 @@ pub fn create_token_request_with_expires_at(
   CreateTokenRequest(..create_token_request, expires_at: Some(expires_at))
 }
 
+/// UUID of the namespace to create the token for.
 pub fn create_token_request_with_namespace_id(
   create_token_request: CreateTokenRequest,
   namespace_id namespace_id: String,
@@ -3115,6 +3204,7 @@ pub fn new_list_triggers_params(
   ListTriggersParams(region:, page: None, page_size: None, order_by: None)
 }
 
+/// Page number to return.
 pub fn list_triggers_params_with_page(
   list_triggers_params: ListTriggersParams,
   page page: Int,
@@ -3122,6 +3212,7 @@ pub fn list_triggers_params_with_page(
   ListTriggersParams(..list_triggers_params, page: Some(page))
 }
 
+/// Maximum number of triggers to return per page.
 pub fn list_triggers_params_with_page_size(
   list_triggers_params: ListTriggersParams,
   page_size page_size: Int,
@@ -3129,6 +3220,7 @@ pub fn list_triggers_params_with_page_size(
   ListTriggersParams(..list_triggers_params, page_size: Some(page_size))
 }
 
+/// Order in which to return results.
 pub fn list_triggers_params_with_order_by(
   list_triggers_params: ListTriggersParams,
   order_by order_by: String,
@@ -3209,6 +3301,7 @@ pub fn new_create_trigger_request(
   CreateTriggerRequest(container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
 }
 
+/// Description of the trigger.
 pub fn create_trigger_request_with_description(
   create_trigger_request: CreateTriggerRequest,
   description description: String,
@@ -3216,6 +3309,7 @@ pub fn create_trigger_request_with_description(
   CreateTriggerRequest(..create_trigger_request, description: Some(description))
 }
 
+/// Configuration for a Scaleway Messaging and Queuing NATS subject.
 pub fn create_trigger_request_with_scw_nats_config(
   create_trigger_request: CreateTriggerRequest,
   scw_nats_config scw_nats_config: Dynamic,
@@ -3223,6 +3317,7 @@ pub fn create_trigger_request_with_scw_nats_config(
   CreateTriggerRequest(..create_trigger_request, scw_nats_config: Some(scw_nats_config))
 }
 
+/// Configuration for a Scaleway Messaging and Queuing SQS queue.
 pub fn create_trigger_request_with_scw_sqs_config(
   create_trigger_request: CreateTriggerRequest,
   scw_sqs_config scw_sqs_config: Dynamic,
@@ -3339,6 +3434,7 @@ pub fn new_update_trigger_request() -> UpdateTriggerRequest {
   UpdateTriggerRequest(description: None, name: None)
 }
 
+/// Description of the trigger.
 pub fn update_trigger_request_with_description(
   update_trigger_request: UpdateTriggerRequest,
   description description: String,
@@ -3346,6 +3442,7 @@ pub fn update_trigger_request_with_description(
   UpdateTriggerRequest(..update_trigger_request, description: Some(description))
 }
 
+/// Name of the trigger.
 pub fn update_trigger_request_with_name(
   update_trigger_request: UpdateTriggerRequest,
   name name: String,

@@ -954,36 +954,43 @@ fn operation_params_docs(
       let #(state, inner_type) = param_to_type(state, param, all_schemas)
       let state = import_qualified(state, "gleam/option", "Some")
 
+      let comment_part = case param.description {
+        Some(desc) -> [description_to_comment(desc), doc.line]
+        None -> []
+      }
+
       let setter_doc =
-        doc.concat([
-          doc.from_string("pub fn " <> setter_fn_name <> "("),
-          doc.line |> doc.nest(by: indent),
-          doc.from_string(var_name <> ": " <> type_name <> ",")
-            |> doc.nest(by: indent),
-          doc.line |> doc.nest(by: indent),
-          doc.concat([
-            doc.from_string(field_name <> " " <> field_name <> ": "),
-            inner_type,
-            doc.from_string(","),
-          ])
-            |> doc.nest(by: indent),
-          doc.line,
-          doc.from_string(") -> " <> type_name <> " {"),
-          doc.line |> doc.nest(by: indent),
-          doc.from_string(
-            type_name
-            <> "(.."
-            <> var_name
-            <> ", "
-            <> field_name
-            <> ": Some("
-            <> field_name
-            <> "))",
-          )
-            |> doc.nest(by: indent),
-          doc.line,
-          doc.from_string("}"),
-        ])
+        doc.concat(
+          list.append(comment_part, [
+            doc.from_string("pub fn " <> setter_fn_name <> "("),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(var_name <> ": " <> type_name <> ",")
+              |> doc.nest(by: indent),
+            doc.line |> doc.nest(by: indent),
+            doc.concat([
+              doc.from_string(field_name <> " " <> field_name <> ": "),
+              inner_type,
+              doc.from_string(","),
+            ])
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string(") -> " <> type_name <> " {"),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(
+              type_name
+              <> "(.."
+              <> var_name
+              <> ", "
+              <> field_name
+              <> ": Some("
+              <> field_name
+              <> "))",
+            )
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string("}"),
+          ]),
+        )
 
       #(state, list.append(setters, [setter_doc]))
     })
@@ -2383,36 +2390,43 @@ fn record_with_field_docs(
 
         let state = import_qualified(state, "gleam/option", "Some")
 
+        let comment_part = case schema_description(prop_schema) {
+          Some(comment) -> [comment, doc.line]
+          None -> []
+        }
+
         let setter_doc =
-          doc.concat([
-            doc.from_string("pub fn " <> fn_name <> "("),
-            doc.line |> doc.nest(by: indent),
-            doc.from_string(var_name <> ": " <> type_name <> ",")
-              |> doc.nest(by: indent),
-            doc.line |> doc.nest(by: indent),
-            doc.concat([
-              doc.from_string(field_name <> " " <> field_name <> ": "),
-              inner_type,
-              doc.from_string(","),
-            ])
-              |> doc.nest(by: indent),
-            doc.line,
-            doc.from_string(") -> " <> type_name <> " {"),
-            doc.line |> doc.nest(by: indent),
-            doc.from_string(
-              type_name
-              <> "(.."
-              <> var_name
-              <> ", "
-              <> field_name
-              <> ": Some("
-              <> field_name
-              <> "))",
-            )
-              |> doc.nest(by: indent),
-            doc.line,
-            doc.from_string("}"),
-          ])
+          doc.concat(
+            list.append(comment_part, [
+              doc.from_string("pub fn " <> fn_name <> "("),
+              doc.line |> doc.nest(by: indent),
+              doc.from_string(var_name <> ": " <> type_name <> ",")
+                |> doc.nest(by: indent),
+              doc.line |> doc.nest(by: indent),
+              doc.concat([
+                doc.from_string(field_name <> " " <> field_name <> ": "),
+                inner_type,
+                doc.from_string(","),
+              ])
+                |> doc.nest(by: indent),
+              doc.line,
+              doc.from_string(") -> " <> type_name <> " {"),
+              doc.line |> doc.nest(by: indent),
+              doc.from_string(
+                type_name
+                <> "(.."
+                <> var_name
+                <> ", "
+                <> field_name
+                <> ": Some("
+                <> field_name
+                <> "))",
+              )
+                |> doc.nest(by: indent),
+              doc.line,
+              doc.from_string("}"),
+            ]),
+          )
 
         #(state, list.append(docs, [setter_doc]))
       }

@@ -138,6 +138,7 @@ pub fn order_with_ship_date(
   Order(..order, ship_date: Some(ship_date))
 }
 
+/// Order Status
 pub fn order_with_status(
   order: Order,
   status status: OrderStatus,
@@ -199,6 +200,7 @@ pub fn pet_with_id(
   Pet(..pet, id: Some(id))
 }
 
+/// pet status in the store
 pub fn pet_with_status(
   pet: Pet,
   status status: PetStatus,
@@ -336,6 +338,7 @@ pub fn user_with_phone(
   User(..user, phone: Some(phone))
 }
 
+/// User Status
 pub fn user_with_user_status(
   user: User,
   user_status user_status: Int,
@@ -566,6 +569,7 @@ pub fn new_update_pet_with_form_params(
   UpdatePetWithFormParams(pet_id:, name: None, status: None)
 }
 
+/// Name of pet that needs to be updated
 pub fn update_pet_with_form_params_with_name(
   update_pet_with_form_params: UpdatePetWithFormParams,
   name name: String,
@@ -573,6 +577,7 @@ pub fn update_pet_with_form_params_with_name(
   UpdatePetWithFormParams(..update_pet_with_form_params, name: Some(name))
 }
 
+/// Status of pet that needs to be updated
 pub fn update_pet_with_form_params_with_status(
   update_pet_with_form_params: UpdatePetWithFormParams,
   status status: String,
@@ -637,6 +642,7 @@ pub fn new_upload_file_params(
   UploadFileParams(pet_id:, additional_metadata: None)
 }
 
+/// Additional Metadata
 pub fn upload_file_params_with_additional_metadata(
   upload_file_params: UploadFileParams,
   additional_metadata additional_metadata: String,
@@ -777,6 +783,7 @@ pub fn new_login_user_params() -> LoginUserParams {
   LoginUserParams(username: None, password: None)
 }
 
+/// The user name for login
 pub fn login_user_params_with_username(
   login_user_params: LoginUserParams,
   username username: String,
@@ -784,6 +791,7 @@ pub fn login_user_params_with_username(
   LoginUserParams(..login_user_params, username: Some(username))
 }
 
+/// The password for login in clear text
 pub fn login_user_params_with_password(
   login_user_params: LoginUserParams,
   password password: String,
