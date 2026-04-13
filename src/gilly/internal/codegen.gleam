@@ -600,6 +600,16 @@ fn operation_doc(
             Some(id) -> to_type_name(id) <> "Request"
             None -> "RequestBody"
           }
+          // Register the inline body schema as RequestOnly so it gets opaque type
+          let state =
+            State(
+              ..state,
+              schema_usages: dict.insert(
+                state.schema_usages,
+                request_type_name,
+                RequestOnly,
+              ),
+            )
           // Track enums registered before schema generation
           let enums_before = state.enums
           // Generate schema docs (type + decoder + to_json) for the inline body

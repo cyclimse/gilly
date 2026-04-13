@@ -1368,7 +1368,7 @@ pub fn create_container_request_sandbox_decoder() -> decode.Decoder(CreateContai
   }
 }
 
-pub type CreateContainerRequest {
+pub opaque type CreateContainerRequest {
   CreateContainerRequest(
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
@@ -1429,34 +1429,6 @@ pub type CreateContainerRequest {
     /// Processing time limit for the container. (in seconds)
     timeout: Option(String),
   )
-}
-
-pub fn create_container_request_decoder() -> decode.Decoder(CreateContainerRequest) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.list(decode.string)))
-  use command <- decode.optional_field("command", None, decode.optional(decode.list(decode.string)))
-  use cpu_limit <- decode.optional_field("cpu_limit", None, decode.optional(decode.int))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use health_check <- decode.optional_field("health_check", None, decode.optional(decode.dynamic))
-  use http_option <- decode.optional_field("http_option", None, decode.optional(create_container_request_http_option_decoder()))
-  use local_storage_limit <- decode.optional_field("local_storage_limit", None, decode.optional(decode.int))
-  use max_concurrency <- decode.optional_field("max_concurrency", None, decode.optional(decode.int))
-  use max_scale <- decode.optional_field("max_scale", None, decode.optional(decode.int))
-  use memory_limit <- decode.optional_field("memory_limit", None, decode.optional(decode.int))
-  use min_scale <- decode.optional_field("min_scale", None, decode.optional(decode.int))
-  use name <- decode.optional_field("name", None, decode.optional(decode.string))
-  use namespace_id <- decode.optional_field("namespace_id", None, decode.optional(decode.string))
-  use port <- decode.optional_field("port", None, decode.optional(decode.int))
-  use privacy <- decode.optional_field("privacy", None, decode.optional(create_container_request_privacy_decoder()))
-  use private_network_id <- decode.optional_field("private_network_id", None, decode.optional(decode.string))
-  use protocol <- decode.optional_field("protocol", None, decode.optional(create_container_request_protocol_decoder()))
-  use registry_image <- decode.optional_field("registry_image", None, decode.optional(decode.string))
-  use sandbox <- decode.optional_field("sandbox", None, decode.optional(create_container_request_sandbox_decoder()))
-  use scaling_option <- decode.optional_field("scaling_option", None, decode.optional(decode.dynamic))
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_decoder())))
-  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
-  use timeout <- decode.optional_field("timeout", None, decode.optional(decode.string))
-  decode.success(CreateContainerRequest(args:, command:, cpu_limit:, description:, environment_variables:, health_check:, http_option:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, tags:, timeout:))
 }
 
 pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.Json {
@@ -1889,7 +1861,7 @@ pub fn update_container_request_sandbox_decoder() -> decode.Decoder(UpdateContai
   }
 }
 
-pub type UpdateContainerRequest {
+pub opaque type UpdateContainerRequest {
   UpdateContainerRequest(
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
@@ -1964,33 +1936,6 @@ pub type UpdateContainerRequest {
     /// Processing time limit for the container. (in seconds)
     timeout: Option(String),
   )
-}
-
-pub fn update_container_request_decoder() -> decode.Decoder(UpdateContainerRequest) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.list(decode.string)))
-  use command <- decode.optional_field("command", None, decode.optional(decode.list(decode.string)))
-  use cpu_limit <- decode.optional_field("cpu_limit", None, decode.optional(decode.int))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use health_check <- decode.optional_field("health_check", None, decode.optional(decode.dynamic))
-  use http_option <- decode.optional_field("http_option", None, decode.optional(update_container_request_http_option_decoder()))
-  use local_storage_limit <- decode.optional_field("local_storage_limit", None, decode.optional(decode.int))
-  use max_concurrency <- decode.optional_field("max_concurrency", None, decode.optional(decode.int))
-  use max_scale <- decode.optional_field("max_scale", None, decode.optional(decode.int))
-  use memory_limit <- decode.optional_field("memory_limit", None, decode.optional(decode.int))
-  use min_scale <- decode.optional_field("min_scale", None, decode.optional(decode.int))
-  use port <- decode.optional_field("port", None, decode.optional(decode.int))
-  use privacy <- decode.optional_field("privacy", None, decode.optional(update_container_request_privacy_decoder()))
-  use private_network_id <- decode.optional_field("private_network_id", None, decode.optional(decode.string))
-  use protocol <- decode.optional_field("protocol", None, decode.optional(update_container_request_protocol_decoder()))
-  use redeploy <- decode.optional_field("redeploy", None, decode.optional(decode.bool))
-  use registry_image <- decode.optional_field("registry_image", None, decode.optional(decode.string))
-  use sandbox <- decode.optional_field("sandbox", None, decode.optional(update_container_request_sandbox_decoder()))
-  use scaling_option <- decode.optional_field("scaling_option", None, decode.optional(decode.dynamic))
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_decoder())))
-  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
-  use timeout <- decode.optional_field("timeout", None, decode.optional(decode.string))
-  decode.success(UpdateContainerRequest(args:, command:, cpu_limit:, description:, environment_variables:, health_check:, http_option:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, port:, privacy:, private_network_id:, protocol:, redeploy:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, tags:, timeout:))
 }
 
 pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.Json {
@@ -2264,12 +2209,8 @@ pub fn new_deploy_container_params(
   DeployContainerParams(region:, container_id:)
 }
 
-pub type DeployContainerRequest {
+pub opaque type DeployContainerRequest {
   DeployContainerRequest
-}
-
-pub fn deploy_container_request_decoder() -> decode.Decoder(DeployContainerRequest) {
-  decode.success(DeployContainerRequest)
 }
 
 pub fn deploy_container_request_to_json(value: DeployContainerRequest) -> json.Json {
@@ -2368,7 +2309,7 @@ pub fn new_create_cron_params(
   CreateCronParams(region:)
 }
 
-pub type CreateCronRequest {
+pub opaque type CreateCronRequest {
   CreateCronRequest(
     /// Arguments to pass with the cron.
     args: Option(Dynamic),
@@ -2379,14 +2320,6 @@ pub type CreateCronRequest {
     /// UNIX cron schedule.
     schedule: Option(String),
   )
-}
-
-pub fn create_cron_request_decoder() -> decode.Decoder(CreateCronRequest) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.dynamic))
-  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
-  use name <- decode.optional_field("name", None, decode.optional(decode.string))
-  use schedule <- decode.optional_field("schedule", None, decode.optional(decode.string))
-  decode.success(CreateCronRequest(args:, container_id:, name:, schedule:))
 }
 
 pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
@@ -2517,7 +2450,7 @@ pub fn new_update_cron_params(
   UpdateCronParams(region:, cron_id:)
 }
 
-pub type UpdateCronRequest {
+pub opaque type UpdateCronRequest {
   UpdateCronRequest(
     /// Arguments to pass with the cron.
     args: Option(Dynamic),
@@ -2528,14 +2461,6 @@ pub type UpdateCronRequest {
     /// UNIX cron schedule.
     schedule: Option(String),
   )
-}
-
-pub fn update_cron_request_decoder() -> decode.Decoder(UpdateCronRequest) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.dynamic))
-  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
-  use name <- decode.optional_field("name", None, decode.optional(decode.string))
-  use schedule <- decode.optional_field("schedule", None, decode.optional(decode.string))
-  decode.success(UpdateCronRequest(args:, container_id:, name:, schedule:))
 }
 
 pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
@@ -2671,19 +2596,13 @@ pub fn new_create_domain_params(
   CreateDomainParams(region:)
 }
 
-pub type CreateDomainRequest {
+pub opaque type CreateDomainRequest {
   CreateDomainRequest(
     /// UUID of the container to assign the domain to.
     container_id: Option(String),
     /// Domain to assign.
     hostname: Option(String),
   )
-}
-
-pub fn create_domain_request_decoder() -> decode.Decoder(CreateDomainRequest) {
-  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
-  use hostname <- decode.optional_field("hostname", None, decode.optional(decode.string))
-  decode.success(CreateDomainRequest(container_id:, hostname:))
 }
 
 pub fn create_domain_request_to_json(value: CreateDomainRequest) -> json.Json {
@@ -2883,7 +2802,7 @@ pub fn new_create_namespace_params(
   CreateNamespaceParams(region:)
 }
 
-pub type CreateNamespaceRequest {
+pub opaque type CreateNamespaceRequest {
   CreateNamespaceRequest(
     /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
     /// Setting this field to true doesn't matter anymore. It will be removed in a near future.
@@ -2901,17 +2820,6 @@ pub type CreateNamespaceRequest {
     /// Tags of the Serverless Container Namespace.
     tags: Option(List(String)),
   )
-}
-
-pub fn create_namespace_request_decoder() -> decode.Decoder(CreateNamespaceRequest) {
-  use activate_vpc_integration <- decode.optional_field("activate_vpc_integration", None, decode.optional(decode.bool))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use name <- decode.optional_field("name", None, decode.optional(decode.string))
-  use project_id <- decode.optional_field("project_id", None, decode.optional(decode.string))
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_decoder())))
-  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
-  decode.success(CreateNamespaceRequest(activate_vpc_integration:, description:, environment_variables:, name:, project_id:, secret_environment_variables:, tags:))
 }
 
 pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.Json {
@@ -3070,7 +2978,7 @@ pub fn new_update_namespace_params(
   UpdateNamespaceParams(region:, namespace_id:)
 }
 
-pub type UpdateNamespaceRequest {
+pub opaque type UpdateNamespaceRequest {
   UpdateNamespaceRequest(
     /// Description of the namespace to update.
     description: Option(String),
@@ -3081,14 +2989,6 @@ pub type UpdateNamespaceRequest {
     /// Tags of the Serverless Container Namespace.
     tags: Option(List(String)),
   )
-}
-
-pub fn update_namespace_request_decoder() -> decode.Decoder(UpdateNamespaceRequest) {
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.list(scaleway_containers_v1beta1_secret_decoder())))
-  use tags <- decode.optional_field("tags", None, decode.optional(decode.list(decode.string)))
-  decode.success(UpdateNamespaceRequest(description:, environment_variables:, secret_environment_variables:, tags:))
 }
 
 pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.Json {
@@ -3242,7 +3142,7 @@ pub fn new_create_token_params(
   CreateTokenParams(region:)
 }
 
-pub type CreateTokenRequest {
+pub opaque type CreateTokenRequest {
   CreateTokenRequest(
     /// UUID of the container to create the token for.
     container_id: Option(String),
@@ -3253,14 +3153,6 @@ pub type CreateTokenRequest {
     /// UUID of the namespace to create the token for.
     namespace_id: Option(String),
   )
-}
-
-pub fn create_token_request_decoder() -> decode.Decoder(CreateTokenRequest) {
-  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use expires_at <- decode.optional_field("expires_at", None, decode.optional(decode.string))
-  use namespace_id <- decode.optional_field("namespace_id", None, decode.optional(decode.string))
-  decode.success(CreateTokenRequest(container_id:, description:, expires_at:, namespace_id:))
 }
 
 pub fn create_token_request_to_json(value: CreateTokenRequest) -> json.Json {
@@ -3448,7 +3340,7 @@ pub fn new_create_trigger_params(
   CreateTriggerParams(region:)
 }
 
-pub type CreateTriggerRequest {
+pub opaque type CreateTriggerRequest {
   CreateTriggerRequest(
     /// ID of the container to trigger.
     container_id: String,
@@ -3461,15 +3353,6 @@ pub type CreateTriggerRequest {
     /// Configuration for a Scaleway Messaging and Queuing SQS queue.
     scw_sqs_config: Option(Dynamic),
   )
-}
-
-pub fn create_trigger_request_decoder() -> decode.Decoder(CreateTriggerRequest) {
-  use container_id <- decode.field("container_id", decode.string)
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use name <- decode.field("name", decode.string)
-  use scw_nats_config <- decode.optional_field("scw_nats_config", None, decode.optional(decode.dynamic))
-  use scw_sqs_config <- decode.optional_field("scw_sqs_config", None, decode.optional(decode.dynamic))
-  decode.success(CreateTriggerRequest(container_id:, description:, name:, scw_nats_config:, scw_sqs_config:))
 }
 
 pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json {
@@ -3596,19 +3479,13 @@ pub fn new_update_trigger_params(
   UpdateTriggerParams(region:, trigger_id:)
 }
 
-pub type UpdateTriggerRequest {
+pub opaque type UpdateTriggerRequest {
   UpdateTriggerRequest(
     /// Description of the trigger.
     description: Option(String),
     /// Name of the trigger.
     name: Option(String),
   )
-}
-
-pub fn update_trigger_request_decoder() -> decode.Decoder(UpdateTriggerRequest) {
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use name <- decode.optional_field("name", None, decode.optional(decode.string))
-  decode.success(UpdateTriggerRequest(description:, name:))
 }
 
 pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json {

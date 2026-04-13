@@ -1,8 +1,6 @@
 ---
 version: 1.5.4
 title: codegen operation post with inline request body
-file: ./test/gilly/internal/codegen_test.gleam
-test_name: post_with_inline_request_body_test
 ---
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
@@ -50,19 +48,12 @@ pub fn new_create_container_params(
   CreateContainerParams(region:)
 }
 
-pub type CreateContainerRequest {
+pub opaque type CreateContainerRequest {
   CreateContainerRequest(
     name: String,
     description: Option(String),
     min_scale: Option(Int),
   )
-}
-
-pub fn create_container_request_decoder() -> decode.Decoder(CreateContainerRequest) {
-  use name <- decode.field("name", decode.string)
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use min_scale <- decode.optional_field("min_scale", None, decode.optional(decode.int))
-  decode.success(CreateContainerRequest(name:, description:, min_scale:))
 }
 
 pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.Json {

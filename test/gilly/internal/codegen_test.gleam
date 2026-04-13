@@ -1,4 +1,7 @@
 import birdie
+import gleam/option.{None, Some}
+import gleam/string
+
 import gilly/internal/codegen
 import gilly/openapi/openapi.{
   type OpenAPI, type PathItem, Components, Info, OpenAPI, PathItem,
@@ -12,7 +15,6 @@ import gilly/openapi/schema.{
   IntegerType, ObjectSchema, ObjectType, StringSchema, StringType,
 }
 import gilly/openapi/version.{Version}
-import gleam/option.{None, Some}
 
 fn v3() -> version.Version {
   Version(major: 3, minor: Some(0), patch: Some(0))
@@ -1118,4 +1120,55 @@ pub fn get_with_array_query_param_test() {
   )
   |> generate_ops
   |> birdie.snap(title: "codegen operation get with array query param")
+}
+
+pub fn inline_request_body_generates_opaque_type_test() {
+  let result =
+    spec_with_paths(
+      [
+        #(
+          "/items",
+          PathItem(
+            ..empty_path_item(),
+            post: Some(
+              Operation(
+                ..empty_operation("createItem"),
+                request_body: Some(
+                  RequestBody(description: None, required: True, content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Object(
+                          base(ObjectType),
+                          ObjectSchema(required: ["name"], properties: [
+                            #(
+                              "name",
+                              schema.String(
+                                base(StringType),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        )),
+                      ),
+                    ),
+                  ]),
+                ),
+                responses: [
+                  #("200", Response(description: "ok", content: [])),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+      [],
+    )
+    |> generate_ops
+  assert string.contains(result, "pub opaque type CreateItemRequest {")
 }
