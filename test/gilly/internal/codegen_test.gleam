@@ -1,4 +1,7 @@
 import birdie
+import gleam/option.{None, Some}
+import gleam/string
+
 import gilly/internal/codegen
 import gilly/openapi/openapi.{
   type OpenAPI, type PathItem, Components, Info, OpenAPI, PathItem,
@@ -12,7 +15,6 @@ import gilly/openapi/schema.{
   IntegerType, ObjectSchema, ObjectType, StringSchema, StringType,
 }
 import gilly/openapi/version.{Version}
-import gleam/option.{None, Some}
 
 fn v3() -> version.Version {
   Version(major: 3, minor: Some(0), patch: Some(0))
@@ -887,4 +889,286 @@ pub fn delete_with_path_param_test() {
   )
   |> generate_ops
   |> birdie.snap(title: "codegen operation delete with path param")
+}
+
+pub fn get_with_optional_query_params_test() {
+  spec_with_paths(
+    [
+      #(
+        "/containers",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listContainers"),
+              summary: Some("List containers"),
+              parameters: [
+                Parameter(
+                  name: "name",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "page",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with optional query params")
+}
+
+pub fn get_with_mixed_path_and_query_params_test() {
+  spec_with_paths(
+    [
+      #(
+        "/regions/{region}/containers",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listRegionContainers"),
+              summary: Some("List containers in region"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "page",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+                Parameter(
+                  name: "page_size",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+                Parameter(
+                  name: "name",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(
+    title: "codegen operation get with mixed path and query params",
+  )
+}
+
+pub fn get_with_required_integer_query_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/items",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listItems"),
+              summary: Some("List items"),
+              parameters: [
+                Parameter(
+                  name: "limit",
+                  in_: Query,
+                  description: Some("Maximum number of items"),
+                  required: True,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(
+    title: "codegen operation get with required integer query param",
+  )
+}
+
+pub fn get_with_array_query_param_test() {
+  spec_with_paths(
+    [
+      #(
+        "/pet/findByTags",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("findPetsByTags"),
+              summary: Some("Find pets by tags"),
+              parameters: [
+                Parameter(
+                  name: "tags",
+                  in_: Query,
+                  description: Some("Tags to filter by"),
+                  required: True,
+                  schema: Some(schema.Array(
+                    base(schema.ArrayType),
+                    ArraySchema(
+                      min_items: None,
+                      max_items: None,
+                      items: schema.String(
+                        base(StringType),
+                        StringSchema(
+                          min_length: None,
+                          max_length: None,
+                          enum: None,
+                          format: None,
+                        ),
+                      ),
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops
+  |> birdie.snap(title: "codegen operation get with array query param")
+}
+
+pub fn inline_request_body_generates_opaque_type_test() {
+  let result =
+    spec_with_paths(
+      [
+        #(
+          "/items",
+          PathItem(
+            ..empty_path_item(),
+            post: Some(
+              Operation(
+                ..empty_operation("createItem"),
+                request_body: Some(
+                  RequestBody(description: None, required: True, content: [
+                    #(
+                      "application/json",
+                      MediaType(
+                        schema: Some(schema.Object(
+                          base(ObjectType),
+                          ObjectSchema(required: ["name"], properties: [
+                            #(
+                              "name",
+                              schema.String(
+                                base(StringType),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        )),
+                      ),
+                    ),
+                  ]),
+                ),
+                responses: [
+                  #("200", Response(description: "ok", content: [])),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+      [],
+    )
+    |> generate_ops
+  assert string.contains(result, "pub opaque type CreateItemRequest {")
 }

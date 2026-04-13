@@ -37,12 +37,24 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
+pub opaque type DeletePetParams {
+  DeletePetParams(
+    pet_id: Int,
+  )
+}
+
+pub fn new_delete_pet_params(
+  pet_id pet_id: Int,
+) -> DeletePetParams {
+  DeletePetParams(pet_id:)
+}
+
 /// Deletes a pet
 pub fn delete_pet(
   client: Client(err),
-  pet_id: Int,
+  params params: DeletePetParams,
 ) -> Result(Nil, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(pet_id))
+  let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))

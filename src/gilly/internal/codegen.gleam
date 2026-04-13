@@ -583,6 +583,8 @@ fn operation_doc(
       }
     })
 
+  let has_params = !list.is_empty(path_params) || !list.is_empty(query_params)
+
   // Build the request body type (if any)
   // If the body is an inline object, generate a named schema for it so we get
   // a proper type + to_json encoder instead of Dynamic/json.null().
@@ -598,6 +600,16 @@ fn operation_doc(
             Some(id) -> to_type_name(id) <> "Request"
             None -> "RequestBody"
           }
+          // Register the inline body schema as RequestOnly so it gets opaque type
+          let state =
+            State(
+              ..state,
+              schema_usages: dict.insert(
+                state.schema_usages,
+                request_type_name,
+                RequestOnly,
+              ),
+            )
           // Track enums registered before schema generation
           let enums_before = state.enums
           // Generate schema docs (type + decoder + to_json) for the inline body
@@ -645,36 +657,37 @@ fn operation_doc(
   // Build the response type from the 200/201 response
   let #(state, response_type) = response_type_from_op(state, op, all_schemas)
 
+  // Generate params type + constructor + setters if operation has path/query params
+  let params_type_name = to_type_name(fn_name) <> "Params"
+  let #(state, params_docs, params_prefix) = case has_params {
+    True -> {
+      let #(state, pdocs) =
+        operation_params_docs(
+          state,
+          params_type_name,
+          path_params,
+          query_params,
+          all_schemas,
+          config,
+        )
+      #(state, pdocs, "params.")
+    }
+    False -> #(state, [], "")
+  }
+
   // Build function arguments
   let client_arg = doc.from_string("client: Client(err)")
 
-  let #(state, param_args) =
-    list.fold(path_params, #(state, []), fn(acc, param) {
-      let #(state, args) = acc
-      let #(state, type_doc) = param_to_type(state, param, all_schemas)
-      let arg =
-        doc.concat([
-          doc.from_string(to_field_name(param.name) <> ": "),
-          type_doc,
-        ])
-      #(state, list.append(args, [arg]))
-    })
-
-  // Query params are String, optional ones are Option(String)
-  let query_args =
-    list.map(query_params, fn(param) {
-      let type_str = case param.required {
-        True -> "String"
-        False -> "Option(String)"
-      }
-      doc.from_string(to_field_name(param.name) <> ": " <> type_str)
-    })
+  let params_arg = case has_params {
+    True -> [doc.from_string("params params: " <> params_type_name)]
+    False -> []
+  }
 
   let #(state, body_args) = case body_param {
     Some(#(arg_name, type_doc, _schema)) -> {
       let arg =
         doc.concat([
-          doc.from_string(arg_name <> ": "),
+          doc.from_string(arg_name <> " " <> arg_name <> ": "),
           type_doc,
         ])
       #(state, [arg])
@@ -684,12 +697,11 @@ fn operation_doc(
 
   let all_args =
     [client_arg]
-    |> list.append(param_args)
-    |> list.append(query_args)
+    |> list.append(params_arg)
     |> list.append(body_args)
 
   // Build URL expression with path parameter substitution
-  let url_expr = build_url_expression(path, path_params)
+  let url_expr = build_url_expression(path, path_params, params_prefix)
 
   // Build the function body
   let state = import_module(state, "gleam/dynamic/decode")
@@ -703,7 +715,15 @@ fn operation_doc(
         _ -> False
       }
     })
-  let state = case has_int_path_param {
+  // Also import gleam/int if any query param is an integer
+  let has_int_query_param =
+    list.any(query_params, fn(p) {
+      case p.schema {
+        Some(schema.Integer(_, _)) -> True
+        _ -> False
+      }
+    })
+  let state = case has_int_path_param || has_int_query_param {
     True -> import_module(state, "gleam/int")
     False -> state
   }
@@ -719,7 +739,14 @@ fn operation_doc(
   }
 
   let req_lines =
-    build_request_lines(state, method, query_params, body_param, all_schemas)
+    build_request_lines(
+      state,
+      method,
+      query_params,
+      body_param,
+      all_schemas,
+      params_prefix,
+    )
 
   let #(state, decode_line) =
     build_decode_line(state, response_type, all_schemas)
@@ -778,18 +805,211 @@ fn operation_doc(
       doc.from_string("}"),
     ])
 
-  // Prepend any inline body schema docs before the function
-  let full_doc = case inline_body_docs {
+  // Prepend params type docs, then inline body schema docs, then the function
+  let prefix_docs = list.flatten([params_docs, inline_body_docs])
+
+  let full_doc = case prefix_docs {
     [] -> fn_doc
     _ ->
       doc.concat([
-        doc.join(inline_body_docs, with: doc.lines(2)),
+        doc.join(prefix_docs, with: doc.lines(2)),
         doc.lines(2),
         fn_doc,
       ])
   }
 
   #(state, full_doc)
+}
+
+/// Generate the Params type, new_ constructor, and with_ setters for an operation's
+/// path and query parameters.
+fn operation_params_docs(
+  state: State,
+  type_name: String,
+  path_params: List(Parameter),
+  query_params: List(Parameter),
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document)) {
+  let indent = config.indent
+
+  // Build field entries: path params are always required, query params depend on config
+  let all_params = list.append(path_params, query_params)
+
+  // Build field definitions for the type
+  let #(state, fields) =
+    list.fold(all_params, #(state, []), fn(acc, param) {
+      let #(state, fields) = acc
+      let field_name = to_field_name(param.name)
+      let #(state, type_doc) = param_to_type(state, param, all_schemas)
+      let field_doc = case param.required {
+        True -> doc.concat([doc.from_string(field_name <> ": "), type_doc])
+        False ->
+          doc.concat([
+            doc.from_string(field_name <> ": Option("),
+            type_doc,
+            doc.from_string(")"),
+          ])
+      }
+      #(state, list.append(fields, [field_doc]))
+    })
+
+  // Import Option type if there are optional params
+  let has_optional = list.any(all_params, fn(p) { !p.required })
+  let state = case has_optional {
+    True -> import_qualified(state, "gleam/option", "type Option")
+    False -> state
+  }
+
+  // Type definition
+  let type_doc = case fields {
+    [] ->
+      doc.concat([
+        doc.from_string("pub opaque type " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        doc.from_string(type_name)
+          |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+    _ ->
+      doc.concat([
+        doc.from_string("pub opaque type " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        doc.concat([
+          doc.from_string(type_name <> "("),
+          doc.line |> doc.nest(by: indent),
+          doc.join(fields, with: doc.concat([doc.from_string(","), doc.line]))
+            |> doc.nest(by: indent),
+          doc.concat([doc.from_string(","), doc.line]),
+          doc.from_string(")"),
+        ])
+          |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+  }
+
+  // Constructor: takes required params (path params + required query params)
+  let required_params = list.filter(all_params, fn(p) { p.required })
+  let optional_params = list.filter(all_params, fn(p) { !p.required })
+
+  let state = case list.is_empty(optional_params) {
+    True -> state
+    False -> import_qualified(state, "gleam/option", "None")
+  }
+
+  let #(state, required_args) =
+    list.fold(required_params, #(state, []), fn(acc, param) {
+      let #(state, args) = acc
+      let field_name = to_field_name(param.name)
+      let #(state, type_doc) = param_to_type(state, param, all_schemas)
+      let arg =
+        doc.concat([
+          doc.from_string(field_name <> " " <> field_name <> ": "),
+          type_doc,
+        ])
+      #(state, list.append(args, [arg]))
+    })
+
+  let field_inits =
+    list.map(all_params, fn(param) {
+      let field_name = to_field_name(param.name)
+      case param.required {
+        True -> field_name <> ":"
+        False -> field_name <> ": None"
+      }
+    })
+
+  let constructor_body =
+    doc.from_string(type_name <> "(" <> string.join(field_inits, ", ") <> ")")
+
+  let fn_name = "new_" <> justin.snake_case(type_name)
+  let constructor_doc = case required_args {
+    [] ->
+      doc.concat([
+        doc.from_string("pub fn " <> fn_name <> "() -> " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+    _ ->
+      doc.concat([
+        doc.from_string("pub fn " <> fn_name <> "("),
+        doc.line |> doc.nest(by: indent),
+        doc.join(
+          required_args,
+          with: doc.concat([doc.from_string(","), doc.line]),
+        )
+          |> doc.nest(by: indent),
+        doc.concat([doc.from_string(","), doc.line]),
+        doc.from_string(") -> " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+  }
+
+  // Generate with_ setters for optional params
+  let var_name = justin.snake_case(type_name)
+  let #(state, setters) =
+    list.fold(optional_params, #(state, []), fn(acc, param) {
+      let #(state, setters) = acc
+      let field_name = to_field_name(param.name)
+      let setter_fn_name =
+        justin.snake_case(type_name) <> "_with_" <> field_name
+
+      let #(state, inner_type) = param_to_type(state, param, all_schemas)
+      let state = import_qualified(state, "gleam/option", "Some")
+
+      let comment_part = case param.description {
+        Some(desc) -> [description_to_comment(desc), doc.line]
+        None -> []
+      }
+
+      let setter_doc =
+        doc.concat(
+          list.append(comment_part, [
+            doc.from_string("pub fn " <> setter_fn_name <> "("),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(var_name <> ": " <> type_name <> ",")
+              |> doc.nest(by: indent),
+            doc.line |> doc.nest(by: indent),
+            doc.concat([
+              doc.from_string(field_name <> " " <> field_name <> ": "),
+              inner_type,
+              doc.from_string(","),
+            ])
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string(") -> " <> type_name <> " {"),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(
+              type_name
+              <> "(.."
+              <> var_name
+              <> ", "
+              <> field_name
+              <> ": Some("
+              <> field_name
+              <> "))",
+            )
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string("}"),
+          ]),
+        )
+
+      #(state, list.append(setters, [setter_doc]))
+    })
+
+  let all_docs =
+    [type_doc, constructor_doc]
+    |> list.append(setters)
+
+  #(state, all_docs)
 }
 
 fn operation_fn_name(op: Operation, path: String, method: String) -> String {
@@ -815,15 +1035,22 @@ fn param_to_type(
     // Inline string enums on parameters are just String — the enum type is
     // not generated in the schema section.
     Some(schema.String(_, _)) -> #(state, doc.from_string("String"))
+    // Always pass required=True here because optional wrapping is handled
+    // by the Params type builder / setter generator, not by the type itself.
     Some(schema) ->
-      schema_to_gleam_type(
-        state,
-        schema,
-        param.required,
-        all_schemas,
-        param.name,
-      )
+      schema_to_gleam_type(state, schema, True, all_schemas, param.name)
     None -> #(state, doc.from_string("String"))
+  }
+}
+
+/// Returns the expression to convert a query param value `v` to a String.
+/// For String types, this is just "v". For Int types, "int.to_string(v)".
+fn query_param_to_string_expr(param: Parameter) -> String {
+  case param.schema {
+    Some(schema.Integer(_, _)) -> "int.to_string(v)"
+    Some(schema.Number(_)) -> "float.to_string(v)"
+    Some(schema.Boolean(_)) -> "bool.to_string(v)"
+    _ -> "v"
   }
 }
 
@@ -892,7 +1119,11 @@ fn result_or(
   }
 }
 
-fn build_url_expression(path: String, path_params: List(Parameter)) -> Document {
+fn build_url_expression(
+  path: String,
+  path_params: List(Parameter),
+  params_prefix: String,
+) -> Document {
   // Split path on {param} segments and build a string concatenation
   case path_params {
     [] ->
@@ -900,7 +1131,7 @@ fn build_url_expression(path: String, path_params: List(Parameter)) -> Document 
         "let assert Ok(req) = request.to(client.base_url <> \"" <> path <> "\")",
       )
     _ -> {
-      let url_parts = build_path_parts(path, path_params)
+      let url_parts = build_path_parts(path, path_params, params_prefix)
       doc.concat([
         doc.from_string("let assert Ok(req) = request.to(client.base_url <> "),
         url_parts,
@@ -910,20 +1141,25 @@ fn build_url_expression(path: String, path_params: List(Parameter)) -> Document 
   }
 }
 
-fn build_path_parts(path: String, params: List(Parameter)) -> Document {
+fn build_path_parts(
+  path: String,
+  params: List(Parameter),
+  params_prefix: String,
+) -> Document {
   // Replace {param} with string concatenation
-  let parts = split_path_on_params(path, params, [])
+  let parts = split_path_on_params(path, params, params_prefix, [])
   doc.join(parts, with: doc.from_string(" <> "))
 }
 
 fn split_path_on_params(
   remaining: String,
   params: List(Parameter),
+  params_prefix: String,
   acc: List(Document),
 ) -> List(Document) {
   case find_next_param(remaining, params) {
     Some(#(before, param, after)) -> {
-      let param_name = to_field_name(param.name)
+      let param_name = params_prefix <> to_field_name(param.name)
       let has_int_type = case param.schema {
         Some(schema.Integer(_, _)) -> True
         _ -> False
@@ -939,6 +1175,7 @@ fn split_path_on_params(
       split_path_on_params(
         after,
         params,
+        params_prefix,
         list.append(before_parts, [param_expr]),
       )
     }
@@ -974,6 +1211,7 @@ fn build_request_lines(
   query_params: List(Parameter),
   body_param: Option(#(String, Document, Schema)),
   all_schemas: List(#(String, Schema)),
+  params_prefix: String,
 ) -> List(Document) {
   let method_line =
     doc.from_string("let req = request.set_method(req, http." <> method <> ")")
@@ -1008,44 +1246,92 @@ fn build_request_lines(
   let query_lines = case query_params {
     [] -> []
     _ -> {
-      // Required query params are always included
-      let required_entries =
-        list.filter(query_params, fn(p) { p.required })
+      let is_array_param = fn(p: Parameter) {
+        case p.schema {
+          Some(schema.Array(_, _)) -> True
+          _ -> False
+        }
+      }
+
+      // Required scalar query params are always included as tuples
+      let required_scalar_entries =
+        list.filter(query_params, fn(p) { p.required && !is_array_param(p) })
         |> list.map(fn(param) {
-          let param_name = to_field_name(param.name)
-          doc.from_string("#(\"" <> param.name <> "\", " <> param_name <> ")")
+          let param_name = params_prefix <> to_field_name(param.name)
+          let value_expr = case query_param_to_string_expr(param) {
+            "v" -> param_name
+            conv -> string.replace(conv, "v", param_name)
+          }
+          doc.from_string("#(\"" <> param.name <> "\", " <> value_expr <> ")")
         })
 
-      // Optional query params use option.map + option.values to filter Nones
-      let optional_entries =
-        list.filter(query_params, fn(p) { !p.required })
+      // Required array query params are expanded with list.map
+      let required_array_lines =
+        list.filter(query_params, fn(p) { p.required && is_array_param(p) })
         |> list.map(fn(param) {
-          let param_name = to_field_name(param.name)
+          let param_name = params_prefix <> to_field_name(param.name)
+          let value_expr = query_param_to_string_expr(param)
+          doc.from_string(
+            "let query = list.append(query, list.map("
+            <> param_name
+            <> ", fn(v) { #(\""
+            <> param.name
+            <> "\", "
+            <> value_expr
+            <> ") }))",
+          )
+        })
+
+      // Optional scalar query params use option.map + option.values
+      let optional_scalar_entries =
+        list.filter(query_params, fn(p) { !p.required && !is_array_param(p) })
+        |> list.map(fn(param) {
+          let param_name = params_prefix <> to_field_name(param.name)
+          let value_expr = query_param_to_string_expr(param)
           doc.from_string(
             "option.map("
             <> param_name
             <> ", fn(v) { #(\""
             <> param.name
-            <> "\", v) })",
+            <> "\", "
+            <> value_expr
+            <> ") })",
           )
         })
 
-      let required_list = case required_entries {
+      // Optional array query params use option.unwrap + list.map
+      let optional_array_lines =
+        list.filter(query_params, fn(p) { !p.required && is_array_param(p) })
+        |> list.map(fn(param) {
+          let param_name = params_prefix <> to_field_name(param.name)
+          let value_expr = query_param_to_string_expr(param)
+          doc.from_string(
+            "let query = list.append(query, "
+            <> param_name
+            <> " |> option.unwrap([]) |> list.map(fn(v) { #(\""
+            <> param.name
+            <> "\", "
+            <> value_expr
+            <> ") }))",
+          )
+        })
+
+      let required_list = case required_scalar_entries {
         [] -> doc.from_string("[]")
         _ ->
           doc.concat([
             doc.from_string("["),
-            doc.join(required_entries, with: doc.from_string(", ")),
+            doc.join(required_scalar_entries, with: doc.from_string(", ")),
             doc.from_string("]"),
           ])
       }
 
-      let optional_part = case optional_entries {
+      let optional_scalar_part = case optional_scalar_entries {
         [] -> []
         _ -> [
           doc.from_string("let query = list.append(query, option.values(["),
           ..list.append(
-            list.map(optional_entries, fn(entry) {
+            list.map(optional_scalar_entries, fn(entry) {
               doc.concat([
                 doc.from_string("  "),
                 entry,
@@ -1059,7 +1345,9 @@ fn build_request_lines(
 
       list.flatten([
         [doc.concat([doc.from_string("let query = "), required_list])],
-        optional_part,
+        required_array_lines,
+        optional_scalar_part,
+        optional_array_lines,
         [doc.from_string("let req = request.set_query(req, query)")],
       ])
     }
@@ -2026,7 +2314,10 @@ fn record_new_doc(
               enum_hint,
             )
           let arg =
-            doc.concat([doc.from_string(field_name <> ": "), field_type])
+            doc.concat([
+              doc.from_string(field_name <> " " <> field_name <> ": "),
+              field_type,
+            ])
           #(state, list.append(args, [arg]))
         }
       }
@@ -2109,36 +2400,43 @@ fn record_with_field_docs(
 
         let state = import_qualified(state, "gleam/option", "Some")
 
+        let comment_part = case schema_description(prop_schema) {
+          Some(comment) -> [comment, doc.line]
+          None -> []
+        }
+
         let setter_doc =
-          doc.concat([
-            doc.from_string("pub fn " <> fn_name <> "("),
-            doc.line |> doc.nest(by: indent),
-            doc.from_string(var_name <> ": " <> type_name <> ",")
-              |> doc.nest(by: indent),
-            doc.line |> doc.nest(by: indent),
-            doc.concat([
-              doc.from_string(field_name <> ": "),
-              inner_type,
-              doc.from_string(","),
-            ])
-              |> doc.nest(by: indent),
-            doc.line,
-            doc.from_string(") -> " <> type_name <> " {"),
-            doc.line |> doc.nest(by: indent),
-            doc.from_string(
-              type_name
-              <> "(.."
-              <> var_name
-              <> ", "
-              <> field_name
-              <> ": Some("
-              <> field_name
-              <> "))",
-            )
-              |> doc.nest(by: indent),
-            doc.line,
-            doc.from_string("}"),
-          ])
+          doc.concat(
+            list.append(comment_part, [
+              doc.from_string("pub fn " <> fn_name <> "("),
+              doc.line |> doc.nest(by: indent),
+              doc.from_string(var_name <> ": " <> type_name <> ",")
+                |> doc.nest(by: indent),
+              doc.line |> doc.nest(by: indent),
+              doc.concat([
+                doc.from_string(field_name <> " " <> field_name <> ": "),
+                inner_type,
+                doc.from_string(","),
+              ])
+                |> doc.nest(by: indent),
+              doc.line,
+              doc.from_string(") -> " <> type_name <> " {"),
+              doc.line |> doc.nest(by: indent),
+              doc.from_string(
+                type_name
+                <> "(.."
+                <> var_name
+                <> ", "
+                <> field_name
+                <> ": Some("
+                <> field_name
+                <> "))",
+              )
+                |> doc.nest(by: indent),
+              doc.line,
+              doc.from_string("}"),
+            ]),
+          )
 
         #(state, list.append(docs, [setter_doc]))
       }

@@ -36,11 +36,16 @@ pub fn main() {
 
   // 2. List available pets
   io.println("\n--- Listing available pets ---")
-  let assert Ok(pets) = client.find_pets_by_status(api_client, "available")
+  let assert Ok(pets) =
+    client.find_pets_by_status(
+      api_client,
+      client.new_find_pets_by_status_params("available"),
+    )
   io.println("Found " <> int.to_string(list.length(pets)) <> " available pets")
 
   // 3. Delete the pet we just created
   io.println("\n--- Deleting pet " <> int.to_string(pet_id) <> " ---")
-  let assert Ok(Nil) = client.delete_pet(api_client, pet_id)
+  let assert Ok(Nil) =
+    client.delete_pet(api_client, client.new_delete_pet_params(pet_id))
   io.println("Deleted!")
 }

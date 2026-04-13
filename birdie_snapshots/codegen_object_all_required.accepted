@@ -28,8 +28,8 @@ pub fn user_to_json(value: User) -> json.Json {
 }
 
 pub fn new_user(
-  name: String,
-  age: Int,
+  name name: String,
+  age age: Int,
 ) -> User {
   User(name:, age:)
 }

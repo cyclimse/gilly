@@ -3,7 +3,6 @@ import gleam/http/request
 import gleam/httpc
 import gleam/io
 import gleam/list
-import gleam/option.{None}
 import gleam/result
 import gleam/string
 
@@ -22,18 +21,9 @@ pub fn main() {
       |> result.map_error(fn(e) { "HTTP error: " <> string.inspect(e) })
     })
 
-  let assert Ok(resp) =
-    client.list_containers(
-      api_client,
-      region,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-    )
+  let params = client.new_list_containers_params(region: region)
+
+  let assert Ok(resp) = client.list_containers(api_client, params: params)
 
   list.each(
     resp.containers,

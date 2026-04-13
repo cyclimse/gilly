@@ -39,7 +39,7 @@ pub fn with_base_url(
 /// Add a new pet
 pub fn add_pet(
   client: Client(err),
-  body: Pet,
+  body body: Pet,
 ) -> Result(Pet, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Post)
