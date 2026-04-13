@@ -1,18 +1,19 @@
+import gleam/io
+import gleam/option.{type Option, None, Some}
+import gleam/result
+
 import argv
 import clip.{type Command}
 import clip/arg
 import clip/flag
 import clip/help
 import clip/opt
-import gilly/internal/codegen
-import gilly/internal/error.{describe_error}
-import gilly/internal/gilly
-import gleam/io
-import gleam/option.{type Option, None, Some}
-import gleam/result
 import simplifile
 
-const version = "0.1.8"
+import gilly/constant.{version}
+import gilly/gilly
+import gilly/internal/codegen
+import gilly/internal/error.{describe_error}
 
 type Args {
   Generate(
@@ -132,7 +133,6 @@ fn run(args: Args) -> Nil {
     Generate(source:, output:, optionality:, indent:, optional_query_params:) -> {
       let builder =
         gilly.new()
-        |> gilly.with_version(version)
         |> gilly.with_optionality(optionality)
         |> gilly.with_indent(indent)
         |> gilly.with_optional_query_params(optional_query_params)

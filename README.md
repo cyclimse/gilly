@@ -1,4 +1,4 @@
-# Gilly
+# ✨ Gilly
 
 [![Package Version](https://img.shields.io/hexpm/v/gilly)](https://hex.pm/packages/gilly)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/gilly/)
@@ -14,6 +14,8 @@ Generate Gleam SDKs from OpenAPI specifications.
 
 ## Usage
 
+### CLI
+
 Add Gilly as a dev dependency in your `gleam.toml`:
 
 ```bash
@@ -26,7 +28,18 @@ Then, you can run Gilly from the command line:
 gleam run -m gilly -- <path_to_openapi_spec.json> --output <output_path.gleam>
 ```
 
-That's it!
+That's it! You can use the generated SDK in your Gleam projects along with your favorite HTTP client to call the API.
+
+Any HTTP client that uses [gleam/http](https://hexdocs.pm/gleam_http/index.html) types should be compatible with the Gilly generated client. This includes:
+
+- [gleam/httpc](https://hexdocs.pm/gleam_httpc/index.html)
+- [gleam/hackney](https://hexdocs.pm/gleam_hackney/index.html)
+
+See the [examples](examples) for fully featured use cases.
+
+### Library
+
+Gilly can also be used as a library directly. Please refer to the [HexDocs](https://hexdocs.pm/gilly/gilly.html) for more details.
 
 ## Flags
 
@@ -47,6 +60,12 @@ Examples of generated clients can be found in the [examples](examples) directory
 ```sh
 gleam run   # Run the project
 gleam test  # Run the tests
+```
+
+This project relies on [birdie](https://github.com/giacomocavalieri/birdie) snapshots for testing. You can update them by running:
+
+```bash
+gleam run -m birdie
 ```
 
 ### Releases

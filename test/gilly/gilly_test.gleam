@@ -1,8 +1,8 @@
 import birdie
 import simplifile
 
+import gilly/gilly.{type Builder}
 import gilly/internal/codegen
-import gilly/internal/gilly.{type Builder}
 import gilly/openapi/openapi
 
 fn generate_code_case(title: String, builder: Builder, file_path: String) {
