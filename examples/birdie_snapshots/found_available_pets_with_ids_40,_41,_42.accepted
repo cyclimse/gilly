@@ -1,0 +1,47 @@
+---
+version: 1.5.4
+title: Found available pets with IDs 40, 41, 42
+file: ./test/petstore/client_test.gleam
+test_name: list_pets_by_status_test
+---
+[
+  Pet(
+    Some(Category(
+      Some(1),
+      Some("Mascots"),
+    )),
+    Some(40),
+    "Lucy",
+    [
+      "https://gleam.run/images/lucy/lucypride.svg",
+    ],
+    Some(PetStatusAvailable),
+    Some([Tag(Some(1), Some("gleam"))]),
+  ),
+  Pet(
+    Some(Category(
+      Some(1),
+      Some("Mascots"),
+    )),
+    Some(41),
+    "Lucy",
+    [
+      "https://gleam.run/images/lucy/lucypride.svg",
+    ],
+    Some(PetStatusAvailable),
+    Some([Tag(Some(1), Some("gleam"))]),
+  ),
+  Pet(
+    Some(Category(
+      Some(1),
+      Some("Mascots"),
+    )),
+    Some(42),
+    "Lucy",
+    [
+      "https://gleam.run/images/lucy/lucypride.svg",
+    ],
+    Some(PetStatusAvailable),
+    Some([Tag(Some(1), Some("gleam"))]),
+  ),
+]

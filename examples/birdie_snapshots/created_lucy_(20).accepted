@@ -1,0 +1,19 @@
+---
+version: 1.5.4
+title: Created Lucy (20)
+file: ./test/petstore/client_test.gleam
+test_name: create_and_delete_pet_test
+---
+Pet(
+  Some(Category(
+    Some(1),
+    Some("Mascots"),
+  )),
+  Some(20),
+  "Lucy",
+  [
+    "https://gleam.run/images/lucy/lucypride.svg",
+  ],
+  Some(PetStatusAvailable),
+  Some([Tag(Some(1), Some("gleam"))]),
+)
