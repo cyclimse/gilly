@@ -39,7 +39,7 @@ See the [examples](examples) for fully featured use cases.
 
 ### Library
 
-Gilly can also be used as a library directly. Please refer to the [HexDocs](https://hexdocs.pm/gilly/gilly.html) for more details.
+Gilly can also be used as a library directly. Please refer to the [HexDocs](https://hexdocs.pm/gilly/gilly/gilly.html) for more details.
 
 ## Flags
 
