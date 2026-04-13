@@ -10,7 +10,7 @@ import gleam/http/response
 import gleam/int
 import gleam/json
 import gleam/list
-import gleam/option.{None, type Option}
+import gleam/option.{None, Some, type Option}
 import gleam/result
 
 pub type ApiResponse {
@@ -26,14 +26,6 @@ pub fn api_response_decoder() -> decode.Decoder(ApiResponse) {
   use message <- decode.optional_field("message", None, decode.optional(decode.string))
   use type_ <- decode.optional_field("type", None, decode.optional(decode.string))
   decode.success(ApiResponse(code:, message:, type_:))
-}
-
-pub fn api_response_to_json(value: ApiResponse) -> json.Json {
-  json.object([
-    #("code", json.nullable(value.code, json.int)),
-    #("message", json.nullable(value.message, json.string)),
-    #("type", json.nullable(value.type_, json.string)),
-  ])
 }
 
 pub type Category {
@@ -54,6 +46,24 @@ pub fn category_to_json(value: Category) -> json.Json {
     #("id", json.nullable(value.id, json.int)),
     #("name", json.nullable(value.name, json.string)),
   ])
+}
+
+pub fn new_category() -> Category {
+  Category(id: None, name: None)
+}
+
+pub fn category_with_id(
+  category: Category,
+  id: Int,
+) -> Category {
+  Category(..category, id: Some(id))
+}
+
+pub fn category_with_name(
+  category: Category,
+  name: String,
+) -> Category {
+  Category(..category, name: Some(name))
 }
 
 pub type Order {
@@ -89,6 +99,52 @@ pub fn order_to_json(value: Order) -> json.Json {
   ])
 }
 
+pub fn new_order() -> Order {
+  Order(complete: None, id: None, pet_id: None, quantity: None, ship_date: None, status: None)
+}
+
+pub fn order_with_complete(
+  order: Order,
+  complete: Bool,
+) -> Order {
+  Order(..order, complete: Some(complete))
+}
+
+pub fn order_with_id(
+  order: Order,
+  id: Int,
+) -> Order {
+  Order(..order, id: Some(id))
+}
+
+pub fn order_with_pet_id(
+  order: Order,
+  pet_id: Int,
+) -> Order {
+  Order(..order, pet_id: Some(pet_id))
+}
+
+pub fn order_with_quantity(
+  order: Order,
+  quantity: Int,
+) -> Order {
+  Order(..order, quantity: Some(quantity))
+}
+
+pub fn order_with_ship_date(
+  order: Order,
+  ship_date: String,
+) -> Order {
+  Order(..order, ship_date: Some(ship_date))
+}
+
+pub fn order_with_status(
+  order: Order,
+  status: OrderStatus,
+) -> Order {
+  Order(..order, status: Some(status))
+}
+
 pub type Pet {
   Pet(
     category: Option(Category),
@@ -122,6 +178,41 @@ pub fn pet_to_json(value: Pet) -> json.Json {
   ])
 }
 
+pub fn new_pet(
+  name: String,
+  photo_urls: List(String),
+) -> Pet {
+  Pet(category: None, id: None, name:, photo_urls:, status: None, tags: None)
+}
+
+pub fn pet_with_category(
+  pet: Pet,
+  category: Category,
+) -> Pet {
+  Pet(..pet, category: Some(category))
+}
+
+pub fn pet_with_id(
+  pet: Pet,
+  id: Int,
+) -> Pet {
+  Pet(..pet, id: Some(id))
+}
+
+pub fn pet_with_status(
+  pet: Pet,
+  status: PetStatus,
+) -> Pet {
+  Pet(..pet, status: Some(status))
+}
+
+pub fn pet_with_tags(
+  pet: Pet,
+  tags: List(Tag),
+) -> Pet {
+  Pet(..pet, tags: Some(tags))
+}
+
 pub type Tag {
   Tag(
     id: Option(Int),
@@ -140,6 +231,24 @@ pub fn tag_to_json(value: Tag) -> json.Json {
     #("id", json.nullable(value.id, json.int)),
     #("name", json.nullable(value.name, json.string)),
   ])
+}
+
+pub fn new_tag() -> Tag {
+  Tag(id: None, name: None)
+}
+
+pub fn tag_with_id(
+  tag: Tag,
+  id: Int,
+) -> Tag {
+  Tag(..tag, id: Some(id))
+}
+
+pub fn tag_with_name(
+  tag: Tag,
+  name: String,
+) -> Tag {
+  Tag(..tag, name: Some(name))
 }
 
 pub type User {
@@ -179,6 +288,66 @@ pub fn user_to_json(value: User) -> json.Json {
     #("userStatus", json.nullable(value.user_status, json.int)),
     #("username", json.nullable(value.username, json.string)),
   ])
+}
+
+pub fn new_user() -> User {
+  User(email: None, first_name: None, id: None, last_name: None, password: None, phone: None, user_status: None, username: None)
+}
+
+pub fn user_with_email(
+  user: User,
+  email: String,
+) -> User {
+  User(..user, email: Some(email))
+}
+
+pub fn user_with_first_name(
+  user: User,
+  first_name: String,
+) -> User {
+  User(..user, first_name: Some(first_name))
+}
+
+pub fn user_with_id(
+  user: User,
+  id: Int,
+) -> User {
+  User(..user, id: Some(id))
+}
+
+pub fn user_with_last_name(
+  user: User,
+  last_name: String,
+) -> User {
+  User(..user, last_name: Some(last_name))
+}
+
+pub fn user_with_password(
+  user: User,
+  password: String,
+) -> User {
+  User(..user, password: Some(password))
+}
+
+pub fn user_with_phone(
+  user: User,
+  phone: String,
+) -> User {
+  User(..user, phone: Some(phone))
+}
+
+pub fn user_with_user_status(
+  user: User,
+  user_status: Int,
+) -> User {
+  User(..user, user_status: Some(user_status))
+}
+
+pub fn user_with_username(
+  user: User,
+  username: String,
+) -> User {
+  User(..user, username: Some(username))
 }
 
 

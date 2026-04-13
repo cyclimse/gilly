@@ -26,3 +26,9 @@ pub fn user_to_json(value: User) -> json.Json {
   ])
 }
 
+pub fn new_user(
+  name: String,
+) -> User {
+  User(name:)
+}
+

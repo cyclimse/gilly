@@ -9,7 +9,7 @@ import gleam/http/request
 import gleam/http/response
 import gleam/json
 import gleam/list
-import gleam/option.{None, type Option}
+import gleam/option.{None, Some, type Option}
 import gleam/result
 
 pub type GoogleProtobufStringValue =
@@ -130,43 +130,6 @@ pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(Scalewa
   decode.success(ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at:, description:, domain_name:, environment_variables:, error_message:, health_check:, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, ready_at:, region:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, status:, tags:, timeout:, updated_at:))
 }
 
-pub fn scaleway_containers_v1beta1_container_to_json(value: ScalewayContainersV1beta1Container) -> json.Json {
-  json.object([
-    #("args", json.nullable(value.args, json.array(_, json.string))),
-    #("command", json.nullable(value.command, json.array(_, json.string))),
-    #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
-    #("created_at", json.nullable(value.created_at, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("domain_name", json.nullable(value.domain_name, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("health_check", json.nullable(value.health_check, fn(_) { json.null() })),
-    #("http_option", json.nullable(value.http_option, scaleway_containers_v1beta1_container_http_option_to_json)),
-    #("id", json.nullable(value.id, json.string)),
-    #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
-    #("max_concurrency", json.nullable(value.max_concurrency, json.int)),
-    #("max_scale", json.nullable(value.max_scale, json.int)),
-    #("memory_limit", json.nullable(value.memory_limit, json.int)),
-    #("min_scale", json.nullable(value.min_scale, json.int)),
-    #("name", json.nullable(value.name, json.string)),
-    #("namespace_id", json.nullable(value.namespace_id, json.string)),
-    #("port", json.nullable(value.port, json.int)),
-    #("privacy", json.nullable(value.privacy, scaleway_containers_v1beta1_container_privacy_to_json)),
-    #("private_network_id", json.nullable(value.private_network_id, json.string)),
-    #("protocol", json.nullable(value.protocol, scaleway_containers_v1beta1_container_protocol_to_json)),
-    #("ready_at", json.nullable(value.ready_at, json.string)),
-    #("region", json.nullable(value.region, json.string)),
-    #("registry_image", json.nullable(value.registry_image, json.string)),
-    #("sandbox", json.nullable(value.sandbox, scaleway_containers_v1beta1_container_sandbox_to_json)),
-    #("scaling_option", json.nullable(value.scaling_option, fn(_) { json.null() })),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_hashed_value_to_json))),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_container_status_to_json)),
-    #("tags", json.nullable(value.tags, json.array(_, json.string))),
-    #("timeout", json.nullable(value.timeout, json.string)),
-    #("updated_at", json.nullable(value.updated_at, json.string)),
-  ])
-}
-
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
@@ -192,17 +155,6 @@ pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayCont
   use schedule <- decode.optional_field("schedule", None, decode.optional(decode.string))
   use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_cron_status_decoder()))
   decode.success(ScalewayContainersV1beta1Cron(args:, container_id:, id:, name:, schedule:, status:))
-}
-
-pub fn scaleway_containers_v1beta1_cron_to_json(value: ScalewayContainersV1beta1Cron) -> json.Json {
-  json.object([
-    #("args", json.nullable(value.args, fn(_) { json.null() })),
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("id", json.nullable(value.id, json.string)),
-    #("name", json.nullable(value.name, json.string)),
-    #("schedule", json.nullable(value.schedule, json.string)),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_cron_status_to_json)),
-  ])
 }
 
 pub type ScalewayContainersV1beta1Domain {
@@ -232,17 +184,6 @@ pub fn scaleway_containers_v1beta1_domain_decoder() -> decode.Decoder(ScalewayCo
   decode.success(ScalewayContainersV1beta1Domain(container_id:, error_message:, hostname:, id:, status:, url:))
 }
 
-pub fn scaleway_containers_v1beta1_domain_to_json(value: ScalewayContainersV1beta1Domain) -> json.Json {
-  json.object([
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("hostname", json.nullable(value.hostname, json.string)),
-    #("id", json.nullable(value.id, json.string)),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_domain_status_to_json)),
-    #("url", json.nullable(value.url, json.string)),
-  ])
-}
-
 pub type ScalewayContainersV1beta1ListContainersResponse {
   ScalewayContainersV1beta1ListContainersResponse(
     /// Array of containers.
@@ -256,13 +197,6 @@ pub fn scaleway_containers_v1beta1_list_containers_response_decoder() -> decode.
   use containers <- decode.optional_field("containers", None, decode.optional(decode.list(scaleway_containers_v1beta1_container_decoder())))
   use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
   decode.success(ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_containers_response_to_json(value: ScalewayContainersV1beta1ListContainersResponse) -> json.Json {
-  json.object([
-    #("containers", json.nullable(value.containers, json.array(_, scaleway_containers_v1beta1_container_to_json))),
-    #("total_count", json.nullable(value.total_count, json.int)),
-  ])
 }
 
 pub type ScalewayContainersV1beta1ListCronsResponse {
@@ -280,13 +214,6 @@ pub fn scaleway_containers_v1beta1_list_crons_response_decoder() -> decode.Decod
   decode.success(ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:))
 }
 
-pub fn scaleway_containers_v1beta1_list_crons_response_to_json(value: ScalewayContainersV1beta1ListCronsResponse) -> json.Json {
-  json.object([
-    #("crons", json.nullable(value.crons, json.array(_, scaleway_containers_v1beta1_cron_to_json))),
-    #("total_count", json.nullable(value.total_count, json.int)),
-  ])
-}
-
 pub type ScalewayContainersV1beta1ListDomainsResponse {
   ScalewayContainersV1beta1ListDomainsResponse(
     /// Array of domains.
@@ -300,13 +227,6 @@ pub fn scaleway_containers_v1beta1_list_domains_response_decoder() -> decode.Dec
   use domains <- decode.optional_field("domains", None, decode.optional(decode.list(scaleway_containers_v1beta1_domain_decoder())))
   use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
   decode.success(ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_domains_response_to_json(value: ScalewayContainersV1beta1ListDomainsResponse) -> json.Json {
-  json.object([
-    #("domains", json.nullable(value.domains, json.array(_, scaleway_containers_v1beta1_domain_to_json))),
-    #("total_count", json.nullable(value.total_count, json.int)),
-  ])
 }
 
 pub type ScalewayContainersV1beta1ListNamespacesResponse {
@@ -324,13 +244,6 @@ pub fn scaleway_containers_v1beta1_list_namespaces_response_decoder() -> decode.
   decode.success(ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:))
 }
 
-pub fn scaleway_containers_v1beta1_list_namespaces_response_to_json(value: ScalewayContainersV1beta1ListNamespacesResponse) -> json.Json {
-  json.object([
-    #("namespaces", json.nullable(value.namespaces, json.array(_, scaleway_containers_v1beta1_namespace_to_json))),
-    #("total_count", json.nullable(value.total_count, json.int)),
-  ])
-}
-
 pub type ScalewayContainersV1beta1ListTokensResponse {
   ScalewayContainersV1beta1ListTokensResponse(
     tokens: Option(List(ScalewayContainersV1beta1Token)),
@@ -342,13 +255,6 @@ pub fn scaleway_containers_v1beta1_list_tokens_response_decoder() -> decode.Deco
   use tokens <- decode.optional_field("tokens", None, decode.optional(decode.list(scaleway_containers_v1beta1_token_decoder())))
   use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
   decode.success(ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_tokens_response_to_json(value: ScalewayContainersV1beta1ListTokensResponse) -> json.Json {
-  json.object([
-    #("tokens", json.nullable(value.tokens, json.array(_, scaleway_containers_v1beta1_token_to_json))),
-    #("total_count", json.nullable(value.total_count, json.int)),
-  ])
 }
 
 pub type ScalewayContainersV1beta1ListTriggersResponse {
@@ -364,13 +270,6 @@ pub fn scaleway_containers_v1beta1_list_triggers_response_decoder() -> decode.De
   use total_count <- decode.optional_field("total_count", None, decode.optional(decode.int))
   use triggers <- decode.optional_field("triggers", None, decode.optional(decode.list(scaleway_containers_v1beta1_trigger_decoder())))
   decode.success(ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:))
-}
-
-pub fn scaleway_containers_v1beta1_list_triggers_response_to_json(value: ScalewayContainersV1beta1ListTriggersResponse) -> json.Json {
-  json.object([
-    #("total_count", json.nullable(value.total_count, json.int)),
-    #("triggers", json.nullable(value.triggers, json.array(_, scaleway_containers_v1beta1_trigger_to_json))),
-  ])
 }
 
 pub type ScalewayContainersV1beta1Namespace {
@@ -431,27 +330,6 @@ pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(Scalewa
   decode.success(ScalewayContainersV1beta1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at:, vpc_integration_activated:))
 }
 
-pub fn scaleway_containers_v1beta1_namespace_to_json(value: ScalewayContainersV1beta1Namespace) -> json.Json {
-  json.object([
-    #("created_at", json.nullable(value.created_at, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("id", json.nullable(value.id, json.string)),
-    #("name", json.nullable(value.name, json.string)),
-    #("organization_id", json.nullable(value.organization_id, json.string)),
-    #("project_id", json.nullable(value.project_id, json.string)),
-    #("region", json.nullable(value.region, json.string)),
-    #("registry_endpoint", json.nullable(value.registry_endpoint, json.string)),
-    #("registry_namespace_id", json.nullable(value.registry_namespace_id, json.string)),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_hashed_value_to_json))),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_namespace_status_to_json)),
-    #("tags", json.nullable(value.tags, json.array(_, json.string))),
-    #("updated_at", json.nullable(value.updated_at, json.string)),
-    #("vpc_integration_activated", json.nullable(value.vpc_integration_activated, json.bool)),
-  ])
-}
-
 pub type ScalewayContainersV1beta1Secret {
   ScalewayContainersV1beta1Secret(
     key: Option(String),
@@ -472,6 +350,24 @@ pub fn scaleway_containers_v1beta1_secret_to_json(value: ScalewayContainersV1bet
   ])
 }
 
+pub fn new_scaleway_containers_v1beta1_secret() -> ScalewayContainersV1beta1Secret {
+  ScalewayContainersV1beta1Secret(key: None, value: None)
+}
+
+pub fn scaleway_containers_v1beta1_secret_with_key(
+  scaleway_containers_v1beta1_secret: ScalewayContainersV1beta1Secret,
+  key: String,
+) -> ScalewayContainersV1beta1Secret {
+  ScalewayContainersV1beta1Secret(..scaleway_containers_v1beta1_secret, key: Some(key))
+}
+
+pub fn scaleway_containers_v1beta1_secret_with_value(
+  scaleway_containers_v1beta1_secret: ScalewayContainersV1beta1Secret,
+  value: GoogleProtobufStringValue,
+) -> ScalewayContainersV1beta1Secret {
+  ScalewayContainersV1beta1Secret(..scaleway_containers_v1beta1_secret, value: Some(value))
+}
+
 pub type ScalewayContainersV1beta1SecretHashedValue {
   ScalewayContainersV1beta1SecretHashedValue(
     hashed_value: Option(String),
@@ -490,6 +386,24 @@ pub fn scaleway_containers_v1beta1_secret_hashed_value_to_json(value: ScalewayCo
     #("hashed_value", json.nullable(value.hashed_value, json.string)),
     #("key", json.nullable(value.key, json.string)),
   ])
+}
+
+pub fn new_scaleway_containers_v1beta1_secret_hashed_value() -> ScalewayContainersV1beta1SecretHashedValue {
+  ScalewayContainersV1beta1SecretHashedValue(hashed_value: None, key: None)
+}
+
+pub fn scaleway_containers_v1beta1_secret_hashed_value_with_hashed_value(
+  scaleway_containers_v1beta1_secret_hashed_value: ScalewayContainersV1beta1SecretHashedValue,
+  hashed_value: String,
+) -> ScalewayContainersV1beta1SecretHashedValue {
+  ScalewayContainersV1beta1SecretHashedValue(..scaleway_containers_v1beta1_secret_hashed_value, hashed_value: Some(hashed_value))
+}
+
+pub fn scaleway_containers_v1beta1_secret_hashed_value_with_key(
+  scaleway_containers_v1beta1_secret_hashed_value: ScalewayContainersV1beta1SecretHashedValue,
+  key: String,
+) -> ScalewayContainersV1beta1SecretHashedValue {
+  ScalewayContainersV1beta1SecretHashedValue(..scaleway_containers_v1beta1_secret_hashed_value, key: Some(key))
 }
 
 pub type ScalewayContainersV1beta1Token {
@@ -523,19 +437,6 @@ pub fn scaleway_containers_v1beta1_token_decoder() -> decode.Decoder(ScalewayCon
   use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_token_status_decoder()))
   use token <- decode.optional_field("token", None, decode.optional(decode.string))
   decode.success(ScalewayContainersV1beta1Token(container_id:, description:, expires_at:, id:, namespace_id:, public_key:, status:, token:))
-}
-
-pub fn scaleway_containers_v1beta1_token_to_json(value: ScalewayContainersV1beta1Token) -> json.Json {
-  json.object([
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("expires_at", json.nullable(value.expires_at, json.string)),
-    #("id", json.nullable(value.id, json.string)),
-    #("namespace_id", json.nullable(value.namespace_id, json.string)),
-    #("public_key", json.nullable(value.public_key, json.string)),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_token_status_to_json)),
-    #("token", json.nullable(value.token, json.string)),
-  ])
 }
 
 pub type ScalewayContainersV1beta1Trigger {
@@ -572,20 +473,6 @@ pub fn scaleway_containers_v1beta1_trigger_decoder() -> decode.Decoder(ScalewayC
   use scw_sqs_config <- decode.optional_field("scw_sqs_config", None, decode.optional(decode.dynamic))
   use status <- decode.optional_field("status", None, decode.optional(scaleway_containers_v1beta1_trigger_status_decoder()))
   decode.success(ScalewayContainersV1beta1Trigger(container_id:, description:, error_message:, id:, input_type:, name:, scw_nats_config:, scw_sqs_config:, status:))
-}
-
-pub fn scaleway_containers_v1beta1_trigger_to_json(value: ScalewayContainersV1beta1Trigger) -> json.Json {
-  json.object([
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("id", json.nullable(value.id, json.string)),
-    #("input_type", json.nullable(value.input_type, scaleway_containers_v1beta1_trigger_input_type_to_json)),
-    #("name", json.nullable(value.name, json.string)),
-    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(_) { json.null() })),
-    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(_) { json.null() })),
-    #("status", json.nullable(value.status, scaleway_containers_v1beta1_trigger_status_to_json)),
-  ])
 }
 
 
@@ -1527,6 +1414,178 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
   ])
 }
 
+pub fn new_create_container_request() -> CreateContainerRequest {
+  CreateContainerRequest(args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name: None, namespace_id: None, port: None, privacy: None, private_network_id: None, protocol: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
+}
+
+pub fn create_container_request_with_args(
+  create_container_request: CreateContainerRequest,
+  args: List(String),
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, args: Some(args))
+}
+
+pub fn create_container_request_with_command(
+  create_container_request: CreateContainerRequest,
+  command: List(String),
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, command: Some(command))
+}
+
+pub fn create_container_request_with_cpu_limit(
+  create_container_request: CreateContainerRequest,
+  cpu_limit: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, cpu_limit: Some(cpu_limit))
+}
+
+pub fn create_container_request_with_description(
+  create_container_request: CreateContainerRequest,
+  description: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, description: Some(description))
+}
+
+pub fn create_container_request_with_environment_variables(
+  create_container_request: CreateContainerRequest,
+  environment_variables: Dynamic,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
+}
+
+pub fn create_container_request_with_health_check(
+  create_container_request: CreateContainerRequest,
+  health_check: Dynamic,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, health_check: Some(health_check))
+}
+
+pub fn create_container_request_with_http_option(
+  create_container_request: CreateContainerRequest,
+  http_option: CreateContainerRequestHttpOption,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, http_option: Some(http_option))
+}
+
+pub fn create_container_request_with_local_storage_limit(
+  create_container_request: CreateContainerRequest,
+  local_storage_limit: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, local_storage_limit: Some(local_storage_limit))
+}
+
+pub fn create_container_request_with_max_concurrency(
+  create_container_request: CreateContainerRequest,
+  max_concurrency: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, max_concurrency: Some(max_concurrency))
+}
+
+pub fn create_container_request_with_max_scale(
+  create_container_request: CreateContainerRequest,
+  max_scale: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, max_scale: Some(max_scale))
+}
+
+pub fn create_container_request_with_memory_limit(
+  create_container_request: CreateContainerRequest,
+  memory_limit: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, memory_limit: Some(memory_limit))
+}
+
+pub fn create_container_request_with_min_scale(
+  create_container_request: CreateContainerRequest,
+  min_scale: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, min_scale: Some(min_scale))
+}
+
+pub fn create_container_request_with_name(
+  create_container_request: CreateContainerRequest,
+  name: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, name: Some(name))
+}
+
+pub fn create_container_request_with_namespace_id(
+  create_container_request: CreateContainerRequest,
+  namespace_id: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, namespace_id: Some(namespace_id))
+}
+
+pub fn create_container_request_with_port(
+  create_container_request: CreateContainerRequest,
+  port: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, port: Some(port))
+}
+
+pub fn create_container_request_with_privacy(
+  create_container_request: CreateContainerRequest,
+  privacy: CreateContainerRequestPrivacy,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, privacy: Some(privacy))
+}
+
+pub fn create_container_request_with_private_network_id(
+  create_container_request: CreateContainerRequest,
+  private_network_id: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, private_network_id: Some(private_network_id))
+}
+
+pub fn create_container_request_with_protocol(
+  create_container_request: CreateContainerRequest,
+  protocol: CreateContainerRequestProtocol,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, protocol: Some(protocol))
+}
+
+pub fn create_container_request_with_registry_image(
+  create_container_request: CreateContainerRequest,
+  registry_image: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, registry_image: Some(registry_image))
+}
+
+pub fn create_container_request_with_sandbox(
+  create_container_request: CreateContainerRequest,
+  sandbox: CreateContainerRequestSandbox,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, sandbox: Some(sandbox))
+}
+
+pub fn create_container_request_with_scaling_option(
+  create_container_request: CreateContainerRequest,
+  scaling_option: Dynamic,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, scaling_option: Some(scaling_option))
+}
+
+pub fn create_container_request_with_secret_environment_variables(
+  create_container_request: CreateContainerRequest,
+  secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+pub fn create_container_request_with_tags(
+  create_container_request: CreateContainerRequest,
+  tags: List(String),
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, tags: Some(tags))
+}
+
+pub fn create_container_request_with_timeout(
+  create_container_request: CreateContainerRequest,
+  timeout: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, timeout: Some(timeout))
+}
+
 /// Create a new container
 pub fn create_container(
   client: Client(err),
@@ -1814,6 +1873,171 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
   ])
 }
 
+pub fn new_update_container_request() -> UpdateContainerRequest {
+  UpdateContainerRequest(args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy: None, private_network_id: None, protocol: None, redeploy: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
+}
+
+pub fn update_container_request_with_args(
+  update_container_request: UpdateContainerRequest,
+  args: List(String),
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, args: Some(args))
+}
+
+pub fn update_container_request_with_command(
+  update_container_request: UpdateContainerRequest,
+  command: List(String),
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, command: Some(command))
+}
+
+pub fn update_container_request_with_cpu_limit(
+  update_container_request: UpdateContainerRequest,
+  cpu_limit: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, cpu_limit: Some(cpu_limit))
+}
+
+pub fn update_container_request_with_description(
+  update_container_request: UpdateContainerRequest,
+  description: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, description: Some(description))
+}
+
+pub fn update_container_request_with_environment_variables(
+  update_container_request: UpdateContainerRequest,
+  environment_variables: Dynamic,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
+}
+
+pub fn update_container_request_with_health_check(
+  update_container_request: UpdateContainerRequest,
+  health_check: Dynamic,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, health_check: Some(health_check))
+}
+
+pub fn update_container_request_with_http_option(
+  update_container_request: UpdateContainerRequest,
+  http_option: UpdateContainerRequestHttpOption,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, http_option: Some(http_option))
+}
+
+pub fn update_container_request_with_local_storage_limit(
+  update_container_request: UpdateContainerRequest,
+  local_storage_limit: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, local_storage_limit: Some(local_storage_limit))
+}
+
+pub fn update_container_request_with_max_concurrency(
+  update_container_request: UpdateContainerRequest,
+  max_concurrency: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, max_concurrency: Some(max_concurrency))
+}
+
+pub fn update_container_request_with_max_scale(
+  update_container_request: UpdateContainerRequest,
+  max_scale: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, max_scale: Some(max_scale))
+}
+
+pub fn update_container_request_with_memory_limit(
+  update_container_request: UpdateContainerRequest,
+  memory_limit: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, memory_limit: Some(memory_limit))
+}
+
+pub fn update_container_request_with_min_scale(
+  update_container_request: UpdateContainerRequest,
+  min_scale: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, min_scale: Some(min_scale))
+}
+
+pub fn update_container_request_with_port(
+  update_container_request: UpdateContainerRequest,
+  port: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, port: Some(port))
+}
+
+pub fn update_container_request_with_privacy(
+  update_container_request: UpdateContainerRequest,
+  privacy: UpdateContainerRequestPrivacy,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, privacy: Some(privacy))
+}
+
+pub fn update_container_request_with_private_network_id(
+  update_container_request: UpdateContainerRequest,
+  private_network_id: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, private_network_id: Some(private_network_id))
+}
+
+pub fn update_container_request_with_protocol(
+  update_container_request: UpdateContainerRequest,
+  protocol: UpdateContainerRequestProtocol,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, protocol: Some(protocol))
+}
+
+pub fn update_container_request_with_redeploy(
+  update_container_request: UpdateContainerRequest,
+  redeploy: Bool,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, redeploy: Some(redeploy))
+}
+
+pub fn update_container_request_with_registry_image(
+  update_container_request: UpdateContainerRequest,
+  registry_image: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, registry_image: Some(registry_image))
+}
+
+pub fn update_container_request_with_sandbox(
+  update_container_request: UpdateContainerRequest,
+  sandbox: UpdateContainerRequestSandbox,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, sandbox: Some(sandbox))
+}
+
+pub fn update_container_request_with_scaling_option(
+  update_container_request: UpdateContainerRequest,
+  scaling_option: Dynamic,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, scaling_option: Some(scaling_option))
+}
+
+pub fn update_container_request_with_secret_environment_variables(
+  update_container_request: UpdateContainerRequest,
+  secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+pub fn update_container_request_with_tags(
+  update_container_request: UpdateContainerRequest,
+  tags: List(String),
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, tags: Some(tags))
+}
+
+pub fn update_container_request_with_timeout(
+  update_container_request: UpdateContainerRequest,
+  timeout: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, timeout: Some(timeout))
+}
+
 /// Update an existing container
 pub fn update_container(
   client: Client(err),
@@ -1840,6 +2064,10 @@ pub fn deploy_container_request_decoder() -> decode.Decoder(DeployContainerReque
 
 pub fn deploy_container_request_to_json(value: DeployContainerRequest) -> json.Json {
   json.object([])
+}
+
+pub fn new_deploy_container_request() -> DeployContainerRequest {
+  DeployContainerRequest
 }
 
 /// Deploy a container
@@ -1910,6 +2138,38 @@ pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
     #("name", json.nullable(value.name, json.string)),
     #("schedule", json.nullable(value.schedule, json.string)),
   ])
+}
+
+pub fn new_create_cron_request() -> CreateCronRequest {
+  CreateCronRequest(args: None, container_id: None, name: None, schedule: None)
+}
+
+pub fn create_cron_request_with_args(
+  create_cron_request: CreateCronRequest,
+  args: Dynamic,
+) -> CreateCronRequest {
+  CreateCronRequest(..create_cron_request, args: Some(args))
+}
+
+pub fn create_cron_request_with_container_id(
+  create_cron_request: CreateCronRequest,
+  container_id: String,
+) -> CreateCronRequest {
+  CreateCronRequest(..create_cron_request, container_id: Some(container_id))
+}
+
+pub fn create_cron_request_with_name(
+  create_cron_request: CreateCronRequest,
+  name: String,
+) -> CreateCronRequest {
+  CreateCronRequest(..create_cron_request, name: Some(name))
+}
+
+pub fn create_cron_request_with_schedule(
+  create_cron_request: CreateCronRequest,
+  schedule: String,
+) -> CreateCronRequest {
+  CreateCronRequest(..create_cron_request, schedule: Some(schedule))
 }
 
 /// Create a new cron
@@ -1985,6 +2245,38 @@ pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
   ])
 }
 
+pub fn new_update_cron_request() -> UpdateCronRequest {
+  UpdateCronRequest(args: None, container_id: None, name: None, schedule: None)
+}
+
+pub fn update_cron_request_with_args(
+  update_cron_request: UpdateCronRequest,
+  args: Dynamic,
+) -> UpdateCronRequest {
+  UpdateCronRequest(..update_cron_request, args: Some(args))
+}
+
+pub fn update_cron_request_with_container_id(
+  update_cron_request: UpdateCronRequest,
+  container_id: String,
+) -> UpdateCronRequest {
+  UpdateCronRequest(..update_cron_request, container_id: Some(container_id))
+}
+
+pub fn update_cron_request_with_name(
+  update_cron_request: UpdateCronRequest,
+  name: String,
+) -> UpdateCronRequest {
+  UpdateCronRequest(..update_cron_request, name: Some(name))
+}
+
+pub fn update_cron_request_with_schedule(
+  update_cron_request: UpdateCronRequest,
+  schedule: String,
+) -> UpdateCronRequest {
+  UpdateCronRequest(..update_cron_request, schedule: Some(schedule))
+}
+
 /// Update an existing cron
 pub fn update_cron(
   client: Client(err),
@@ -2045,6 +2337,24 @@ pub fn create_domain_request_to_json(value: CreateDomainRequest) -> json.Json {
     #("container_id", json.nullable(value.container_id, json.string)),
     #("hostname", json.nullable(value.hostname, json.string)),
   ])
+}
+
+pub fn new_create_domain_request() -> CreateDomainRequest {
+  CreateDomainRequest(container_id: None, hostname: None)
+}
+
+pub fn create_domain_request_with_container_id(
+  create_domain_request: CreateDomainRequest,
+  container_id: String,
+) -> CreateDomainRequest {
+  CreateDomainRequest(..create_domain_request, container_id: Some(container_id))
+}
+
+pub fn create_domain_request_with_hostname(
+  create_domain_request: CreateDomainRequest,
+  hostname: String,
+) -> CreateDomainRequest {
+  CreateDomainRequest(..create_domain_request, hostname: Some(hostname))
 }
 
 /// Create a custom domain
@@ -2162,6 +2472,59 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
   ])
 }
 
+pub fn new_create_namespace_request() -> CreateNamespaceRequest {
+  CreateNamespaceRequest(activate_vpc_integration: None, description: None, environment_variables: None, name: None, project_id: None, secret_environment_variables: None, tags: None)
+}
+
+pub fn create_namespace_request_with_activate_vpc_integration(
+  create_namespace_request: CreateNamespaceRequest,
+  activate_vpc_integration: Bool,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, activate_vpc_integration: Some(activate_vpc_integration))
+}
+
+pub fn create_namespace_request_with_description(
+  create_namespace_request: CreateNamespaceRequest,
+  description: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, description: Some(description))
+}
+
+pub fn create_namespace_request_with_environment_variables(
+  create_namespace_request: CreateNamespaceRequest,
+  environment_variables: Dynamic,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
+}
+
+pub fn create_namespace_request_with_name(
+  create_namespace_request: CreateNamespaceRequest,
+  name: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, name: Some(name))
+}
+
+pub fn create_namespace_request_with_project_id(
+  create_namespace_request: CreateNamespaceRequest,
+  project_id: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, project_id: Some(project_id))
+}
+
+pub fn create_namespace_request_with_secret_environment_variables(
+  create_namespace_request: CreateNamespaceRequest,
+  secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+pub fn create_namespace_request_with_tags(
+  create_namespace_request: CreateNamespaceRequest,
+  tags: List(String),
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, tags: Some(tags))
+}
+
 /// Create a new namespace
 pub fn create_namespace(
   client: Client(err),
@@ -2235,6 +2598,38 @@ pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.J
   ])
 }
 
+pub fn new_update_namespace_request() -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(description: None, environment_variables: None, secret_environment_variables: None, tags: None)
+}
+
+pub fn update_namespace_request_with_description(
+  update_namespace_request: UpdateNamespaceRequest,
+  description: String,
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(..update_namespace_request, description: Some(description))
+}
+
+pub fn update_namespace_request_with_environment_variables(
+  update_namespace_request: UpdateNamespaceRequest,
+  environment_variables: Dynamic,
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
+}
+
+pub fn update_namespace_request_with_secret_environment_variables(
+  update_namespace_request: UpdateNamespaceRequest,
+  secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(..update_namespace_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+pub fn update_namespace_request_with_tags(
+  update_namespace_request: UpdateNamespaceRequest,
+  tags: List(String),
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(..update_namespace_request, tags: Some(tags))
+}
+
 /// Update an existing namespace
 pub fn update_namespace(
   client: Client(err),
@@ -2306,6 +2701,38 @@ pub fn create_token_request_to_json(value: CreateTokenRequest) -> json.Json {
     #("expires_at", json.nullable(value.expires_at, json.string)),
     #("namespace_id", json.nullable(value.namespace_id, json.string)),
   ])
+}
+
+pub fn new_create_token_request() -> CreateTokenRequest {
+  CreateTokenRequest(container_id: None, description: None, expires_at: None, namespace_id: None)
+}
+
+pub fn create_token_request_with_container_id(
+  create_token_request: CreateTokenRequest,
+  container_id: String,
+) -> CreateTokenRequest {
+  CreateTokenRequest(..create_token_request, container_id: Some(container_id))
+}
+
+pub fn create_token_request_with_description(
+  create_token_request: CreateTokenRequest,
+  description: String,
+) -> CreateTokenRequest {
+  CreateTokenRequest(..create_token_request, description: Some(description))
+}
+
+pub fn create_token_request_with_expires_at(
+  create_token_request: CreateTokenRequest,
+  expires_at: String,
+) -> CreateTokenRequest {
+  CreateTokenRequest(..create_token_request, expires_at: Some(expires_at))
+}
+
+pub fn create_token_request_with_namespace_id(
+  create_token_request: CreateTokenRequest,
+  namespace_id: String,
+) -> CreateTokenRequest {
+  CreateTokenRequest(..create_token_request, namespace_id: Some(namespace_id))
 }
 
 /// Create a new revocable token
@@ -2408,6 +2835,34 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
   ])
 }
 
+pub fn new_create_trigger_request(
+  container_id: String,
+  name: String,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
+}
+
+pub fn create_trigger_request_with_description(
+  create_trigger_request: CreateTriggerRequest,
+  description: String,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, description: Some(description))
+}
+
+pub fn create_trigger_request_with_scw_nats_config(
+  create_trigger_request: CreateTriggerRequest,
+  scw_nats_config: Dynamic,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, scw_nats_config: Some(scw_nats_config))
+}
+
+pub fn create_trigger_request_with_scw_sqs_config(
+  create_trigger_request: CreateTriggerRequest,
+  scw_sqs_config: Dynamic,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, scw_sqs_config: Some(scw_sqs_config))
+}
+
 /// Create a trigger
 pub fn create_trigger(
   client: Client(err),
@@ -2471,6 +2926,24 @@ pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json 
     #("description", json.nullable(value.description, json.string)),
     #("name", json.nullable(value.name, json.string)),
   ])
+}
+
+pub fn new_update_trigger_request() -> UpdateTriggerRequest {
+  UpdateTriggerRequest(description: None, name: None)
+}
+
+pub fn update_trigger_request_with_description(
+  update_trigger_request: UpdateTriggerRequest,
+  description: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, description: Some(description))
+}
+
+pub fn update_trigger_request_with_name(
+  update_trigger_request: UpdateTriggerRequest,
+  name: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, name: Some(name))
 }
 
 /// Update a trigger

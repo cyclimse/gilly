@@ -6,7 +6,7 @@ test_name: object_mixed_required_test
 ---
 import gleam/dynamic/decode
 import gleam/json
-import gleam/option.{None, type Option}
+import gleam/option.{None, Some, type Option}
 
 pub type User {
   User(
@@ -26,5 +26,18 @@ pub fn user_to_json(value: User) -> json.Json {
     #("name", json.string(value.name)),
     #("email", json.nullable(value.email, json.string)),
   ])
+}
+
+pub fn new_user(
+  name: String,
+) -> User {
+  User(name:, email: None)
+}
+
+pub fn user_with_email(
+  user: User,
+  email: String,
+) -> User {
+  User(..user, email: Some(email))
 }
 

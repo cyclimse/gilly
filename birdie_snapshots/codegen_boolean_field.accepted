@@ -24,3 +24,9 @@ pub fn feature_to_json(value: Feature) -> json.Json {
   ])
 }
 
+pub fn new_feature(
+  enabled: Bool,
+) -> Feature {
+  Feature(enabled:)
+}
+

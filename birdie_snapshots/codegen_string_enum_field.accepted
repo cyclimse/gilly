@@ -24,6 +24,12 @@ pub fn order_to_json(value: Order) -> json.Json {
   ])
 }
 
+pub fn new_order(
+  status: OrderStatus,
+) -> Order {
+  Order(status:)
+}
+
 
 // --- Enums -------------------------------------------------------------------
 

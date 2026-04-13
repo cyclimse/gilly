@@ -19,3 +19,7 @@ pub fn empty_record_to_json(value: EmptyRecord) -> json.Json {
   json.object([])
 }
 
+pub fn new_empty_record() -> EmptyRecord {
+  EmptyRecord
+}
+
