@@ -48,4 +48,8 @@ jobs:
 
       - run: gleam deps download
 
+      # Make sure we regenerate the client code with Gilly's latest changes,
+      # since the test relies on the generated client code.
+      - run: make generate
+
       - run: gleam test
