@@ -32,6 +32,19 @@ pub type Config {
   Config(optionality: Optionality, indent: Int, optional_query_params: Bool)
 }
 
+/// Tracks how a schema is referenced by operations.
+///
+pub type SchemaUsage {
+  /// Only referenced in request bodies → opaque type + new + with_XXX setters.
+  RequestOnly
+  /// Only referenced in responses → non-opaque, no setters needed.
+  ResponseOnly
+  /// Referenced in both requests and responses → generate everything.
+  Both
+  /// Not referenced by any operation → generate everything (safe default).
+  Unreferenced
+}
+
 // --- State -------------------------------------------------------------------
 
 type State {
@@ -40,11 +53,14 @@ type State {
     /// Enums discovered during codegen, keyed by generated type name.
     /// Values are the original string variants from the OpenAPI spec.
     enums: Dict(String, List(String)),
+    /// Tracks how each schema is referenced by operations.
+    /// Keyed by the raw schema name from the OpenAPI spec.
+    schema_usages: Dict(String, SchemaUsage),
   )
 }
 
 fn default_state() -> State {
-  State(imports: dict.new(), enums: dict.new())
+  State(imports: dict.new(), enums: dict.new(), schema_usages: dict.new())
 }
 
 fn register_enum(
@@ -113,6 +129,10 @@ fn imports_doc(state: State, indent: Int) -> Document {
 pub fn generate(spec: OpenAPI, config: Config) -> String {
   let schemas = extract_schemas(spec)
   let state = default_state()
+
+  // Pre-scan operations to track how schemas are used (request/response/both)
+  let schema_usages = collect_schema_usages(spec)
+  let state = State(..state, schema_usages:)
 
   // 1. Generate schema types
   let #(state, type_docs) = generate_schema_docs(state, schemas, config)
@@ -302,6 +322,121 @@ fn extract_schemas(spec: OpenAPI) -> List(#(String, Schema)) {
   spec.components
   |> option.map(fn(c) { c.schemas })
   |> option.unwrap([])
+}
+
+// --- Schema usage tracking ---------------------------------------------------
+
+/// Extract the raw schema name from a $ref string like "#/components/schemas/Pet".
+fn ref_to_raw_name(ref: String) -> Option(String) {
+  case string.split(ref, "/") {
+    [_, _, _, name, ..] -> Some(name)
+    _ -> None
+  }
+}
+
+/// Merge a new usage signal into an existing one.
+fn merge_usage(existing: SchemaUsage, new: SchemaUsage) -> SchemaUsage {
+  case existing, new {
+    Both, _ | _, Both -> Both
+    RequestOnly, ResponseOnly | ResponseOnly, RequestOnly -> Both
+    RequestOnly, RequestOnly -> RequestOnly
+    ResponseOnly, ResponseOnly -> ResponseOnly
+    Unreferenced, other | other, Unreferenced -> other
+  }
+}
+
+/// Record that a schema ref is used in a particular context (request or response).
+fn record_schema_ref(
+  usages: Dict(String, SchemaUsage),
+  schema: Schema,
+  usage: SchemaUsage,
+) -> Dict(String, SchemaUsage) {
+  case schema {
+    schema.Ref(ref:) ->
+      case ref_to_raw_name(ref) {
+        Some(name) ->
+          dict.upsert(usages, name, fn(existing) {
+            case existing {
+              Some(prev) -> merge_usage(prev, usage)
+              None -> usage
+            }
+          })
+        None -> usages
+      }
+    _ -> usages
+  }
+}
+
+/// Pre-scan all operations to build a map of schema name → SchemaUsage.
+fn collect_schema_usages(spec: OpenAPI) -> Dict(String, SchemaUsage) {
+  list.fold(spec.paths, dict.new(), fn(usages, path_entry) {
+    let #(_path, path_item) = path_entry
+    let operations =
+      [
+        path_item.get,
+        path_item.post,
+        path_item.put,
+        path_item.delete,
+        path_item.patch,
+      ]
+      |> list.filter_map(fn(op) {
+        case op {
+          Some(o) -> Ok(o)
+          None -> Error(Nil)
+        }
+      })
+    list.fold(operations, usages, fn(usages, op) {
+      collect_operation_usages(usages, op)
+    })
+  })
+}
+
+fn collect_operation_usages(
+  usages: Dict(String, SchemaUsage),
+  op: Operation,
+) -> Dict(String, SchemaUsage) {
+  // Track request body schema refs
+  let usages = case op.request_body {
+    Some(rb) ->
+      case list.key_find(rb.content, "application/json") {
+        Ok(media_type) ->
+          case media_type.schema {
+            Some(body_schema) ->
+              record_schema_ref(usages, body_schema, RequestOnly)
+            None -> usages
+          }
+        Error(_) -> usages
+      }
+    None -> usages
+  }
+
+  // Track response schema refs (try 200, 201, default)
+  let response =
+    list.key_find(op.responses, "200")
+    |> result_or(fn() { list.key_find(op.responses, "201") })
+    |> result_or(fn() { list.key_find(op.responses, "default") })
+
+  case response {
+    Ok(resp) ->
+      case list.key_find(resp.content, "application/json") {
+        Ok(media_type) ->
+          case media_type.schema {
+            Some(resp_schema) ->
+              record_schema_ref(usages, resp_schema, ResponseOnly)
+            None -> usages
+          }
+        Error(_) -> usages
+      }
+    Error(_) -> usages
+  }
+}
+
+/// Look up the usage for a schema by its raw name.
+fn get_schema_usage(state: State, raw_name: String) -> SchemaUsage {
+  case dict.get(state.schema_usages, raw_name) {
+    Ok(usage) -> usage
+    Error(_) -> Unreferenced
+  }
 }
 
 // --- Operation generation ----------------------------------------------------
@@ -983,6 +1118,7 @@ fn schema_to_type_doc(
   config: Config,
 ) -> #(State, Document) {
   let type_name = to_type_name(name)
+  let usage = get_schema_usage(state, name)
   case schema {
     schema.Object(base, object_schema) ->
       object_type_doc(
@@ -992,6 +1128,7 @@ fn schema_to_type_doc(
         object_schema,
         all_schemas,
         config,
+        usage,
       )
     _ ->
       // For non-object top-level schemas, generate a type alias-like wrapper
@@ -1006,8 +1143,34 @@ fn object_type_doc(
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
+  usage: SchemaUsage,
 ) -> #(State, Document) {
   let comment = base_schema_comment(base)
+
+  let is_opaque = case usage {
+    RequestOnly -> True
+    ResponseOnly | Both | Unreferenced -> False
+  }
+
+  let needs_decoder = case usage {
+    RequestOnly -> False
+    ResponseOnly | Both | Unreferenced -> True
+  }
+
+  let needs_encoder = case usage {
+    ResponseOnly -> False
+    RequestOnly | Both | Unreferenced -> True
+  }
+
+  let needs_constructor = case usage {
+    ResponseOnly -> False
+    RequestOnly | Both | Unreferenced -> True
+  }
+
+  let needs_setters = case usage {
+    ResponseOnly -> False
+    RequestOnly | Both | Unreferenced -> True
+  }
 
   let #(state, fields) =
     list.fold(object_schema.properties, #(state, []), fn(acc, prop) {
@@ -1044,10 +1207,15 @@ fn object_type_doc(
 
   let indent = config.indent
 
+  let type_keyword = case is_opaque {
+    True -> "pub opaque type "
+    False -> "pub type "
+  }
+
   let body = case fields {
     [] ->
       doc.concat([
-        doc.from_string("pub type " <> type_name <> " {"),
+        doc.from_string(type_keyword <> type_name <> " {"),
         doc.line |> doc.nest(by: indent),
         doc.from_string(type_name)
           |> doc.nest(by: indent),
@@ -1056,7 +1224,7 @@ fn object_type_doc(
       ])
     _ ->
       doc.concat([
-        doc.from_string("pub type " <> type_name <> " {"),
+        doc.from_string(type_keyword <> type_name <> " {"),
         doc.line |> doc.nest(by: indent),
         doc.concat([
           doc.from_string(type_name <> "("),
@@ -1077,31 +1245,53 @@ fn object_type_doc(
     None -> body
   }
 
-  let #(state, decoder) =
-    record_decoder_doc(state, type_name, object_schema, all_schemas, config)
-  let #(state, encoder) =
-    record_to_json_doc(state, type_name, object_schema, all_schemas, config)
-  let #(state, constructor) =
-    record_new_doc(state, type_name, object_schema, all_schemas, config)
-  let #(state, setters) =
-    record_with_field_docs(state, type_name, object_schema, all_schemas, config)
-
-  let setter_docs = case setters {
-    [] -> doc.empty
-    _ -> doc.concat([doc.lines(2), doc.join(setters, with: doc.lines(2))])
+  // Conditionally generate decoder, encoder, constructor, and setters
+  // based on how the schema is used by operations.
+  let #(state, result) = case needs_decoder {
+    True -> {
+      let #(state, decoder) =
+        record_decoder_doc(state, type_name, object_schema, all_schemas, config)
+      #(state, doc.concat([result, doc.lines(2), decoder]))
+    }
+    False -> #(state, result)
   }
 
-  let result =
-    doc.concat([
-      result,
-      doc.lines(2),
-      decoder,
-      doc.lines(2),
-      encoder,
-      doc.lines(2),
-      constructor,
-      setter_docs,
-    ])
+  let #(state, result) = case needs_encoder {
+    True -> {
+      let #(state, encoder) =
+        record_to_json_doc(state, type_name, object_schema, all_schemas, config)
+      #(state, doc.concat([result, doc.lines(2), encoder]))
+    }
+    False -> #(state, result)
+  }
+
+  let #(state, result) = case needs_constructor {
+    True -> {
+      let #(state, constructor) =
+        record_new_doc(state, type_name, object_schema, all_schemas, config)
+      #(state, doc.concat([result, doc.lines(2), constructor]))
+    }
+    False -> #(state, result)
+  }
+
+  let #(state, result) = case needs_setters {
+    True -> {
+      let #(state, setters) =
+        record_with_field_docs(
+          state,
+          type_name,
+          object_schema,
+          all_schemas,
+          config,
+        )
+      let setter_docs = case setters {
+        [] -> doc.empty
+        _ -> doc.concat([doc.lines(2), doc.join(setters, with: doc.lines(2))])
+      }
+      #(state, doc.concat([result, setter_docs]))
+    }
+    False -> #(state, result)
+  }
 
   #(state, result)
 }

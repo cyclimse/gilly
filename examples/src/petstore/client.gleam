@@ -28,39 +28,6 @@ pub fn api_response_decoder() -> decode.Decoder(ApiResponse) {
   decode.success(ApiResponse(code:, message:, type_:))
 }
 
-pub fn api_response_to_json(value: ApiResponse) -> json.Json {
-  json.object([
-    #("code", json.nullable(value.code, json.int)),
-    #("message", json.nullable(value.message, json.string)),
-    #("type", json.nullable(value.type_, json.string)),
-  ])
-}
-
-pub fn new_api_response() -> ApiResponse {
-  ApiResponse(code: None, message: None, type_: None)
-}
-
-pub fn api_response_with_code(
-  api_response: ApiResponse,
-  code: Int,
-) -> ApiResponse {
-  ApiResponse(..api_response, code: Some(code))
-}
-
-pub fn api_response_with_message(
-  api_response: ApiResponse,
-  message: String,
-) -> ApiResponse {
-  ApiResponse(..api_response, message: Some(message))
-}
-
-pub fn api_response_with_type_(
-  api_response: ApiResponse,
-  type_: String,
-) -> ApiResponse {
-  ApiResponse(..api_response, type_: Some(type_))
-}
-
 pub type Category {
   Category(
     id: Option(Int),

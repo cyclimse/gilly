@@ -130,140 +130,6 @@ pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(Scalewa
   decode.success(ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at:, description:, domain_name:, environment_variables:, error_message:, health_check:, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, ready_at:, region:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, status:, tags:, timeout:, updated_at:))
 }
 
-pub fn scaleway_containers_v1beta1_container_to_json(value: ScalewayContainersV1beta1Container) -> json.Json {
-  json.object([
-    #("args", json.array(value.args, fn(item) { json.string(item) })),
-    #("command", json.array(value.command, fn(item) { json.string(item) })),
-    #("cpu_limit", json.int(value.cpu_limit)),
-    #("created_at", json.nullable(value.created_at, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("domain_name", json.string(value.domain_name)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("health_check", json.nullable(value.health_check, fn(_) { json.null() })),
-    #("http_option", json.string(scaleway_containers_v1beta1_container_http_option_to_string(value.http_option))),
-    #("id", json.string(value.id)),
-    #("local_storage_limit", json.int(value.local_storage_limit)),
-    #("max_concurrency", json.int(value.max_concurrency)),
-    #("max_scale", json.int(value.max_scale)),
-    #("memory_limit", json.int(value.memory_limit)),
-    #("min_scale", json.int(value.min_scale)),
-    #("name", json.string(value.name)),
-    #("namespace_id", json.string(value.namespace_id)),
-    #("port", json.int(value.port)),
-    #("privacy", json.string(scaleway_containers_v1beta1_container_privacy_to_string(value.privacy))),
-    #("private_network_id", json.nullable(value.private_network_id, json.string)),
-    #("protocol", json.string(scaleway_containers_v1beta1_container_protocol_to_string(value.protocol))),
-    #("ready_at", json.nullable(value.ready_at, json.string)),
-    #("region", json.string(value.region)),
-    #("registry_image", json.string(value.registry_image)),
-    #("sandbox", json.string(scaleway_containers_v1beta1_container_sandbox_to_string(value.sandbox))),
-    #("scaling_option", json.nullable(value.scaling_option, fn(_) { json.null() })),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_hashed_value_to_json(item) })),
-    #("status", json.string(scaleway_containers_v1beta1_container_status_to_string(value.status))),
-    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
-    #("timeout", json.nullable(value.timeout, json.string)),
-    #("updated_at", json.nullable(value.updated_at, json.string)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_container(
-  args: List(String),
-  command: List(String),
-  cpu_limit: Int,
-  domain_name: String,
-  http_option: ScalewayContainersV1beta1ContainerHttpOption,
-  id: String,
-  local_storage_limit: Int,
-  max_concurrency: Int,
-  max_scale: Int,
-  memory_limit: Int,
-  min_scale: Int,
-  name: String,
-  namespace_id: String,
-  port: Int,
-  privacy: ScalewayContainersV1beta1ContainerPrivacy,
-  protocol: ScalewayContainersV1beta1ContainerProtocol,
-  region: String,
-  registry_image: String,
-  sandbox: ScalewayContainersV1beta1ContainerSandbox,
-  secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
-  status: ScalewayContainersV1beta1ContainerStatus,
-  tags: List(String),
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at: None, description: None, domain_name:, environment_variables: None, error_message: None, health_check: None, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id: None, protocol:, ready_at: None, region:, registry_image:, sandbox:, scaling_option: None, secret_environment_variables:, status:, tags:, timeout: None, updated_at: None)
-}
-
-pub fn scaleway_containers_v1beta1_container_with_created_at(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  created_at: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, created_at: Some(created_at))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_description(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  description: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, description: Some(description))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_environment_variables(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  environment_variables: Dynamic,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, environment_variables: Some(environment_variables))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_error_message(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  error_message: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, error_message: Some(error_message))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_health_check(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  health_check: Dynamic,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, health_check: Some(health_check))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_private_network_id(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  private_network_id: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, private_network_id: Some(private_network_id))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_ready_at(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  ready_at: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, ready_at: Some(ready_at))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_scaling_option(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  scaling_option: Dynamic,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, scaling_option: Some(scaling_option))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_timeout(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  timeout: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, timeout: Some(timeout))
-}
-
-pub fn scaleway_containers_v1beta1_container_with_updated_at(
-  scaleway_containers_v1beta1_container: ScalewayContainersV1beta1Container,
-  updated_at: String,
-) -> ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(..scaleway_containers_v1beta1_container, updated_at: Some(updated_at))
-}
-
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
@@ -289,34 +155,6 @@ pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayCont
   use schedule <- decode.field("schedule", decode.string)
   use status <- decode.field("status", scaleway_containers_v1beta1_cron_status_decoder())
   decode.success(ScalewayContainersV1beta1Cron(args:, container_id:, id:, name:, schedule:, status:))
-}
-
-pub fn scaleway_containers_v1beta1_cron_to_json(value: ScalewayContainersV1beta1Cron) -> json.Json {
-  json.object([
-    #("args", json.nullable(value.args, fn(_) { json.null() })),
-    #("container_id", json.string(value.container_id)),
-    #("id", json.string(value.id)),
-    #("name", json.string(value.name)),
-    #("schedule", json.string(value.schedule)),
-    #("status", json.string(scaleway_containers_v1beta1_cron_status_to_string(value.status))),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_cron(
-  container_id: String,
-  id: String,
-  name: String,
-  schedule: String,
-  status: ScalewayContainersV1beta1CronStatus,
-) -> ScalewayContainersV1beta1Cron {
-  ScalewayContainersV1beta1Cron(args: None, container_id:, id:, name:, schedule:, status:)
-}
-
-pub fn scaleway_containers_v1beta1_cron_with_args(
-  scaleway_containers_v1beta1_cron: ScalewayContainersV1beta1Cron,
-  args: Dynamic,
-) -> ScalewayContainersV1beta1Cron {
-  ScalewayContainersV1beta1Cron(..scaleway_containers_v1beta1_cron, args: Some(args))
 }
 
 pub type ScalewayContainersV1beta1Domain {
@@ -346,34 +184,6 @@ pub fn scaleway_containers_v1beta1_domain_decoder() -> decode.Decoder(ScalewayCo
   decode.success(ScalewayContainersV1beta1Domain(container_id:, error_message:, hostname:, id:, status:, url:))
 }
 
-pub fn scaleway_containers_v1beta1_domain_to_json(value: ScalewayContainersV1beta1Domain) -> json.Json {
-  json.object([
-    #("container_id", json.string(value.container_id)),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("hostname", json.string(value.hostname)),
-    #("id", json.string(value.id)),
-    #("status", json.string(scaleway_containers_v1beta1_domain_status_to_string(value.status))),
-    #("url", json.string(value.url)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_domain(
-  container_id: String,
-  hostname: String,
-  id: String,
-  status: ScalewayContainersV1beta1DomainStatus,
-  url: String,
-) -> ScalewayContainersV1beta1Domain {
-  ScalewayContainersV1beta1Domain(container_id:, error_message: None, hostname:, id:, status:, url:)
-}
-
-pub fn scaleway_containers_v1beta1_domain_with_error_message(
-  scaleway_containers_v1beta1_domain: ScalewayContainersV1beta1Domain,
-  error_message: String,
-) -> ScalewayContainersV1beta1Domain {
-  ScalewayContainersV1beta1Domain(..scaleway_containers_v1beta1_domain, error_message: Some(error_message))
-}
-
 pub type ScalewayContainersV1beta1ListContainersResponse {
   ScalewayContainersV1beta1ListContainersResponse(
     /// Array of containers.
@@ -387,20 +197,6 @@ pub fn scaleway_containers_v1beta1_list_containers_response_decoder() -> decode.
   use containers <- decode.field("containers", decode.list(scaleway_containers_v1beta1_container_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_containers_response_to_json(value: ScalewayContainersV1beta1ListContainersResponse) -> json.Json {
-  json.object([
-    #("containers", json.array(value.containers, fn(item) { scaleway_containers_v1beta1_container_to_json(item) })),
-    #("total_count", json.int(value.total_count)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_containers_response(
-  containers: List(ScalewayContainersV1beta1Container),
-  total_count: Int,
-) -> ScalewayContainersV1beta1ListContainersResponse {
-  ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:)
 }
 
 pub type ScalewayContainersV1beta1ListCronsResponse {
@@ -418,20 +214,6 @@ pub fn scaleway_containers_v1beta1_list_crons_response_decoder() -> decode.Decod
   decode.success(ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:))
 }
 
-pub fn scaleway_containers_v1beta1_list_crons_response_to_json(value: ScalewayContainersV1beta1ListCronsResponse) -> json.Json {
-  json.object([
-    #("crons", json.array(value.crons, fn(item) { scaleway_containers_v1beta1_cron_to_json(item) })),
-    #("total_count", json.int(value.total_count)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_crons_response(
-  crons: List(ScalewayContainersV1beta1Cron),
-  total_count: Int,
-) -> ScalewayContainersV1beta1ListCronsResponse {
-  ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:)
-}
-
 pub type ScalewayContainersV1beta1ListDomainsResponse {
   ScalewayContainersV1beta1ListDomainsResponse(
     /// Array of domains.
@@ -445,20 +227,6 @@ pub fn scaleway_containers_v1beta1_list_domains_response_decoder() -> decode.Dec
   use domains <- decode.field("domains", decode.list(scaleway_containers_v1beta1_domain_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_domains_response_to_json(value: ScalewayContainersV1beta1ListDomainsResponse) -> json.Json {
-  json.object([
-    #("domains", json.array(value.domains, fn(item) { scaleway_containers_v1beta1_domain_to_json(item) })),
-    #("total_count", json.int(value.total_count)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_domains_response(
-  domains: List(ScalewayContainersV1beta1Domain),
-  total_count: Int,
-) -> ScalewayContainersV1beta1ListDomainsResponse {
-  ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:)
 }
 
 pub type ScalewayContainersV1beta1ListNamespacesResponse {
@@ -476,20 +244,6 @@ pub fn scaleway_containers_v1beta1_list_namespaces_response_decoder() -> decode.
   decode.success(ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:))
 }
 
-pub fn scaleway_containers_v1beta1_list_namespaces_response_to_json(value: ScalewayContainersV1beta1ListNamespacesResponse) -> json.Json {
-  json.object([
-    #("namespaces", json.array(value.namespaces, fn(item) { scaleway_containers_v1beta1_namespace_to_json(item) })),
-    #("total_count", json.int(value.total_count)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_namespaces_response(
-  namespaces: List(ScalewayContainersV1beta1Namespace),
-  total_count: Int,
-) -> ScalewayContainersV1beta1ListNamespacesResponse {
-  ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:)
-}
-
 pub type ScalewayContainersV1beta1ListTokensResponse {
   ScalewayContainersV1beta1ListTokensResponse(
     tokens: List(ScalewayContainersV1beta1Token),
@@ -501,20 +255,6 @@ pub fn scaleway_containers_v1beta1_list_tokens_response_decoder() -> decode.Deco
   use tokens <- decode.field("tokens", decode.list(scaleway_containers_v1beta1_token_decoder()))
   use total_count <- decode.field("total_count", decode.int)
   decode.success(ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:))
-}
-
-pub fn scaleway_containers_v1beta1_list_tokens_response_to_json(value: ScalewayContainersV1beta1ListTokensResponse) -> json.Json {
-  json.object([
-    #("tokens", json.array(value.tokens, fn(item) { scaleway_containers_v1beta1_token_to_json(item) })),
-    #("total_count", json.int(value.total_count)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_tokens_response(
-  tokens: List(ScalewayContainersV1beta1Token),
-  total_count: Int,
-) -> ScalewayContainersV1beta1ListTokensResponse {
-  ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:)
 }
 
 pub type ScalewayContainersV1beta1ListTriggersResponse {
@@ -530,20 +270,6 @@ pub fn scaleway_containers_v1beta1_list_triggers_response_decoder() -> decode.De
   use total_count <- decode.field("total_count", decode.int)
   use triggers <- decode.field("triggers", decode.list(scaleway_containers_v1beta1_trigger_decoder()))
   decode.success(ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:))
-}
-
-pub fn scaleway_containers_v1beta1_list_triggers_response_to_json(value: ScalewayContainersV1beta1ListTriggersResponse) -> json.Json {
-  json.object([
-    #("total_count", json.int(value.total_count)),
-    #("triggers", json.array(value.triggers, fn(item) { scaleway_containers_v1beta1_trigger_to_json(item) })),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_list_triggers_response(
-  total_count: Int,
-  triggers: List(ScalewayContainersV1beta1Trigger),
-) -> ScalewayContainersV1beta1ListTriggersResponse {
-  ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:)
 }
 
 pub type ScalewayContainersV1beta1Namespace {
@@ -602,78 +328,6 @@ pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(Scalewa
   use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
   use vpc_integration_activated <- decode.field("vpc_integration_activated", decode.bool)
   decode.success(ScalewayContainersV1beta1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at:, vpc_integration_activated:))
-}
-
-pub fn scaleway_containers_v1beta1_namespace_to_json(value: ScalewayContainersV1beta1Namespace) -> json.Json {
-  json.object([
-    #("created_at", json.nullable(value.created_at, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("id", json.string(value.id)),
-    #("name", json.string(value.name)),
-    #("organization_id", json.string(value.organization_id)),
-    #("project_id", json.string(value.project_id)),
-    #("region", json.string(value.region)),
-    #("registry_endpoint", json.string(value.registry_endpoint)),
-    #("registry_namespace_id", json.string(value.registry_namespace_id)),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_hashed_value_to_json(item) })),
-    #("status", json.string(scaleway_containers_v1beta1_namespace_status_to_string(value.status))),
-    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
-    #("updated_at", json.nullable(value.updated_at, json.string)),
-    #("vpc_integration_activated", json.bool(value.vpc_integration_activated)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_namespace(
-  id: String,
-  name: String,
-  organization_id: String,
-  project_id: String,
-  region: String,
-  registry_endpoint: String,
-  registry_namespace_id: String,
-  secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
-  status: ScalewayContainersV1beta1NamespaceStatus,
-  tags: List(String),
-  vpc_integration_activated: Bool,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(created_at: None, description: None, environment_variables: None, error_message: None, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at: None, vpc_integration_activated:)
-}
-
-pub fn scaleway_containers_v1beta1_namespace_with_created_at(
-  scaleway_containers_v1beta1_namespace: ScalewayContainersV1beta1Namespace,
-  created_at: String,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(..scaleway_containers_v1beta1_namespace, created_at: Some(created_at))
-}
-
-pub fn scaleway_containers_v1beta1_namespace_with_description(
-  scaleway_containers_v1beta1_namespace: ScalewayContainersV1beta1Namespace,
-  description: String,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(..scaleway_containers_v1beta1_namespace, description: Some(description))
-}
-
-pub fn scaleway_containers_v1beta1_namespace_with_environment_variables(
-  scaleway_containers_v1beta1_namespace: ScalewayContainersV1beta1Namespace,
-  environment_variables: Dynamic,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(..scaleway_containers_v1beta1_namespace, environment_variables: Some(environment_variables))
-}
-
-pub fn scaleway_containers_v1beta1_namespace_with_error_message(
-  scaleway_containers_v1beta1_namespace: ScalewayContainersV1beta1Namespace,
-  error_message: String,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(..scaleway_containers_v1beta1_namespace, error_message: Some(error_message))
-}
-
-pub fn scaleway_containers_v1beta1_namespace_with_updated_at(
-  scaleway_containers_v1beta1_namespace: ScalewayContainersV1beta1Namespace,
-  updated_at: String,
-) -> ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(..scaleway_containers_v1beta1_namespace, updated_at: Some(updated_at))
 }
 
 pub type ScalewayContainersV1beta1Secret {
@@ -763,56 +417,6 @@ pub fn scaleway_containers_v1beta1_token_decoder() -> decode.Decoder(ScalewayCon
   decode.success(ScalewayContainersV1beta1Token(container_id:, description:, expires_at:, id:, namespace_id:, public_key:, status:, token:))
 }
 
-pub fn scaleway_containers_v1beta1_token_to_json(value: ScalewayContainersV1beta1Token) -> json.Json {
-  json.object([
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("expires_at", json.nullable(value.expires_at, json.string)),
-    #("id", json.string(value.id)),
-    #("namespace_id", json.nullable(value.namespace_id, json.string)),
-    #("public_key", json.string(value.public_key)),
-    #("status", json.string(scaleway_containers_v1beta1_token_status_to_string(value.status))),
-    #("token", json.string(value.token)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_token(
-  id: String,
-  public_key: String,
-  status: ScalewayContainersV1beta1TokenStatus,
-  token: String,
-) -> ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(container_id: None, description: None, expires_at: None, id:, namespace_id: None, public_key:, status:, token:)
-}
-
-pub fn scaleway_containers_v1beta1_token_with_container_id(
-  scaleway_containers_v1beta1_token: ScalewayContainersV1beta1Token,
-  container_id: String,
-) -> ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(..scaleway_containers_v1beta1_token, container_id: Some(container_id))
-}
-
-pub fn scaleway_containers_v1beta1_token_with_description(
-  scaleway_containers_v1beta1_token: ScalewayContainersV1beta1Token,
-  description: String,
-) -> ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(..scaleway_containers_v1beta1_token, description: Some(description))
-}
-
-pub fn scaleway_containers_v1beta1_token_with_expires_at(
-  scaleway_containers_v1beta1_token: ScalewayContainersV1beta1Token,
-  expires_at: String,
-) -> ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(..scaleway_containers_v1beta1_token, expires_at: Some(expires_at))
-}
-
-pub fn scaleway_containers_v1beta1_token_with_namespace_id(
-  scaleway_containers_v1beta1_token: ScalewayContainersV1beta1Token,
-  namespace_id: String,
-) -> ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(..scaleway_containers_v1beta1_token, namespace_id: Some(namespace_id))
-}
-
 pub type ScalewayContainersV1beta1Trigger {
   ScalewayContainersV1beta1Trigger(
     /// ID of the container to trigger.
@@ -847,52 +451,6 @@ pub fn scaleway_containers_v1beta1_trigger_decoder() -> decode.Decoder(ScalewayC
   use scw_sqs_config <- decode.optional_field("scw_sqs_config", None, decode.optional(decode.dynamic))
   use status <- decode.field("status", scaleway_containers_v1beta1_trigger_status_decoder())
   decode.success(ScalewayContainersV1beta1Trigger(container_id:, description:, error_message:, id:, input_type:, name:, scw_nats_config:, scw_sqs_config:, status:))
-}
-
-pub fn scaleway_containers_v1beta1_trigger_to_json(value: ScalewayContainersV1beta1Trigger) -> json.Json {
-  json.object([
-    #("container_id", json.string(value.container_id)),
-    #("description", json.string(value.description)),
-    #("error_message", json.nullable(value.error_message, json.string)),
-    #("id", json.string(value.id)),
-    #("input_type", json.string(scaleway_containers_v1beta1_trigger_input_type_to_string(value.input_type))),
-    #("name", json.string(value.name)),
-    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(_) { json.null() })),
-    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(_) { json.null() })),
-    #("status", json.string(scaleway_containers_v1beta1_trigger_status_to_string(value.status))),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_trigger(
-  container_id: String,
-  description: String,
-  id: String,
-  input_type: ScalewayContainersV1beta1TriggerInputType,
-  name: String,
-  status: ScalewayContainersV1beta1TriggerStatus,
-) -> ScalewayContainersV1beta1Trigger {
-  ScalewayContainersV1beta1Trigger(container_id:, description:, error_message: None, id:, input_type:, name:, scw_nats_config: None, scw_sqs_config: None, status:)
-}
-
-pub fn scaleway_containers_v1beta1_trigger_with_error_message(
-  scaleway_containers_v1beta1_trigger: ScalewayContainersV1beta1Trigger,
-  error_message: String,
-) -> ScalewayContainersV1beta1Trigger {
-  ScalewayContainersV1beta1Trigger(..scaleway_containers_v1beta1_trigger, error_message: Some(error_message))
-}
-
-pub fn scaleway_containers_v1beta1_trigger_with_scw_nats_config(
-  scaleway_containers_v1beta1_trigger: ScalewayContainersV1beta1Trigger,
-  scw_nats_config: Dynamic,
-) -> ScalewayContainersV1beta1Trigger {
-  ScalewayContainersV1beta1Trigger(..scaleway_containers_v1beta1_trigger, scw_nats_config: Some(scw_nats_config))
-}
-
-pub fn scaleway_containers_v1beta1_trigger_with_scw_sqs_config(
-  scaleway_containers_v1beta1_trigger: ScalewayContainersV1beta1Trigger,
-  scw_sqs_config: Dynamic,
-) -> ScalewayContainersV1beta1Trigger {
-  ScalewayContainersV1beta1Trigger(..scaleway_containers_v1beta1_trigger, scw_sqs_config: Some(scw_sqs_config))
 }
 
 
