@@ -2,7 +2,7 @@
 // before creating the tarball. This way, we don't have to manually update this for every release.
 //
 /// Gilly's current version.
-pub const version = "0.2.0"
+pub const version = "0.3.0"
 
 // Ideally, we should support YAML as well, but Gleam has no YAML parsing libraries ATM. 
 // See: https://github.com/lpil/cymbal/pull/2
