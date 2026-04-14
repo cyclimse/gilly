@@ -8,7 +8,8 @@ generate-petstore:
 generate-scaleway:
 	gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/client.gleam \
 	  --optionality NullableOnly \
-	  --optional-query-params
+	  --optional-query-params \
+	  --client-default-parameters region
 
 run-petstore:
 	gleam run -m petstore/petstore

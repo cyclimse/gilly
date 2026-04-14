@@ -39,6 +39,7 @@ fn default_config() -> codegen.Config {
     optionality: codegen.RequiredOnly,
     indent: 2,
     optional_query_params: False,
+    client_default_parameters: [],
   )
 }
 
@@ -487,6 +488,10 @@ fn spec_with_paths(
 
 fn generate_ops(spec: OpenAPI) -> String {
   codegen.generate_operations(spec, default_config())
+}
+
+fn generate_ops_with_config(spec: OpenAPI, config: codegen.Config) -> String {
+  codegen.generate_operations(spec, config)
 }
 
 pub fn simple_get_no_params_test() {
@@ -1171,4 +1176,126 @@ pub fn inline_request_body_generates_opaque_type_test() {
     )
     |> generate_ops
   assert string.contains(result, "pub opaque type CreateItemRequest {")
+}
+
+pub fn client_default_parameters_test() {
+  spec_with_paths(
+    [
+      #(
+        "/regions/{region}/containers",
+        PathItem(
+          ..empty_path_item(),
+          get: Some(
+            Operation(
+              ..empty_operation("listRegionContainers"),
+              summary: Some("List containers in region"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "page",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.Integer(
+                    base(IntegerType),
+                    IntegerSchema(minimum: None, maximum: None, format: None),
+                  )),
+                ),
+                Parameter(
+                  name: "name",
+                  in_: Query,
+                  description: None,
+                  required: False,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      #(
+        "/regions/{region}/containers/{containerId}",
+        PathItem(
+          ..empty_path_item(),
+          delete: Some(
+            Operation(
+              ..empty_operation("deleteContainer"),
+              summary: Some("Delete a container"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+                Parameter(
+                  name: "containerId",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops_with_config(
+    codegen.Config(..default_config(), client_default_parameters: ["region"]),
+  )
+  |> birdie.snap(title: "codegen operation client default parameters")
 }

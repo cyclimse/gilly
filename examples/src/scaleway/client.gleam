@@ -1115,13 +1115,15 @@ pub opaque type Client(err) {
   Client(
     http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
     base_url: String,
+    region: String,
   )
 }
 
 pub fn new(
   http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  region region: String,
 ) -> Client(err) {
-  Client(http_client:, base_url: "https://api.scaleway.com")
+  Client(http_client:, base_url: "https://api.scaleway.com", region:)
 }
 
 pub fn with_base_url(
@@ -1131,9 +1133,16 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
+pub fn with_region(
+  client: Client(err),
+  region region: String,
+) -> Client(err) {
+  Client(..client, region:)
+}
+
 pub opaque type ListContainersRequest {
   ListContainersRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
@@ -1144,10 +1153,16 @@ pub opaque type ListContainersRequest {
   )
 }
 
-pub fn new_list_containers_request(
+pub fn new_list_containers_request() -> ListContainersRequest {
+  ListContainersRequest(region: None, page: None, page_size: None, order_by: None, namespace_id: None, name: None, organization_id: None, project_id: None)
+}
+
+/// The region you want to target
+pub fn list_containers_request_with_region(
+  list_containers_request: ListContainersRequest,
   region region: String,
 ) -> ListContainersRequest {
-  ListContainersRequest(region:, page: None, page_size: None, order_by: None, namespace_id: None, name: None, organization_id: None, project_id: None)
+  ListContainersRequest(..list_containers_request, region: Some(region))
 }
 
 /// Page number.
@@ -1211,7 +1226,8 @@ pub fn list_containers(
   request params: ListContainersRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListContainersResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -1344,7 +1360,7 @@ pub fn create_container_request_sandbox_decoder() -> decode.Decoder(CreateContai
 
 pub opaque type CreateContainerRequest {
   CreateContainerRequest(
-    region: String,
+    region: Option(String),
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: List(String),
@@ -1436,7 +1452,6 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
 }
 
 pub fn new_create_container_request(
-  region region: String,
   args args: List(String),
   command command: List(String),
   http_option http_option: CreateContainerRequestHttpOption,
@@ -1448,7 +1463,15 @@ pub fn new_create_container_request(
   secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
   tags tags: List(String),
 ) -> CreateContainerRequest {
-  CreateContainerRequest(region:, args:, command:, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags:, timeout: None)
+  CreateContainerRequest(region: None, args:, command:, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags:, timeout: None)
+}
+
+/// The region you want to target
+pub fn create_container_request_with_region(
+  create_container_request: CreateContainerRequest,
+  region region: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, region: Some(region))
 }
 
 /// CPU limit of the container in mvCPU.
@@ -1573,7 +1596,8 @@ pub fn create_container(
   request params: CreateContainerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_container_request_to_json(params)))
@@ -1584,16 +1608,23 @@ pub fn create_container(
 
 pub opaque type GetContainerRequest {
   GetContainerRequest(
-    region: String,
+    region: Option(String),
     container_id: String,
   )
 }
 
 pub fn new_get_container_request(
-  region region: String,
   container_id container_id: String,
 ) -> GetContainerRequest {
-  GetContainerRequest(region:, container_id:)
+  GetContainerRequest(region: None, container_id:)
+}
+
+/// The region you want to target
+pub fn get_container_request_with_region(
+  get_container_request: GetContainerRequest,
+  region region: String,
+) -> GetContainerRequest {
+  GetContainerRequest(..get_container_request, region: Some(region))
 }
 
 /// Get a container
@@ -1601,7 +1632,8 @@ pub fn get_container(
   request params: GetContainerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -1611,16 +1643,23 @@ pub fn get_container(
 
 pub opaque type DeleteContainerRequest {
   DeleteContainerRequest(
-    region: String,
+    region: Option(String),
     container_id: String,
   )
 }
 
 pub fn new_delete_container_request(
-  region region: String,
   container_id container_id: String,
 ) -> DeleteContainerRequest {
-  DeleteContainerRequest(region:, container_id:)
+  DeleteContainerRequest(region: None, container_id:)
+}
+
+/// The region you want to target
+pub fn delete_container_request_with_region(
+  delete_container_request: DeleteContainerRequest,
+  region region: String,
+) -> DeleteContainerRequest {
+  DeleteContainerRequest(..delete_container_request, region: Some(region))
 }
 
 /// Delete a container
@@ -1628,7 +1667,8 @@ pub fn delete_container(
   request params: DeleteContainerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -1750,7 +1790,7 @@ pub fn update_container_request_sandbox_decoder() -> decode.Decoder(UpdateContai
 
 pub opaque type UpdateContainerRequest {
   UpdateContainerRequest(
-    region: String,
+    region: Option(String),
     container_id: String,
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
@@ -1856,7 +1896,6 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
 }
 
 pub fn new_update_container_request(
-  region region: String,
   container_id container_id: String,
   http_option http_option: UpdateContainerRequestHttpOption,
   privacy privacy: UpdateContainerRequestPrivacy,
@@ -1864,7 +1903,15 @@ pub fn new_update_container_request(
   sandbox sandbox: UpdateContainerRequestSandbox,
   secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(region:, container_id:, args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy:, private_network_id: None, protocol:, redeploy: None, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags: None, timeout: None)
+  UpdateContainerRequest(region: None, container_id:, args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy:, private_network_id: None, protocol:, redeploy: None, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags: None, timeout: None)
+}
+
+/// The region you want to target
+pub fn update_container_request_with_region(
+  update_container_request: UpdateContainerRequest,
+  region region: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, region: Some(region))
 }
 
 /// Container arguments.
@@ -2027,7 +2074,8 @@ pub fn update_container(
   request params: UpdateContainerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_container_request_to_json(params)))
@@ -2038,7 +2086,7 @@ pub fn update_container(
 
 pub opaque type DeployContainerRequest {
   DeployContainerRequest(
-    region: String,
+    region: Option(String),
     container_id: String,
   )
 }
@@ -2048,10 +2096,17 @@ pub fn deploy_container_request_to_json(value: DeployContainerRequest) -> json.J
 }
 
 pub fn new_deploy_container_request(
-  region region: String,
   container_id container_id: String,
 ) -> DeployContainerRequest {
-  DeployContainerRequest(region:, container_id:)
+  DeployContainerRequest(region: None, container_id:)
+}
+
+/// The region you want to target
+pub fn deploy_container_request_with_region(
+  deploy_container_request: DeployContainerRequest,
+  region region: String,
+) -> DeployContainerRequest {
+  DeployContainerRequest(..deploy_container_request, region: Some(region))
 }
 
 /// Deploy a container
@@ -2059,7 +2114,8 @@ pub fn deploy_container(
   request params: DeployContainerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id <> "/deploy")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id <> "/deploy")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(deploy_container_request_to_json(params)))
@@ -2070,7 +2126,7 @@ pub fn deploy_container(
 
 pub opaque type ListCronsRequest {
   ListCronsRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
@@ -2078,10 +2134,16 @@ pub opaque type ListCronsRequest {
   )
 }
 
-pub fn new_list_crons_request(
+pub fn new_list_crons_request() -> ListCronsRequest {
+  ListCronsRequest(region: None, page: None, page_size: None, order_by: None, container_id: None)
+}
+
+/// The region you want to target
+pub fn list_crons_request_with_region(
+  list_crons_request: ListCronsRequest,
   region region: String,
 ) -> ListCronsRequest {
-  ListCronsRequest(region:, page: None, page_size: None, order_by: None, container_id: None)
+  ListCronsRequest(..list_crons_request, region: Some(region))
 }
 
 /// Page number.
@@ -2121,7 +2183,8 @@ pub fn list_crons(
   request params: ListCronsRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListCronsResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -2139,7 +2202,7 @@ pub fn list_crons(
 
 pub opaque type CreateCronRequest {
   CreateCronRequest(
-    region: String,
+    region: Option(String),
     /// Arguments to pass with the cron.
     args: Option(json.Json),
     /// UUID of the container to invoke by the cron.
@@ -2161,11 +2224,18 @@ pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
 }
 
 pub fn new_create_cron_request(
-  region region: String,
   container_id container_id: String,
   schedule schedule: String,
 ) -> CreateCronRequest {
-  CreateCronRequest(region:, args: None, container_id:, name: None, schedule:)
+  CreateCronRequest(region: None, args: None, container_id:, name: None, schedule:)
+}
+
+/// The region you want to target
+pub fn create_cron_request_with_region(
+  create_cron_request: CreateCronRequest,
+  region region: String,
+) -> CreateCronRequest {
+  CreateCronRequest(..create_cron_request, region: Some(region))
 }
 
 /// Arguments to pass with the cron.
@@ -2189,7 +2259,8 @@ pub fn create_cron(
   request params: CreateCronRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_cron_request_to_json(params)))
@@ -2200,16 +2271,23 @@ pub fn create_cron(
 
 pub opaque type GetCronRequest {
   GetCronRequest(
-    region: String,
+    region: Option(String),
     cron_id: String,
   )
 }
 
 pub fn new_get_cron_request(
-  region region: String,
   cron_id cron_id: String,
 ) -> GetCronRequest {
-  GetCronRequest(region:, cron_id:)
+  GetCronRequest(region: None, cron_id:)
+}
+
+/// The region you want to target
+pub fn get_cron_request_with_region(
+  get_cron_request: GetCronRequest,
+  region region: String,
+) -> GetCronRequest {
+  GetCronRequest(..get_cron_request, region: Some(region))
 }
 
 /// Get a cron
@@ -2217,7 +2295,8 @@ pub fn get_cron(
   request params: GetCronRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2227,16 +2306,23 @@ pub fn get_cron(
 
 pub opaque type DeleteCronRequest {
   DeleteCronRequest(
-    region: String,
+    region: Option(String),
     cron_id: String,
   )
 }
 
 pub fn new_delete_cron_request(
-  region region: String,
   cron_id cron_id: String,
 ) -> DeleteCronRequest {
-  DeleteCronRequest(region:, cron_id:)
+  DeleteCronRequest(region: None, cron_id:)
+}
+
+/// The region you want to target
+pub fn delete_cron_request_with_region(
+  delete_cron_request: DeleteCronRequest,
+  region region: String,
+) -> DeleteCronRequest {
+  DeleteCronRequest(..delete_cron_request, region: Some(region))
 }
 
 /// Delete an existing cron
@@ -2244,7 +2330,8 @@ pub fn delete_cron(
   request params: DeleteCronRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2254,7 +2341,7 @@ pub fn delete_cron(
 
 pub opaque type UpdateCronRequest {
   UpdateCronRequest(
-    region: String,
+    region: Option(String),
     cron_id: String,
     /// Arguments to pass with the cron.
     args: Option(json.Json),
@@ -2277,10 +2364,17 @@ pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
 }
 
 pub fn new_update_cron_request(
-  region region: String,
   cron_id cron_id: String,
 ) -> UpdateCronRequest {
-  UpdateCronRequest(region:, cron_id:, args: None, container_id: None, name: None, schedule: None)
+  UpdateCronRequest(region: None, cron_id:, args: None, container_id: None, name: None, schedule: None)
+}
+
+/// The region you want to target
+pub fn update_cron_request_with_region(
+  update_cron_request: UpdateCronRequest,
+  region region: String,
+) -> UpdateCronRequest {
+  UpdateCronRequest(..update_cron_request, region: Some(region))
 }
 
 /// Arguments to pass with the cron.
@@ -2320,7 +2414,8 @@ pub fn update_cron(
   request params: UpdateCronRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_cron_request_to_json(params)))
@@ -2331,7 +2426,7 @@ pub fn update_cron(
 
 pub opaque type ListDomainsRequest {
   ListDomainsRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
@@ -2339,10 +2434,16 @@ pub opaque type ListDomainsRequest {
   )
 }
 
-pub fn new_list_domains_request(
+pub fn new_list_domains_request() -> ListDomainsRequest {
+  ListDomainsRequest(region: None, page: None, page_size: None, order_by: None, container_id: None)
+}
+
+/// The region you want to target
+pub fn list_domains_request_with_region(
+  list_domains_request: ListDomainsRequest,
   region region: String,
 ) -> ListDomainsRequest {
-  ListDomainsRequest(region:, page: None, page_size: None, order_by: None, container_id: None)
+  ListDomainsRequest(..list_domains_request, region: Some(region))
 }
 
 /// Page number.
@@ -2382,7 +2483,8 @@ pub fn list_domains(
   request params: ListDomainsRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListDomainsResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -2400,7 +2502,7 @@ pub fn list_domains(
 
 pub opaque type CreateDomainRequest {
   CreateDomainRequest(
-    region: String,
+    region: Option(String),
     /// UUID of the container to assign the domain to.
     container_id: String,
     /// Domain to assign.
@@ -2416,11 +2518,18 @@ pub fn create_domain_request_to_json(value: CreateDomainRequest) -> json.Json {
 }
 
 pub fn new_create_domain_request(
-  region region: String,
   container_id container_id: String,
   hostname hostname: String,
 ) -> CreateDomainRequest {
-  CreateDomainRequest(region:, container_id:, hostname:)
+  CreateDomainRequest(region: None, container_id:, hostname:)
+}
+
+/// The region you want to target
+pub fn create_domain_request_with_region(
+  create_domain_request: CreateDomainRequest,
+  region region: String,
+) -> CreateDomainRequest {
+  CreateDomainRequest(..create_domain_request, region: Some(region))
 }
 
 /// Create a custom domain
@@ -2428,7 +2537,8 @@ pub fn create_domain(
   request params: CreateDomainRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_domain_request_to_json(params)))
@@ -2439,16 +2549,23 @@ pub fn create_domain(
 
 pub opaque type GetDomainRequest {
   GetDomainRequest(
-    region: String,
+    region: Option(String),
     domain_id: String,
   )
 }
 
 pub fn new_get_domain_request(
-  region region: String,
   domain_id domain_id: String,
 ) -> GetDomainRequest {
-  GetDomainRequest(region:, domain_id:)
+  GetDomainRequest(region: None, domain_id:)
+}
+
+/// The region you want to target
+pub fn get_domain_request_with_region(
+  get_domain_request: GetDomainRequest,
+  region region: String,
+) -> GetDomainRequest {
+  GetDomainRequest(..get_domain_request, region: Some(region))
 }
 
 /// Get a custom domain
@@ -2456,7 +2573,8 @@ pub fn get_domain(
   request params: GetDomainRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains/" <> params.domain_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2466,16 +2584,23 @@ pub fn get_domain(
 
 pub opaque type DeleteDomainRequest {
   DeleteDomainRequest(
-    region: String,
+    region: Option(String),
     domain_id: String,
   )
 }
 
 pub fn new_delete_domain_request(
-  region region: String,
   domain_id domain_id: String,
 ) -> DeleteDomainRequest {
-  DeleteDomainRequest(region:, domain_id:)
+  DeleteDomainRequest(region: None, domain_id:)
+}
+
+/// The region you want to target
+pub fn delete_domain_request_with_region(
+  delete_domain_request: DeleteDomainRequest,
+  region region: String,
+) -> DeleteDomainRequest {
+  DeleteDomainRequest(..delete_domain_request, region: Some(region))
 }
 
 /// Delete a custom domain
@@ -2483,7 +2608,8 @@ pub fn delete_domain(
   request params: DeleteDomainRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains/" <> params.domain_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2493,7 +2619,7 @@ pub fn delete_domain(
 
 pub opaque type ListNamespacesRequest {
   ListNamespacesRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
@@ -2503,10 +2629,16 @@ pub opaque type ListNamespacesRequest {
   )
 }
 
-pub fn new_list_namespaces_request(
+pub fn new_list_namespaces_request() -> ListNamespacesRequest {
+  ListNamespacesRequest(region: None, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
+}
+
+/// The region you want to target
+pub fn list_namespaces_request_with_region(
+  list_namespaces_request: ListNamespacesRequest,
   region region: String,
 ) -> ListNamespacesRequest {
-  ListNamespacesRequest(region:, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
+  ListNamespacesRequest(..list_namespaces_request, region: Some(region))
 }
 
 /// Page number.
@@ -2562,7 +2694,8 @@ pub fn list_namespaces(
   request params: ListNamespacesRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListNamespacesResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -2582,7 +2715,7 @@ pub fn list_namespaces(
 
 pub opaque type CreateNamespaceRequest {
   CreateNamespaceRequest(
-    region: String,
+    region: Option(String),
     /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
     /// Setting this field to true doesn't matter anymore. It will be removed in a near future.
     activate_vpc_integration: Bool,
@@ -2614,14 +2747,21 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
 }
 
 pub fn new_create_namespace_request(
-  region region: String,
   activate_vpc_integration activate_vpc_integration: Bool,
   name name: String,
   project_id project_id: String,
   secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
   tags tags: List(String),
 ) -> CreateNamespaceRequest {
-  CreateNamespaceRequest(region:, activate_vpc_integration:, description: None, environment_variables: None, name:, project_id:, secret_environment_variables:, tags:)
+  CreateNamespaceRequest(region: None, activate_vpc_integration:, description: None, environment_variables: None, name:, project_id:, secret_environment_variables:, tags:)
+}
+
+/// The region you want to target
+pub fn create_namespace_request_with_region(
+  create_namespace_request: CreateNamespaceRequest,
+  region region: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, region: Some(region))
 }
 
 /// Description of the namespace to create.
@@ -2645,7 +2785,8 @@ pub fn create_namespace(
   request params: CreateNamespaceRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_namespace_request_to_json(params)))
@@ -2656,16 +2797,23 @@ pub fn create_namespace(
 
 pub opaque type GetNamespaceRequest {
   GetNamespaceRequest(
-    region: String,
+    region: Option(String),
     namespace_id: String,
   )
 }
 
 pub fn new_get_namespace_request(
-  region region: String,
   namespace_id namespace_id: String,
 ) -> GetNamespaceRequest {
-  GetNamespaceRequest(region:, namespace_id:)
+  GetNamespaceRequest(region: None, namespace_id:)
+}
+
+/// The region you want to target
+pub fn get_namespace_request_with_region(
+  get_namespace_request: GetNamespaceRequest,
+  region region: String,
+) -> GetNamespaceRequest {
+  GetNamespaceRequest(..get_namespace_request, region: Some(region))
 }
 
 /// Get a namespace
@@ -2673,7 +2821,8 @@ pub fn get_namespace(
   request params: GetNamespaceRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2683,16 +2832,23 @@ pub fn get_namespace(
 
 pub opaque type DeleteNamespaceRequest {
   DeleteNamespaceRequest(
-    region: String,
+    region: Option(String),
     namespace_id: String,
   )
 }
 
 pub fn new_delete_namespace_request(
-  region region: String,
   namespace_id namespace_id: String,
 ) -> DeleteNamespaceRequest {
-  DeleteNamespaceRequest(region:, namespace_id:)
+  DeleteNamespaceRequest(region: None, namespace_id:)
+}
+
+/// The region you want to target
+pub fn delete_namespace_request_with_region(
+  delete_namespace_request: DeleteNamespaceRequest,
+  region region: String,
+) -> DeleteNamespaceRequest {
+  DeleteNamespaceRequest(..delete_namespace_request, region: Some(region))
 }
 
 /// Delete an existing namespace
@@ -2700,7 +2856,8 @@ pub fn delete_namespace(
   request params: DeleteNamespaceRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2710,7 +2867,7 @@ pub fn delete_namespace(
 
 pub opaque type UpdateNamespaceRequest {
   UpdateNamespaceRequest(
-    region: String,
+    region: Option(String),
     namespace_id: String,
     /// Description of the namespace to update.
     description: Option(String),
@@ -2733,11 +2890,18 @@ pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.J
 }
 
 pub fn new_update_namespace_request(
-  region region: String,
   namespace_id namespace_id: String,
   secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
 ) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(region:, namespace_id:, description: None, environment_variables: None, secret_environment_variables:, tags: None)
+  UpdateNamespaceRequest(region: None, namespace_id:, description: None, environment_variables: None, secret_environment_variables:, tags: None)
+}
+
+/// The region you want to target
+pub fn update_namespace_request_with_region(
+  update_namespace_request: UpdateNamespaceRequest,
+  region region: String,
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(..update_namespace_request, region: Some(region))
 }
 
 /// Description of the namespace to update.
@@ -2769,7 +2933,8 @@ pub fn update_namespace(
   request params: UpdateNamespaceRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_namespace_request_to_json(params)))
@@ -2780,7 +2945,7 @@ pub fn update_namespace(
 
 pub opaque type ListTokensRequest {
   ListTokensRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
@@ -2789,10 +2954,16 @@ pub opaque type ListTokensRequest {
   )
 }
 
-pub fn new_list_tokens_request(
+pub fn new_list_tokens_request() -> ListTokensRequest {
+  ListTokensRequest(region: None, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
+}
+
+/// The region you want to target
+pub fn list_tokens_request_with_region(
+  list_tokens_request: ListTokensRequest,
   region region: String,
 ) -> ListTokensRequest {
-  ListTokensRequest(region:, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
+  ListTokensRequest(..list_tokens_request, region: Some(region))
 }
 
 /// Page number.
@@ -2840,7 +3011,8 @@ pub fn list_tokens(
   request params: ListTokensRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListTokensResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -2859,7 +3031,7 @@ pub fn list_tokens(
 
 pub opaque type CreateTokenRequest {
   CreateTokenRequest(
-    region: String,
+    region: Option(String),
     /// UUID of the container to create the token for.
     container_id: Option(String),
     /// Description of the token.
@@ -2880,10 +3052,16 @@ pub fn create_token_request_to_json(value: CreateTokenRequest) -> json.Json {
   ])
 }
 
-pub fn new_create_token_request(
+pub fn new_create_token_request() -> CreateTokenRequest {
+  CreateTokenRequest(region: None, container_id: None, description: None, expires_at: None, namespace_id: None)
+}
+
+/// The region you want to target
+pub fn create_token_request_with_region(
+  create_token_request: CreateTokenRequest,
   region region: String,
 ) -> CreateTokenRequest {
-  CreateTokenRequest(region:, container_id: None, description: None, expires_at: None, namespace_id: None)
+  CreateTokenRequest(..create_token_request, region: Some(region))
 }
 
 /// UUID of the container to create the token for.
@@ -2923,7 +3101,8 @@ pub fn create_token(
   request params: CreateTokenRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_token_request_to_json(params)))
@@ -2934,16 +3113,23 @@ pub fn create_token(
 
 pub opaque type GetTokenRequest {
   GetTokenRequest(
-    region: String,
+    region: Option(String),
     token_id: String,
   )
 }
 
 pub fn new_get_token_request(
-  region region: String,
   token_id token_id: String,
 ) -> GetTokenRequest {
-  GetTokenRequest(region:, token_id:)
+  GetTokenRequest(region: None, token_id:)
+}
+
+/// The region you want to target
+pub fn get_token_request_with_region(
+  get_token_request: GetTokenRequest,
+  region region: String,
+) -> GetTokenRequest {
+  GetTokenRequest(..get_token_request, region: Some(region))
 }
 
 /// Get a token
@@ -2951,7 +3137,8 @@ pub fn get_token(
   request params: GetTokenRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens/" <> params.token_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> params.token_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2961,16 +3148,23 @@ pub fn get_token(
 
 pub opaque type DeleteTokenRequest {
   DeleteTokenRequest(
-    region: String,
+    region: Option(String),
     token_id: String,
   )
 }
 
 pub fn new_delete_token_request(
-  region region: String,
   token_id token_id: String,
 ) -> DeleteTokenRequest {
-  DeleteTokenRequest(region:, token_id:)
+  DeleteTokenRequest(region: None, token_id:)
+}
+
+/// The region you want to target
+pub fn delete_token_request_with_region(
+  delete_token_request: DeleteTokenRequest,
+  region region: String,
+) -> DeleteTokenRequest {
+  DeleteTokenRequest(..delete_token_request, region: Some(region))
 }
 
 /// Delete a token
@@ -2978,7 +3172,8 @@ pub fn delete_token(
   request params: DeleteTokenRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens/" <> params.token_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> params.token_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2988,17 +3183,23 @@ pub fn delete_token(
 
 pub opaque type ListTriggersRequest {
   ListTriggersRequest(
-    region: String,
+    region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
     order_by: Option(String),
   )
 }
 
-pub fn new_list_triggers_request(
+pub fn new_list_triggers_request() -> ListTriggersRequest {
+  ListTriggersRequest(region: None, page: None, page_size: None, order_by: None)
+}
+
+/// The region you want to target
+pub fn list_triggers_request_with_region(
+  list_triggers_request: ListTriggersRequest,
   region region: String,
 ) -> ListTriggersRequest {
-  ListTriggersRequest(region:, page: None, page_size: None, order_by: None)
+  ListTriggersRequest(..list_triggers_request, region: Some(region))
 }
 
 /// Page number to return.
@@ -3030,7 +3231,8 @@ pub fn list_triggers(
   request params: ListTriggersRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListTriggersResponse, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = []
@@ -3047,7 +3249,7 @@ pub fn list_triggers(
 
 pub opaque type CreateTriggerRequest {
   CreateTriggerRequest(
-    region: String,
+    region: Option(String),
     /// ID of the container to trigger.
     container_id: String,
     /// Description of the trigger.
@@ -3072,11 +3274,18 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
 }
 
 pub fn new_create_trigger_request(
-  region region: String,
   container_id container_id: String,
   name name: String,
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(region:, container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
+  CreateTriggerRequest(region: None, container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
+}
+
+/// The region you want to target
+pub fn create_trigger_request_with_region(
+  create_trigger_request: CreateTriggerRequest,
+  region region: String,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, region: Some(region))
 }
 
 /// Description of the trigger.
@@ -3108,7 +3317,8 @@ pub fn create_trigger(
   request params: CreateTriggerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers")
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_trigger_request_to_json(params)))
@@ -3119,16 +3329,23 @@ pub fn create_trigger(
 
 pub opaque type GetTriggerRequest {
   GetTriggerRequest(
-    region: String,
+    region: Option(String),
     trigger_id: String,
   )
 }
 
 pub fn new_get_trigger_request(
-  region region: String,
   trigger_id trigger_id: String,
 ) -> GetTriggerRequest {
-  GetTriggerRequest(region:, trigger_id:)
+  GetTriggerRequest(region: None, trigger_id:)
+}
+
+/// The region you want to target
+pub fn get_trigger_request_with_region(
+  get_trigger_request: GetTriggerRequest,
+  region region: String,
+) -> GetTriggerRequest {
+  GetTriggerRequest(..get_trigger_request, region: Some(region))
 }
 
 /// Get a trigger
@@ -3136,7 +3353,8 @@ pub fn get_trigger(
   request params: GetTriggerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -3146,16 +3364,23 @@ pub fn get_trigger(
 
 pub opaque type DeleteTriggerRequest {
   DeleteTriggerRequest(
-    region: String,
+    region: Option(String),
     trigger_id: String,
   )
 }
 
 pub fn new_delete_trigger_request(
-  region region: String,
   trigger_id trigger_id: String,
 ) -> DeleteTriggerRequest {
-  DeleteTriggerRequest(region:, trigger_id:)
+  DeleteTriggerRequest(region: None, trigger_id:)
+}
+
+/// The region you want to target
+pub fn delete_trigger_request_with_region(
+  delete_trigger_request: DeleteTriggerRequest,
+  region region: String,
+) -> DeleteTriggerRequest {
+  DeleteTriggerRequest(..delete_trigger_request, region: Some(region))
 }
 
 /// Delete a trigger
@@ -3163,7 +3388,8 @@ pub fn delete_trigger(
   request params: DeleteTriggerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -3173,7 +3399,7 @@ pub fn delete_trigger(
 
 pub opaque type UpdateTriggerRequest {
   UpdateTriggerRequest(
-    region: String,
+    region: Option(String),
     trigger_id: String,
     /// Description of the trigger.
     description: Option(String),
@@ -3190,10 +3416,17 @@ pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json 
 }
 
 pub fn new_update_trigger_request(
-  region region: String,
   trigger_id trigger_id: String,
 ) -> UpdateTriggerRequest {
-  UpdateTriggerRequest(region:, trigger_id:, description: None, name: None)
+  UpdateTriggerRequest(region: None, trigger_id:, description: None, name: None)
+}
+
+/// The region you want to target
+pub fn update_trigger_request_with_region(
+  update_trigger_request: UpdateTriggerRequest,
+  region region: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, region: Some(region))
 }
 
 /// Description of the trigger.
@@ -3217,7 +3450,8 @@ pub fn update_trigger(
   request params: UpdateTriggerRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_trigger_request_to_json(params)))

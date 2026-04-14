@@ -29,7 +29,12 @@ pub type Optionality {
 /// Configuration for the code generator.
 ///
 pub type Config {
-  Config(optionality: Optionality, indent: Int, optional_query_params: Bool)
+  Config(
+    optionality: Optionality,
+    indent: Int,
+    optional_query_params: Bool,
+    client_default_parameters: List(String),
+  )
 }
 
 /// Tracks how a schema is referenced by operations.
@@ -168,21 +173,35 @@ pub fn generate(spec: OpenAPI, config: Config) -> String {
     [] -> doc.empty
     _ -> {
       let base_url = default_base_url(spec)
-      doc.concat([
-        doc.lines(2),
-        separator_comment("Operations"),
-        doc.lines(2),
-        api_error_doc(config.indent),
-        doc.lines(2),
-        client_type_doc(config.indent, spec.info.description),
-        doc.lines(2),
-        client_new_doc(config.indent, base_url),
-        doc.lines(2),
-        client_with_base_url_doc(config.indent),
-        doc.lines(2),
-        doc.join(op_docs, with: doc.lines(2)),
-        doc.line,
-      ])
+      let default_params = config.client_default_parameters
+      let client_param_setters =
+        client_default_param_setters(config.indent, default_params)
+      doc.concat(
+        list.flatten([
+          [
+            doc.lines(2),
+            separator_comment("Operations"),
+            doc.lines(2),
+            api_error_doc(config.indent),
+            doc.lines(2),
+            client_type_doc(
+              config.indent,
+              spec.info.description,
+              default_params,
+            ),
+            doc.lines(2),
+            client_new_doc(config.indent, base_url, default_params),
+            doc.lines(2),
+            client_with_base_url_doc(config.indent),
+          ],
+          list.map(client_param_setters, fn(d) { doc.concat([doc.lines(2), d]) }),
+          [
+            doc.lines(2),
+            doc.join(op_docs, with: doc.lines(2)),
+            doc.line,
+          ],
+        ]),
+      )
     }
   }
 
@@ -262,20 +281,34 @@ pub fn generate_operations(spec: OpenAPI, config: Config) -> String {
     [] -> doc.empty
     _ -> {
       let base_url = default_base_url(spec)
-      doc.concat([
-        imports_doc(state, config.indent),
-        doc.lines(2),
-        api_error_doc(config.indent),
-        doc.lines(2),
-        client_type_doc(config.indent, spec.info.description),
-        doc.lines(2),
-        client_new_doc(config.indent, base_url),
-        doc.lines(2),
-        client_with_base_url_doc(config.indent),
-        doc.lines(2),
-        doc.join(op_docs, with: doc.lines(2)),
-        doc.line,
-      ])
+      let default_params = config.client_default_parameters
+      let client_param_setters =
+        client_default_param_setters(config.indent, default_params)
+      doc.concat(
+        list.flatten([
+          [
+            imports_doc(state, config.indent),
+            doc.lines(2),
+            api_error_doc(config.indent),
+            doc.lines(2),
+            client_type_doc(
+              config.indent,
+              spec.info.description,
+              default_params,
+            ),
+            doc.lines(2),
+            client_new_doc(config.indent, base_url, default_params),
+            doc.lines(2),
+            client_with_base_url_doc(config.indent),
+          ],
+          list.map(client_param_setters, fn(d) { doc.concat([doc.lines(2), d]) }),
+          [
+            doc.lines(2),
+            doc.join(op_docs, with: doc.lines(2)),
+            doc.line,
+          ],
+        ]),
+      )
     }
   }
 
@@ -454,56 +487,99 @@ fn api_error_doc(indent: Int) -> Document {
   ])
 }
 
-fn client_type_doc(indent: Int, description: Option(String)) -> Document {
+fn client_type_doc(
+  indent: Int,
+  description: Option(String),
+  default_params: List(String),
+) -> Document {
   let comment = case description {
     Some(desc) -> doc.concat([description_to_comment(desc), doc.line])
     None -> doc.empty
   }
-  doc.concat([
-    comment,
-    doc.from_string("pub opaque type Client(err) {"),
-    doc.line |> doc.nest(by: indent),
-    doc.from_string("Client(")
-      |> doc.nest(by: indent),
-    doc.line |> doc.nest(by: indent * 2),
-    doc.from_string(
-      "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
-    )
-      |> doc.nest(by: indent * 2),
-    doc.line |> doc.nest(by: indent * 2),
-    doc.from_string("base_url: String,")
-      |> doc.nest(by: indent * 2),
-    doc.line |> doc.nest(by: indent),
-    doc.from_string(")")
-      |> doc.nest(by: indent),
-    doc.line,
-    doc.from_string("}"),
-  ])
+  let extra_fields =
+    list.map(default_params, fn(name) {
+      doc.concat([
+        doc.line |> doc.nest(by: indent * 2),
+        doc.from_string(to_field_name(name) <> ": String,")
+          |> doc.nest(by: indent * 2),
+      ])
+    })
+  doc.concat(
+    list.flatten([
+      [
+        comment,
+        doc.from_string("pub opaque type Client(err) {"),
+        doc.line |> doc.nest(by: indent),
+        doc.from_string("Client(")
+          |> doc.nest(by: indent),
+        doc.line |> doc.nest(by: indent * 2),
+        doc.from_string(
+          "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
+        )
+          |> doc.nest(by: indent * 2),
+        doc.line |> doc.nest(by: indent * 2),
+        doc.from_string("base_url: String,")
+          |> doc.nest(by: indent * 2),
+      ],
+      extra_fields,
+      [
+        doc.line |> doc.nest(by: indent),
+        doc.from_string(")")
+          |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ],
+    ]),
+  )
 }
 
-fn client_new_doc(indent: Int, default_base_url: Option(String)) -> Document {
+fn client_new_doc(
+  indent: Int,
+  default_base_url: Option(String),
+  default_params: List(String),
+) -> Document {
   let base_url_default = case default_base_url {
     Some(url) -> "\"" <> url <> "\""
     None -> "\"\""
   }
 
-  doc.concat([
-    doc.from_string("pub fn new("),
-    doc.line |> doc.nest(by: indent),
-    doc.from_string(
-      "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
-    )
-      |> doc.nest(by: indent),
-    doc.line,
-    doc.from_string(") -> Client(err) {"),
-    doc.line |> doc.nest(by: indent),
-    doc.from_string(
-      "Client(http_client:, base_url: " <> base_url_default <> ")",
-    )
-      |> doc.nest(by: indent),
-    doc.line,
-    doc.from_string("}"),
-  ])
+  let extra_args =
+    list.map(default_params, fn(name) {
+      let field_name = to_field_name(name)
+      doc.concat([
+        doc.line |> doc.nest(by: indent),
+        doc.from_string(field_name <> " " <> field_name <> ": String,")
+          |> doc.nest(by: indent),
+      ])
+    })
+  let extra_inits =
+    list.map(default_params, fn(name) { to_field_name(name) <> ":" })
+  let all_inits =
+    ["http_client:", "base_url: " <> base_url_default]
+    |> list.append(extra_inits)
+
+  doc.concat(
+    list.flatten([
+      [
+        doc.from_string("pub fn new("),
+        doc.line |> doc.nest(by: indent),
+        doc.from_string(
+          "http_client: fn(request.Request(String)) -> Result(response.Response(String), err),",
+        )
+          |> doc.nest(by: indent),
+      ],
+      extra_args,
+      [
+        doc.line,
+        doc.from_string(") -> Client(err) {"),
+        doc.line |> doc.nest(by: indent),
+        doc.from_string("Client(" <> string.join(all_inits, ", ") <> ")")
+          |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ],
+    ]),
+  )
 }
 
 fn client_with_base_url_doc(indent: Int) -> Document {
@@ -523,6 +599,31 @@ fn client_with_base_url_doc(indent: Int) -> Document {
     doc.line,
     doc.from_string("}"),
   ])
+}
+
+fn client_default_param_setters(
+  indent: Int,
+  default_params: List(String),
+) -> List(Document) {
+  list.map(default_params, fn(name) {
+    let field_name = to_field_name(name)
+    doc.concat([
+      doc.from_string("pub fn with_" <> field_name <> "("),
+      doc.line |> doc.nest(by: indent),
+      doc.from_string("client: Client(err),")
+        |> doc.nest(by: indent),
+      doc.line |> doc.nest(by: indent),
+      doc.from_string(field_name <> " " <> field_name <> ": String,")
+        |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string(") -> Client(err) {"),
+      doc.line |> doc.nest(by: indent),
+      doc.from_string("Client(..client, " <> field_name <> ":)")
+        |> doc.nest(by: indent),
+      doc.line,
+      doc.from_string("}"),
+    ])
+  })
 }
 
 fn default_base_url(spec: OpenAPI) -> Option(String) {
@@ -591,6 +692,33 @@ fn operation_doc(
       }
     })
 
+  // Determine which params are promoted to the Client via client_default_parameters.
+  // Promoted params become optional on the Request (with a setter override).
+  let promoted_set = set.from_list(config.client_default_parameters)
+  let promoted_path_params =
+    list.filter(path_params, fn(p) { set.contains(promoted_set, p.name) })
+  let promoted_query_params =
+    list.filter(query_params, fn(p) {
+      set.contains(promoted_set, p.name) && p.required
+    })
+  let all_promoted = list.append(promoted_path_params, promoted_query_params)
+
+  // Make promoted params optional on the Request type
+  let path_params_for_request =
+    list.map(path_params, fn(p) {
+      case set.contains(promoted_set, p.name) {
+        True -> operation.Parameter(..p, required: False)
+        False -> p
+      }
+    })
+  let query_params_for_request =
+    list.map(query_params, fn(p) {
+      case set.contains(promoted_set, p.name) && p.required {
+        True -> operation.Parameter(..p, required: False)
+        False -> p
+      }
+    })
+
   let has_params = !list.is_empty(path_params) || !list.is_empty(query_params)
 
   // Determine body kind: None, $ref, or inline object
@@ -638,8 +766,8 @@ fn operation_doc(
         operation_request_docs(
           state,
           request_type_name,
-          path_params,
-          query_params,
+          path_params_for_request,
+          query_params_for_request,
           None,
           all_schemas,
           config,
@@ -676,8 +804,8 @@ fn operation_doc(
         operation_request_docs(
           state,
           request_type_name,
-          path_params,
-          query_params,
+          path_params_for_request,
+          query_params_for_request,
           Some(#("body", type_doc)),
           all_schemas,
           config,
@@ -732,8 +860,8 @@ fn operation_doc(
         operation_inline_body_request_docs(
           state,
           request_type_name,
-          path_params,
-          query_params,
+          path_params_for_request,
+          query_params_for_request,
           base,
           obj_schema,
           all_schemas,
@@ -756,8 +884,38 @@ fn operation_doc(
     }
   }
 
+  // Build merge lines for promoted (client_default) params:
+  // let region = option.unwrap(params.region, client.region)
+  let merge_lines = case all_promoted {
+    [] -> []
+    _ -> {
+      list.map(all_promoted, fn(p) {
+        let field_name = to_field_name(p.name)
+        doc.from_string(
+          "let "
+          <> field_name
+          <> " = option.unwrap("
+          <> params_prefix
+          <> field_name
+          <> ", client."
+          <> field_name
+          <> ")",
+        )
+      })
+    }
+  }
+
+  // Import gleam/option if there are promoted params (for option.unwrap)
+  let state = case all_promoted {
+    [] -> state
+    _ ->
+      state
+      |> import_module("gleam/option")
+  }
+
   // Build URL expression with path parameter substitution
-  let url_expr = build_url_expression(path, path_params, params_prefix)
+  let url_expr =
+    build_url_expression(path, path_params, params_prefix, promoted_set)
 
   // Build the function body
   let state = import_module(state, "gleam/dynamic/decode")
@@ -802,6 +960,7 @@ fn operation_doc(
       body_param,
       all_schemas,
       params_prefix,
+      promoted_set,
     )
 
   let #(state, decode_line) =
@@ -809,6 +968,7 @@ fn operation_doc(
 
   let body_lines =
     list.flatten([
+      merge_lines,
       [url_expr],
       req_lines,
       [decode_line],
@@ -1566,6 +1726,7 @@ fn build_url_expression(
   path: String,
   path_params: List(Parameter),
   params_prefix: String,
+  promoted: Set(String),
 ) -> Document {
   // Split path on {param} segments and build a string concatenation
   case path_params {
@@ -1574,7 +1735,8 @@ fn build_url_expression(
         "let assert Ok(req) = request.to(client.base_url <> \"" <> path <> "\")",
       )
     _ -> {
-      let url_parts = build_path_parts(path, path_params, params_prefix)
+      let url_parts =
+        build_path_parts(path, path_params, params_prefix, promoted)
       doc.concat([
         doc.from_string("let assert Ok(req) = request.to(client.base_url <> "),
         url_parts,
@@ -1588,9 +1750,10 @@ fn build_path_parts(
   path: String,
   params: List(Parameter),
   params_prefix: String,
+  promoted: Set(String),
 ) -> Document {
   // Replace {param} with string concatenation
-  let parts = split_path_on_params(path, params, params_prefix, [])
+  let parts = split_path_on_params(path, params, params_prefix, promoted, [])
   doc.join(parts, with: doc.from_string(" <> "))
 }
 
@@ -1598,11 +1761,16 @@ fn split_path_on_params(
   remaining: String,
   params: List(Parameter),
   params_prefix: String,
+  promoted: Set(String),
   acc: List(Document),
 ) -> List(Document) {
   case find_next_param(remaining, params) {
     Some(#(before, param, after)) -> {
-      let param_name = params_prefix <> to_field_name(param.name)
+      // Promoted params are resolved to local variables (no prefix)
+      let param_name = case set.contains(promoted, param.name) {
+        True -> to_field_name(param.name)
+        False -> params_prefix <> to_field_name(param.name)
+      }
       let has_int_type = case param.schema {
         Some(schema.Integer(_, _)) -> True
         _ -> False
@@ -1619,6 +1787,7 @@ fn split_path_on_params(
         after,
         params,
         params_prefix,
+        promoted,
         list.append(before_parts, [param_expr]),
       )
     }
@@ -1655,6 +1824,7 @@ fn build_request_lines(
   body_param: Option(#(String, Document, Schema)),
   all_schemas: List(#(String, Schema)),
   params_prefix: String,
+  promoted: Set(String),
 ) -> List(Document) {
   let method_line =
     doc.from_string("let req = request.set_method(req, http." <> method <> ")")
@@ -1697,27 +1867,46 @@ fn build_request_lines(
         }
       }
 
+      // A query param is "effectively required" if it's required or promoted
+      // (promoted params have been resolved to local variables via merge lines)
+      let is_effectively_required = fn(p: Parameter) {
+        p.required || set.contains(promoted, p.name)
+      }
+
+      // Get the variable name for a query param:
+      // promoted params use direct variable name, others use params_prefix
+      let param_var_name = fn(p: Parameter) {
+        case set.contains(promoted, p.name) {
+          True -> to_field_name(p.name)
+          False -> params_prefix <> to_field_name(p.name)
+        }
+      }
+
       // Required scalar query params are always included as tuples
       let required_scalar_entries =
-        list.filter(query_params, fn(p) { p.required && !is_array_param(p) })
+        list.filter(query_params, fn(p) {
+          is_effectively_required(p) && !is_array_param(p)
+        })
         |> list.map(fn(param) {
-          let param_name = params_prefix <> to_field_name(param.name)
+          let pname = param_var_name(param)
           let value_expr = case query_param_to_string_expr(param) {
-            "v" -> param_name
-            conv -> string.replace(conv, "v", param_name)
+            "v" -> pname
+            conv -> string.replace(conv, "v", pname)
           }
           doc.from_string("#(\"" <> param.name <> "\", " <> value_expr <> ")")
         })
 
       // Required array query params are expanded with list.map
       let required_array_lines =
-        list.filter(query_params, fn(p) { p.required && is_array_param(p) })
+        list.filter(query_params, fn(p) {
+          is_effectively_required(p) && is_array_param(p)
+        })
         |> list.map(fn(param) {
-          let param_name = params_prefix <> to_field_name(param.name)
+          let pname = param_var_name(param)
           let value_expr = query_param_to_string_expr(param)
           doc.from_string(
             "let query = list.append(query, list.map("
-            <> param_name
+            <> pname
             <> ", fn(v) { #(\""
             <> param.name
             <> "\", "
@@ -1728,13 +1917,15 @@ fn build_request_lines(
 
       // Optional scalar query params use option.map + option.values
       let optional_scalar_entries =
-        list.filter(query_params, fn(p) { !p.required && !is_array_param(p) })
+        list.filter(query_params, fn(p) {
+          !is_effectively_required(p) && !is_array_param(p)
+        })
         |> list.map(fn(param) {
-          let param_name = params_prefix <> to_field_name(param.name)
+          let pname = param_var_name(param)
           let value_expr = query_param_to_string_expr(param)
           doc.from_string(
             "option.map("
-            <> param_name
+            <> pname
             <> ", fn(v) { #(\""
             <> param.name
             <> "\", "
@@ -1745,13 +1936,15 @@ fn build_request_lines(
 
       // Optional array query params use option.unwrap + list.map
       let optional_array_lines =
-        list.filter(query_params, fn(p) { !p.required && is_array_param(p) })
+        list.filter(query_params, fn(p) {
+          !is_effectively_required(p) && is_array_param(p)
+        })
         |> list.map(fn(param) {
-          let param_name = params_prefix <> to_field_name(param.name)
+          let pname = param_var_name(param)
           let value_expr = query_param_to_string_expr(param)
           doc.from_string(
             "let query = list.append(query, "
-            <> param_name
+            <> pname
             <> " |> option.unwrap([]) |> list.map(fn(v) { #(\""
             <> param.name
             <> "\", "

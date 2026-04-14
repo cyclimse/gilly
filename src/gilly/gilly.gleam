@@ -15,7 +15,12 @@ import gilly/openapi/openapi.{type OpenAPI}
 /// It offers various options to customize the code generation process.
 /// If you're adding codegen behaviors, try to make them configurable through the Builder.
 pub opaque type Builder {
-  Builder(optionality: Optionality, indent: Int, optional_query_params: Bool)
+  Builder(
+    optionality: Optionality,
+    indent: Int,
+    optional_query_params: Bool,
+    client_default_parameters: List(String),
+  )
 }
 
 /// Create a new Gilly Builder with default configuration.
@@ -24,6 +29,7 @@ pub fn new() -> Builder {
     optionality: codegen.RequiredOnly,
     indent: 2,
     optional_query_params: False,
+    client_default_parameters: [],
   )
 }
 
@@ -46,11 +52,22 @@ pub fn with_optional_query_params(
   Builder(..builder, optional_query_params:)
 }
 
+/// Promote certain parameters (by name) to the Client type as defaults.
+/// When set, these parameters become optional on each Request and are
+/// automatically filled from the Client unless overridden per-request.
+pub fn with_client_default_parameters(
+  builder: Builder,
+  client_default_parameters: List(String),
+) -> Builder {
+  Builder(..builder, client_default_parameters:)
+}
+
 fn to_codegen_config(builder: Builder) -> codegen.Config {
   codegen.Config(
     optionality: builder.optionality,
     indent: builder.indent,
     optional_query_params: builder.optional_query_params,
+    client_default_parameters: builder.client_default_parameters,
   )
 }
 
