@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation post with inline request body
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: post_with_inline_request_body_test
 ---
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode

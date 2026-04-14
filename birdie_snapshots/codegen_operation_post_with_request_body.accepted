@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation post with request body
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: post_with_request_body_test
 ---
 import gleam/dynamic/decode
 import gleam/http

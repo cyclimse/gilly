@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation get with optional query params
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: get_with_optional_query_params_test
 ---
 import gleam/dynamic/decode
 import gleam/http

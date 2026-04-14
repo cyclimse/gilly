@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation delete with path param
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: delete_with_path_param_test
 ---
 import gleam/dynamic/decode
 import gleam/http
