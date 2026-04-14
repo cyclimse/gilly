@@ -12,16 +12,15 @@ import clip/help
 import clip/opt
 import simplifile
 
-import gilly/constant.{version}
+import gilly/common.{type Optionality, version}
+import gilly/error.{describe_error}
 import gilly/gilly
-import gilly/internal/codegen
-import gilly/internal/error.{describe_error}
 
 type Args {
   Generate(
     source: String,
     output: Option(String),
-    optionality: codegen.Optionality,
+    optionality: Optionality,
     indent: Int,
     optional_query_params: Bool,
     client_default_parameters: List(String),
@@ -42,7 +41,7 @@ fn output_opt() -> opt.Opt(Option(String)) {
   |> opt.default(None)
 }
 
-fn optionality_opt() -> opt.Opt(codegen.Optionality) {
+fn optionality_opt() -> opt.Opt(Optionality) {
   opt.new("optionality")
   |> opt.help(
     "How to determine optional fields:
@@ -53,9 +52,9 @@ fn optionality_opt() -> opt.Opt(codegen.Optionality) {
   )
   |> opt.try_map(fn(s) {
     case s {
-      "RequiredOnly" -> Ok(codegen.RequiredOnly)
-      "NullableOnly" -> Ok(codegen.NullableOnly)
-      "RequiredAndNullable" -> Ok(codegen.RequiredAndNullable)
+      "RequiredOnly" -> Ok(common.RequiredOnly)
+      "NullableOnly" -> Ok(common.NullableOnly)
+      "RequiredAndNullable" -> Ok(common.RequiredAndNullable)
       _ ->
         Error(
           "Invalid optionality: '"
@@ -64,7 +63,7 @@ fn optionality_opt() -> opt.Opt(codegen.Optionality) {
         )
     }
   })
-  |> opt.default(codegen.RequiredOnly)
+  |> opt.default(common.RequiredOnly)
 }
 
 fn indent_opt() -> opt.Opt(Int) {
@@ -142,7 +141,7 @@ pub fn main() -> Nil {
     command()
     |> clip.help(help.simple(
       "gilly",
-      "A code generator that produces type-safe API clients from OpenAPI specifications.",
+      "✨ Generate Gleam SDKs from OpenAPI specifications.",
     ))
     |> clip.run(argv.load().arguments)
 

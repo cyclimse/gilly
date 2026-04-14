@@ -1,6 +1,8 @@
-import gilly/openapi/error as openapi_error
 import gleam/string
+
 import simplifile
+
+import gilly/openapi/error as openapi_error
 
 /// Error types for Gilly operations, such as reading files, parsing OpenAPI specs, and generating code.
 /// 

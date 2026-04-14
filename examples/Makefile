@@ -9,7 +9,7 @@ generate-scaleway:
 	gleam run -m gilly -- samples/scaleway_containers.json -o src/scaleway/client.gleam \
 	  --optionality NullableOnly \
 	  --optional-query-params \
-	  --client-default-parameters region
+	  --client-default-parameters region,project_id
 
 run-petstore:
 	gleam run -m petstore/petstore

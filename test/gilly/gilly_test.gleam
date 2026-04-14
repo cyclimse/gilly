@@ -1,8 +1,8 @@
 import birdie
 import simplifile
 
+import gilly/common
 import gilly/gilly.{type Builder}
-import gilly/internal/codegen
 import gilly/openapi/openapi
 
 fn generate_code_case(title: String, builder: Builder, file_path: String) {
@@ -40,7 +40,7 @@ pub fn codegen_scaleway_containers_test() {
 
   let builder_required_only =
     gilly.new()
-    |> gilly.with_optionality(codegen.NullableOnly)
+    |> gilly.with_optionality(common.NullableOnly)
   generate_code_case(
     "Codegen Scaleway Containers Schemas (NullableOnly)",
     builder_required_only,

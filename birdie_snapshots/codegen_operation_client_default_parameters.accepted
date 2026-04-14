@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation client default parameters
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: client_default_parameters_test
 ---
 import gleam/dynamic/decode
 import gleam/http

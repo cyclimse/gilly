@@ -1116,14 +1116,16 @@ pub opaque type Client(err) {
     http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
     base_url: String,
     region: String,
+    project_id: String,
   )
 }
 
 pub fn new(
   http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
   region region: String,
+  project_id project_id: String,
 ) -> Client(err) {
-  Client(http_client:, base_url: "https://api.scaleway.com", region:)
+  Client(http_client:, base_url: "https://api.scaleway.com", region:, project_id:)
 }
 
 pub fn with_base_url(
@@ -1138,6 +1140,13 @@ pub fn with_region(
   region region: String,
 ) -> Client(err) {
   Client(..client, region:)
+}
+
+pub fn with_project_id(
+  client: Client(err),
+  project_id project_id: String,
+) -> Client(err) {
+  Client(..client, project_id:)
 }
 
 pub opaque type ListContainersRequest {
@@ -1227,10 +1236,11 @@ pub fn list_containers(
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListContainersResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
+  let project_id = option.unwrap(params.project_id, client.project_id)
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
+  let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
@@ -1238,7 +1248,6 @@ pub fn list_containers(
     option.map(params.namespace_id, fn(v) { #("namespace_id", v) }),
     option.map(params.name, fn(v) { #("name", v) }),
     option.map(params.organization_id, fn(v) { #("organization_id", v) }),
-    option.map(params.project_id, fn(v) { #("project_id", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2695,17 +2704,17 @@ pub fn list_namespaces(
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListNamespacesResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
+  let project_id = option.unwrap(params.project_id, client.project_id)
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
+  let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
     option.map(params.order_by, fn(v) { #("order_by", v) }),
     option.map(params.name, fn(v) { #("name", v) }),
     option.map(params.organization_id, fn(v) { #("organization_id", v) }),
-    option.map(params.project_id, fn(v) { #("project_id", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
@@ -2726,7 +2735,7 @@ pub opaque type CreateNamespaceRequest {
     /// Name of the namespace to create.
     name: String,
     /// UUID of the Project in which the namespace will be created.
-    project_id: String,
+    project_id: Option(String),
     /// Secret environment variables of the namespace to create.
     secret_environment_variables: List(ScalewayContainersV1beta1Secret),
     /// Tags of the Serverless Container Namespace.
@@ -2740,7 +2749,7 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
     #("description", json.nullable(value.description, json.string)),
     #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
     #("name", json.string(value.name)),
-    #("project_id", json.string(value.project_id)),
+    #("project_id", json.nullable(value.project_id, json.string)),
     #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
     #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
@@ -2749,11 +2758,10 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
 pub fn new_create_namespace_request(
   activate_vpc_integration activate_vpc_integration: Bool,
   name name: String,
-  project_id project_id: String,
   secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
   tags tags: List(String),
 ) -> CreateNamespaceRequest {
-  CreateNamespaceRequest(region: None, activate_vpc_integration:, description: None, environment_variables: None, name:, project_id:, secret_environment_variables:, tags:)
+  CreateNamespaceRequest(region: None, activate_vpc_integration:, description: None, environment_variables: None, name:, project_id: None, secret_environment_variables:, tags:)
 }
 
 /// The region you want to target
@@ -2780,12 +2788,22 @@ pub fn create_namespace_request_with_environment_variables(
   CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
 }
 
+/// UUID of the Project in which the namespace will be created.
+pub fn create_namespace_request_with_project_id(
+  create_namespace_request: CreateNamespaceRequest,
+  project_id project_id: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, project_id: Some(project_id))
+}
+
 /// Create a new namespace
 pub fn create_namespace(
   request params: CreateNamespaceRequest,
   client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
+  let project_id = option.unwrap(params.project_id, client.project_id)
+  let params = CreateNamespaceRequest(..params, project_id: Some(project_id))
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")

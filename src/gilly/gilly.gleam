@@ -5,9 +5,11 @@ import gleam/string
 
 import simplifile
 
-import gilly/constant.{header_comment, supported_file_types, version}
-import gilly/internal/codegen.{type Optionality}
-import gilly/internal/error.{type Error}
+import gilly/common.{
+  type Optionality, header_comment, supported_file_types, version,
+}
+import gilly/error.{type Error}
+import gilly/internal/codegen
 import gilly/openapi/openapi.{type OpenAPI}
 
 /// Builder is the main configuration record for Gilly.
@@ -26,7 +28,7 @@ pub opaque type Builder {
 /// Create a new Gilly Builder with default configuration.
 pub fn new() -> Builder {
   Builder(
-    optionality: codegen.RequiredOnly,
+    optionality: common.RequiredOnly,
     indent: 2,
     optional_query_params: False,
     client_default_parameters: [],
