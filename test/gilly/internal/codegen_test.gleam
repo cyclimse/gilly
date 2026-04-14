@@ -1,7 +1,9 @@
-import birdie
 import gleam/option.{None, Some}
 import gleam/string
 
+import birdie
+
+import gilly/common
 import gilly/internal/codegen
 import gilly/openapi/openapi.{
   type OpenAPI, type PathItem, Components, Info, OpenAPI, PathItem,
@@ -36,7 +38,7 @@ fn spec_with_schemas(schemas: List(#(String, schema.Schema))) -> OpenAPI {
 
 fn default_config() -> codegen.Config {
   codegen.Config(
-    optionality: codegen.RequiredOnly,
+    optionality: common.RequiredOnly,
     indent: 2,
     optional_query_params: False,
     client_default_parameters: [],
@@ -47,7 +49,7 @@ fn generate(spec: OpenAPI) -> String {
   codegen.generate_schemas(spec, default_config())
 }
 
-fn generate_with(spec: OpenAPI, optionality: codegen.Optionality) -> String {
+fn generate_with(spec: OpenAPI, optionality: common.Optionality) -> String {
   let config = default_config()
   codegen.generate_schemas(spec, codegen.Config(..config, optionality:))
 }
@@ -220,7 +222,7 @@ pub fn nullable_field_with_nullable_only_test() {
       ),
     ),
   ])
-  |> generate_with(codegen.NullableOnly)
+  |> generate_with(common.NullableOnly)
   |> birdie.snap(title: "codegen nullable field with NullableOnly")
 }
 
@@ -1298,4 +1300,109 @@ pub fn client_default_parameters_test() {
     codegen.Config(..default_config(), client_default_parameters: ["region"]),
   )
   |> birdie.snap(title: "codegen operation client default parameters")
+}
+
+pub fn client_default_parameters_inline_body_test() {
+  spec_with_paths(
+    [
+      #(
+        "/regions/{region}/namespaces",
+        PathItem(
+          ..empty_path_item(),
+          post: Some(
+            Operation(
+              ..empty_operation("createNamespace"),
+              summary: Some("Create a namespace"),
+              parameters: [
+                Parameter(
+                  name: "region",
+                  in_: Path,
+                  description: None,
+                  required: True,
+                  schema: Some(schema.String(
+                    base(StringType),
+                    StringSchema(
+                      min_length: None,
+                      max_length: None,
+                      enum: None,
+                      format: None,
+                    ),
+                  )),
+                ),
+              ],
+              request_body: Some(
+                RequestBody(description: None, required: True, content: [
+                  #(
+                    "application/json",
+                    MediaType(
+                      schema: Some(schema.Object(
+                        base(ObjectType),
+                        ObjectSchema(
+                          required: ["name", "project_id"],
+                          properties: [
+                            #(
+                              "name",
+                              schema.String(
+                                base(StringType),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                            #(
+                              "project_id",
+                              schema.String(
+                                base(StringType),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                            #(
+                              "description",
+                              schema.String(
+                                BaseSchema(..base(StringType), nullable: True),
+                                StringSchema(
+                                  min_length: None,
+                                  max_length: None,
+                                  enum: None,
+                                  format: None,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                    ),
+                  ),
+                ]),
+              ),
+              responses: [
+                #(
+                  "200",
+                  Response(description: "successful operation", content: []),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+    [],
+  )
+  |> generate_ops_with_config(
+    codegen.Config(..default_config(), client_default_parameters: [
+      "region",
+      "project_id",
+    ]),
+  )
+  |> birdie.snap(
+    title: "codegen operation client default parameters inline body",
+  )
 }

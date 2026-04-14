@@ -1,0 +1,119 @@
+---
+version: 1.5.4
+title: codegen operation client default parameters inline body
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: client_default_parameters_inline_body_test
+---
+import gleam/dynamic.{type Dynamic}
+import gleam/dynamic/decode
+import gleam/http
+import gleam/http/request
+import gleam/http/response
+import gleam/json
+import gleam/option.{None, Some, type Option}
+import gleam/result
+
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+    region: String,
+    project_id: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  region region: String,
+  project_id project_id: String,
+) -> Client(err) {
+  Client(http_client:, base_url: "", region:, project_id:)
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
+pub fn with_region(
+  client: Client(err),
+  region region: String,
+) -> Client(err) {
+  Client(..client, region:)
+}
+
+pub fn with_project_id(
+  client: Client(err),
+  project_id project_id: String,
+) -> Client(err) {
+  Client(..client, project_id:)
+}
+
+pub opaque type CreateNamespaceRequest {
+  CreateNamespaceRequest(
+    region: Option(String),
+    name: String,
+    project_id: Option(String),
+    description: Option(String),
+  )
+}
+
+pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.Json {
+  json.object([
+    #("name", json.string(value.name)),
+    #("project_id", json.nullable(value.project_id, json.string)),
+    #("description", json.nullable(value.description, json.string)),
+  ])
+}
+
+pub fn new_create_namespace_request(
+  name name: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(region: None, name:, project_id: None, description: None)
+}
+
+pub fn create_namespace_request_with_region(
+  create_namespace_request: CreateNamespaceRequest,
+  region region: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, region: Some(region))
+}
+
+pub fn create_namespace_request_with_project_id(
+  create_namespace_request: CreateNamespaceRequest,
+  project_id project_id: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, project_id: Some(project_id))
+}
+
+pub fn create_namespace_request_with_description(
+  create_namespace_request: CreateNamespaceRequest,
+  description description: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, description: Some(description))
+}
+
+/// Create a namespace
+pub fn create_namespace(
+  request params: CreateNamespaceRequest,
+  client client: Client(err),
+) -> Result(Nil, ApiError(err)) {
+  let region = option.unwrap(params.region, client.region)
+  let project_id = option.unwrap(params.project_id, client.project_id)
+  let params = CreateNamespaceRequest(..params, project_id: Some(project_id))
+  let assert Ok(req) = request.to(client.base_url <> "/regions/" <> region <> "/namespaces")
+  let req = request.set_method(req, http.Post)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(create_namespace_request_to_json(params)))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  let _ = resp
+  Ok(Nil)
+}
+

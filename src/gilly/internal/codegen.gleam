@@ -1,29 +1,18 @@
-import gilly/openapi/openapi.{type OpenAPI, type PathItem}
-import gilly/openapi/operation.{type Operation, type Parameter, Path, Query}
-import gilly/openapi/schema.{
-  type ArraySchema, type BaseSchema, type ObjectSchema, type Schema,
-  type StringSchema,
-}
 import glam/doc.{type Document}
 import gleam/dict.{type Dict}
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/set.{type Set}
 import gleam/string
+
 import justin
 
-/// Controls how the codegen decides whether a field should be `Option(T)`.
-///
-pub type Optionality {
-  /// Only fields listed in the `required` array are non-optional.
-  /// This is the strict OpenAPI interpretation.
-  RequiredOnly
-  /// Fields are required unless marked `nullable: true`.
-  /// Useful for specs (like Scaleway) that don't use `required` arrays.
-  NullableOnly
-  /// A field is optional if it's not in `required` OR is `nullable: true`.
-  /// This combines both signals.
-  RequiredAndNullable
+import gilly/common.{type Optionality}
+import gilly/openapi/openapi.{type OpenAPI, type PathItem}
+import gilly/openapi/operation.{type Operation, type Parameter, Path, Query}
+import gilly/openapi/schema.{
+  type ArraySchema, type BaseSchema, type ObjectSchema, type Schema,
+  type StringSchema,
 }
 
 /// Configuration for the code generator.
@@ -698,10 +687,7 @@ fn operation_doc(
   let promoted_path_params =
     list.filter(path_params, fn(p) { set.contains(promoted_set, p.name) })
   let promoted_query_params =
-    list.filter(query_params, fn(p) {
-      set.contains(promoted_set, p.name) && p.required
-    })
-  let all_promoted = list.append(promoted_path_params, promoted_query_params)
+    list.filter(query_params, fn(p) { set.contains(promoted_set, p.name) })
 
   // Make promoted params optional on the Request type
   let path_params_for_request =
@@ -739,6 +725,24 @@ fn operation_doc(
     }
     None -> #(state, NoBody)
   }
+
+  // Determine which body fields are promoted to the Client
+  let promoted_body_field_names = case body_info {
+    InlineBody(_base, obj_schema) ->
+      list.filter(config.client_default_parameters, fn(name) {
+        list.any(obj_schema.properties, fn(prop) { prop.0 == name })
+      })
+    _ -> []
+  }
+
+  // Collect all promoted names (params + body fields) for merge line generation
+  let all_promoted_names =
+    list.append(
+      list.map(list.append(promoted_path_params, promoted_query_params), fn(p) {
+        p.name
+      }),
+      promoted_body_field_names,
+    )
 
   // Build the response type from the 200/201 response
   let #(state, response_type) = response_type_from_op(state, op, all_schemas)
@@ -837,6 +841,7 @@ fn operation_doc(
           obj_schema,
           all_schemas,
           config,
+          promoted_set,
         )
       // Body is the request itself, encoded via xxx_to_json(params)
       let ref_schema =
@@ -866,6 +871,7 @@ fn operation_doc(
           obj_schema,
           all_schemas,
           config,
+          promoted_set,
         )
       // Body is the request itself, encoded via xxx_to_json(params)
       let ref_schema =
@@ -884,13 +890,13 @@ fn operation_doc(
     }
   }
 
-  // Build merge lines for promoted (client_default) params:
+  // Build merge lines for promoted (client_default) params and body fields:
   // let region = option.unwrap(params.region, client.region)
-  let merge_lines = case all_promoted {
+  let merge_lines = case all_promoted_names {
     [] -> []
     _ -> {
-      list.map(all_promoted, fn(p) {
-        let field_name = to_field_name(p.name)
+      list.map(all_promoted_names, fn(name) {
+        let field_name = to_field_name(name)
         doc.from_string(
           "let "
           <> field_name
@@ -905,12 +911,41 @@ fn operation_doc(
     }
   }
 
-  // Import gleam/option if there are promoted params (for option.unwrap)
-  let state = case all_promoted {
+  // Build update line to write resolved promoted body fields back into params
+  // before JSON serialization: let params = XxxRequest(..params, field: Some(field))
+  let body_update_lines = case promoted_body_field_names {
+    [] -> []
+    _ -> {
+      let field_updates =
+        list.map(promoted_body_field_names, fn(name) {
+          let field_name = to_field_name(name)
+          field_name <> ": Some(" <> field_name <> ")"
+        })
+      [
+        doc.from_string(
+          "let params = "
+          <> request_type_name
+          <> "(..params, "
+          <> string.join(field_updates, ", ")
+          <> ")",
+        ),
+      ]
+    }
+  }
+
+  // Import gleam/option if there are promoted params/fields (for option.unwrap)
+  let state = case all_promoted_names {
     [] -> state
     _ ->
       state
       |> import_module("gleam/option")
+  }
+  // Import Some for body update lines
+  let state = case promoted_body_field_names {
+    [] -> state
+    _ ->
+      state
+      |> import_qualified("gleam/option", "Some")
   }
 
   // Build URL expression with path parameter substitution
@@ -969,6 +1004,7 @@ fn operation_doc(
   let body_lines =
     list.flatten([
       merge_lines,
+      body_update_lines,
       [url_expr],
       req_lines,
       [decode_line],
@@ -1269,6 +1305,7 @@ fn operation_inline_body_request_docs(
   body_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
+  promoted_body_fields: Set(String),
 ) -> #(State, List(Document), List(#(String, Schema))) {
   let indent = config.indent
   let request_only = True
@@ -1313,6 +1350,7 @@ fn operation_inline_body_request_docs(
       let in_required = list.contains(body_schema.required, prop_name)
       let optional =
         is_field_optional(prop_schema, in_required, config.optionality)
+        || set.contains(promoted_body_fields, prop_name)
       let enum_hint = type_name <> to_type_name(prop_name)
       let #(state, field_type) =
         schema_to_gleam_type(
@@ -1390,6 +1428,7 @@ fn operation_inline_body_request_docs(
       all_schemas,
       config,
       request_only,
+      promoted_body_fields,
     )
 
   // --- Constructor: required params + required body fields ---
@@ -1401,6 +1440,7 @@ fn operation_inline_body_request_docs(
       let in_required = list.contains(body_schema.required, prop_name)
       let optional =
         is_field_optional(prop_schema, in_required, config.optionality)
+        || set.contains(promoted_body_fields, prop_name)
       #(prop_name, field_name, prop_schema, optional)
     })
 
@@ -1575,6 +1615,7 @@ fn operation_inline_body_request_docs(
       all_schemas,
       config,
       request_only,
+      promoted_body_fields,
     )
 
   let all_setters = list.append(param_setters, body_setters)
@@ -2194,6 +2235,7 @@ fn object_type_doc(
           all_schemas,
           config,
           request_only,
+          set.new(),
         )
       #(state, doc.concat([result, doc.lines(2), encoder]))
     }
@@ -2226,6 +2268,7 @@ fn object_type_doc(
           all_schemas,
           config,
           request_only,
+          set.new(),
         )
       let setter_docs = case setters {
         [] -> doc.empty
@@ -2702,9 +2745,9 @@ fn is_field_optional(
     schema.Object(_, _) -> True
     _ ->
       case optionality {
-        RequiredOnly -> !in_required
-        NullableOnly -> is_nullable(prop_schema)
-        RequiredAndNullable -> !in_required || is_nullable(prop_schema)
+        common.RequiredOnly -> !in_required
+        common.NullableOnly -> is_nullable(prop_schema)
+        common.RequiredAndNullable -> !in_required || is_nullable(prop_schema)
       }
   }
 }
@@ -2891,6 +2934,7 @@ fn record_to_json_doc(
   all_schemas: List(#(String, Schema)),
   config: Config,
   request_only: Bool,
+  promoted_body_fields: Set(String),
 ) -> #(State, Document) {
   let state = import_module(state, "gleam/json")
   let fn_name = justin.snake_case(type_name) <> "_to_json"
@@ -2904,6 +2948,7 @@ fn record_to_json_doc(
       let in_required = list.contains(object_schema.required, prop_name)
       let optional =
         is_field_optional(prop_schema, in_required, config.optionality)
+        || set.contains(promoted_body_fields, prop_name)
       let enum_hint = type_name <> to_type_name(prop_name)
       let accessor = "value." <> field_name
       let #(state, json_expr) =
@@ -3072,6 +3117,7 @@ fn record_with_field_docs(
   all_schemas: List(#(String, Schema)),
   config: Config,
   request_only: Bool,
+  promoted_body_fields: Set(String),
 ) -> #(State, List(Document)) {
   let indent = config.indent
   let var_name = justin.snake_case(type_name)
@@ -3083,6 +3129,7 @@ fn record_with_field_docs(
     let in_required = list.contains(object_schema.required, prop_name)
     let optional =
       is_field_optional(prop_schema, in_required, config.optionality)
+      || set.contains(promoted_body_fields, prop_name)
 
     case optional {
       False -> #(state, docs)
