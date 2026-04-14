@@ -1038,7 +1038,7 @@ fn param_to_type(
     // Always pass required=True here because optional wrapping is handled
     // by the Params type builder / setter generator, not by the type itself.
     Some(schema) ->
-      schema_to_gleam_type(state, schema, True, all_schemas, param.name)
+      schema_to_gleam_type(state, schema, True, all_schemas, param.name, False)
     None -> #(state, doc.from_string("String"))
   }
 }
@@ -1065,7 +1065,14 @@ fn request_body_param(
       case media_type.schema {
         Some(body_schema) -> {
           let #(state, type_doc) =
-            schema_to_gleam_type(state, body_schema, True, all_schemas, "body")
+            schema_to_gleam_type(
+              state,
+              body_schema,
+              True,
+              all_schemas,
+              "body",
+              False,
+            )
           #(state, Some(#("body", type_doc, body_schema)))
         }
         None -> #(state, None)
@@ -1098,6 +1105,7 @@ fn response_type_from_op(
                   True,
                   all_schemas,
                   "response",
+                  False,
                 )
               #(state, Some(#(type_doc, resp_schema)))
             }
@@ -1230,6 +1238,7 @@ fn build_request_lines(
           arg_name,
           all_schemas,
           arg_name,
+          False,
         )
       let encode_str = doc.to_string(encode_expr, 80)
       [
@@ -1440,6 +1449,8 @@ fn object_type_doc(
     ResponseOnly | Both | Unreferenced -> False
   }
 
+  let request_only = usage == RequestOnly
+
   let needs_decoder = case usage {
     RequestOnly -> False
     ResponseOnly | Both | Unreferenced -> True
@@ -1476,6 +1487,7 @@ fn object_type_doc(
           !optional,
           all_schemas,
           enum_hint,
+          request_only,
         )
 
       let field_line =
@@ -1547,7 +1559,14 @@ fn object_type_doc(
   let #(state, result) = case needs_encoder {
     True -> {
       let #(state, encoder) =
-        record_to_json_doc(state, type_name, object_schema, all_schemas, config)
+        record_to_json_doc(
+          state,
+          type_name,
+          object_schema,
+          all_schemas,
+          config,
+          request_only,
+        )
       #(state, doc.concat([result, doc.lines(2), encoder]))
     }
     False -> #(state, result)
@@ -1556,7 +1575,14 @@ fn object_type_doc(
   let #(state, result) = case needs_constructor {
     True -> {
       let #(state, constructor) =
-        record_new_doc(state, type_name, object_schema, all_schemas, config)
+        record_new_doc(
+          state,
+          type_name,
+          object_schema,
+          all_schemas,
+          config,
+          request_only,
+        )
       #(state, doc.concat([result, doc.lines(2), constructor]))
     }
     False -> #(state, result)
@@ -1571,6 +1597,7 @@ fn object_type_doc(
           object_schema,
           all_schemas,
           config,
+          request_only,
         )
       let setter_docs = case setters {
         [] -> doc.empty
@@ -1592,7 +1619,7 @@ fn simple_type_doc(
   config: Config,
 ) -> #(State, Document) {
   let #(state, gleam_type) =
-    schema_to_gleam_type(state, schema, True, all_schemas, type_name)
+    schema_to_gleam_type(state, schema, True, all_schemas, type_name, False)
   let result =
     doc.concat([
       doc.from_string("pub type " <> type_name <> " ="),
@@ -1610,6 +1637,7 @@ fn schema_to_gleam_type(
   required: Bool,
   all_schemas: List(#(String, Schema)),
   enum_name_hint: String,
+  request_only: Bool,
 ) -> #(State, Document) {
   let #(state, inner) = case schema {
     schema.Ref(ref:) -> #(state, doc.from_string(ref_to_type_name(ref)))
@@ -1619,9 +1647,9 @@ fn schema_to_gleam_type(
     schema.Number(_) -> #(state, doc.from_string("Float"))
     schema.Boolean(_) -> #(state, doc.from_string("Bool"))
     schema.Array(_, array_schema) ->
-      array_type(state, array_schema, all_schemas, enum_name_hint)
+      array_type(state, array_schema, all_schemas, enum_name_hint, request_only)
     schema.Object(_, object_schema) ->
-      inline_object_type(state, object_schema, all_schemas)
+      inline_object_type(state, object_schema, all_schemas, request_only)
   }
 
   case required {
@@ -1655,6 +1683,7 @@ fn array_type(
   array_schema: ArraySchema,
   all_schemas: List(#(String, Schema)),
   enum_name_hint: String,
+  request_only: Bool,
 ) -> #(State, Document) {
   let #(state, items_type) =
     schema_to_gleam_type(
@@ -1663,6 +1692,7 @@ fn array_type(
       True,
       all_schemas,
       enum_name_hint,
+      request_only,
     )
   #(
     state,
@@ -1678,10 +1708,20 @@ fn inline_object_type(
   state: State,
   _object_schema: ObjectSchema,
   _all_schemas: List(#(String, Schema)),
+  request_only: Bool,
 ) -> #(State, Document) {
-  // For inline anonymous objects, fall back to a generic type
-  let state = import_qualified(state, "gleam/dynamic", "type Dynamic")
-  #(state, doc.from_string("Dynamic"))
+  case request_only {
+    True -> {
+      // For request-only schemas, use json.Json so the value is serializable
+      let state = import_module(state, "gleam/json")
+      #(state, doc.from_string("json.Json"))
+    }
+    False -> {
+      // For response/both schemas, fall back to Dynamic (no decoder for Json)
+      let state = import_qualified(state, "gleam/dynamic", "type Dynamic")
+      #(state, doc.from_string("Dynamic"))
+    }
+  }
 }
 
 fn wrap_optional(state: State, inner: Document) -> #(State, Document) {
@@ -1792,11 +1832,18 @@ fn schema_to_json_expression(
   all_schemas: List(#(String, Schema)),
   enum_name_hint: String,
   optional: Bool,
+  request_only: Bool,
 ) -> #(State, Document) {
   case optional {
     True -> {
       let #(state, encoder_fn) =
-        schema_to_json_encoder_fn(state, schema, all_schemas, enum_name_hint)
+        schema_to_json_encoder_fn(
+          state,
+          schema,
+          all_schemas,
+          enum_name_hint,
+          request_only,
+        )
       #(
         state,
         doc.concat([
@@ -1813,6 +1860,7 @@ fn schema_to_json_expression(
         accessor,
         all_schemas,
         enum_name_hint,
+        request_only,
       )
   }
 }
@@ -1824,6 +1872,7 @@ fn schema_to_json_encoder_fn(
   schema: Schema,
   all_schemas: List(#(String, Schema)),
   enum_name_hint: String,
+  request_only: Bool,
 ) -> #(State, Document) {
   case schema {
     schema.String(_, string_schema) ->
@@ -1838,6 +1887,7 @@ fn schema_to_json_encoder_fn(
           array_schema.items,
           all_schemas,
           enum_name_hint,
+          request_only,
         )
       #(
         state,
@@ -1849,7 +1899,11 @@ fn schema_to_json_encoder_fn(
       )
     }
     schema.Ref(ref:) -> ref_to_json_fn(state, ref, all_schemas)
-    schema.Object(_, _) -> #(state, doc.from_string("fn(_) { json.null() }"))
+    schema.Object(_, _) ->
+      case request_only {
+        True -> #(state, doc.from_string("fn(v) { v }"))
+        False -> #(state, doc.from_string("fn(_) { json.null() }"))
+      }
   }
 }
 
@@ -1884,7 +1938,7 @@ fn ref_to_json_fn(
       #(state, doc.from_string(to_json_fn))
     }
     Ok(schema) ->
-      schema_to_json_encoder_fn(state, schema, all_schemas, type_name)
+      schema_to_json_encoder_fn(state, schema, all_schemas, type_name, False)
     Error(_) -> #(state, doc.from_string("fn(_) { json.null() }"))
   }
 }
@@ -1895,6 +1949,7 @@ fn schema_to_json_expression_inner(
   accessor: String,
   all_schemas: List(#(String, Schema)),
   enum_name_hint: String,
+  request_only: Bool,
 ) -> #(State, Document) {
   case schema {
     schema.String(_, string_schema) ->
@@ -1914,7 +1969,11 @@ fn schema_to_json_expression_inner(
     schema.Array(_, array_schema) ->
       array_to_json(state, array_schema, accessor, all_schemas, enum_name_hint)
     schema.Ref(ref:) -> ref_to_json(state, ref, accessor, all_schemas)
-    schema.Object(_, _) -> #(state, doc.from_string("json.null()"))
+    schema.Object(_, _) ->
+      case request_only {
+        True -> #(state, doc.from_string(accessor))
+        False -> #(state, doc.from_string("json.null()"))
+      }
   }
 }
 
@@ -1960,6 +2019,7 @@ fn array_to_json(
       "item",
       all_schemas,
       enum_name_hint,
+      False,
     )
   #(
     state,
@@ -1994,6 +2054,7 @@ fn ref_to_json(
         accessor,
         all_schemas,
         type_name,
+        False,
       )
     Error(_) -> #(state, doc.from_string("json.null()"))
   }
@@ -2006,8 +2067,9 @@ fn is_field_optional(
   in_required: Bool,
   optionality: Optionality,
 ) -> Bool {
-  // Inline objects map to Dynamic, which can't be constructed directly,
-  // so always treat them as optional regardless of the optionality strategy.
+  // Inline objects map to Dynamic or json.Json, neither of which can be
+  // constructed directly, so always treat them as optional regardless of
+  // the optionality strategy.
   case prop_schema {
     schema.Object(_, _) -> True
     _ ->
@@ -2200,6 +2262,7 @@ fn record_to_json_doc(
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
+  request_only: Bool,
 ) -> #(State, Document) {
   let state = import_module(state, "gleam/json")
   let fn_name = justin.snake_case(type_name) <> "_to_json"
@@ -2223,6 +2286,7 @@ fn record_to_json_doc(
           all_schemas,
           enum_hint,
           optional,
+          request_only,
         )
 
       let pair =
@@ -2273,6 +2337,7 @@ fn record_new_doc(
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
+  request_only: Bool,
 ) -> #(State, Document) {
   let fn_name = "new_" <> justin.snake_case(type_name)
   let indent = config.indent
@@ -2312,6 +2377,7 @@ fn record_new_doc(
               True,
               all_schemas,
               enum_hint,
+              request_only,
             )
           let arg =
             doc.concat([
@@ -2377,6 +2443,7 @@ fn record_with_field_docs(
   object_schema: ObjectSchema,
   all_schemas: List(#(String, Schema)),
   config: Config,
+  request_only: Bool,
 ) -> #(State, List(Document)) {
   let indent = config.indent
   let var_name = justin.snake_case(type_name)
@@ -2396,7 +2463,14 @@ fn record_with_field_docs(
         let enum_hint = type_name <> to_type_name(prop_name)
         // Get the inner type (not wrapped in Option)
         let #(state, inner_type) =
-          schema_to_gleam_type(state, prop_schema, True, all_schemas, enum_hint)
+          schema_to_gleam_type(
+            state,
+            prop_schema,
+            True,
+            all_schemas,
+            enum_hint,
+            request_only,
+          )
 
         let state = import_qualified(state, "gleam/option", "Some")
 

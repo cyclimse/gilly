@@ -1381,9 +1381,9 @@ pub opaque type CreateContainerRequest {
     /// Description of the container.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(json.Json),
     /// Health check configuration of the container.
-    health_check: Option(Dynamic),
+    health_check: Option(json.Json),
     /// Configure how HTTP and HTTPS requests are handled.
     /// Possible values:
     /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
@@ -1421,7 +1421,7 @@ pub opaque type CreateContainerRequest {
     /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
     /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
     /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
-    scaling_option: Option(Dynamic),
+    scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
     secret_environment_variables: Option(List(ScalewayContainersV1beta1Secret)),
     /// Tags of the Serverless Container.
@@ -1437,8 +1437,8 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
     #("command", json.nullable(value.command, json.array(_, json.string))),
     #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("health_check", json.nullable(value.health_check, fn(_) { json.null() })),
+    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("health_check", json.nullable(value.health_check, fn(v) { v })),
     #("http_option", json.nullable(value.http_option, create_container_request_http_option_to_json)),
     #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
     #("max_concurrency", json.nullable(value.max_concurrency, json.int)),
@@ -1453,7 +1453,7 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
     #("protocol", json.nullable(value.protocol, create_container_request_protocol_to_json)),
     #("registry_image", json.nullable(value.registry_image, json.string)),
     #("sandbox", json.nullable(value.sandbox, create_container_request_sandbox_to_json)),
-    #("scaling_option", json.nullable(value.scaling_option, fn(_) { json.null() })),
+    #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
     #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_to_json))),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
     #("timeout", json.nullable(value.timeout, json.string)),
@@ -1501,7 +1501,7 @@ pub fn create_container_request_with_description(
 /// Environment variables of the container.
 pub fn create_container_request_with_environment_variables(
   create_container_request: CreateContainerRequest,
-  environment_variables environment_variables: Dynamic,
+  environment_variables environment_variables: json.Json,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
 }
@@ -1509,7 +1509,7 @@ pub fn create_container_request_with_environment_variables(
 /// Health check configuration of the container.
 pub fn create_container_request_with_health_check(
   create_container_request: CreateContainerRequest,
-  health_check health_check: Dynamic,
+  health_check health_check: json.Json,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, health_check: Some(health_check))
 }
@@ -1637,7 +1637,7 @@ pub fn create_container_request_with_sandbox(
 /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
 pub fn create_container_request_with_scaling_option(
   create_container_request: CreateContainerRequest,
-  scaling_option scaling_option: Dynamic,
+  scaling_option scaling_option: json.Json,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, scaling_option: Some(scaling_option))
 }
@@ -1874,9 +1874,9 @@ pub opaque type UpdateContainerRequest {
     /// Description of the container.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(json.Json),
     /// Health check configuration of the container.
-    health_check: Option(Dynamic),
+    health_check: Option(json.Json),
     /// Configure how HTTP and HTTPS requests are handled.
     /// Possible values:
     /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
@@ -1916,7 +1916,7 @@ pub opaque type UpdateContainerRequest {
     /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
     /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
     /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
-    scaling_option: Option(Dynamic),
+    scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
     /// During an update, secret environment variables that are not specified in this field will be kept unchanged.
     /// 
@@ -1944,8 +1944,8 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
     #("command", json.nullable(value.command, json.array(_, json.string))),
     #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
-    #("health_check", json.nullable(value.health_check, fn(_) { json.null() })),
+    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("health_check", json.nullable(value.health_check, fn(v) { v })),
     #("http_option", json.nullable(value.http_option, update_container_request_http_option_to_json)),
     #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
     #("max_concurrency", json.nullable(value.max_concurrency, json.int)),
@@ -1959,7 +1959,7 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
     #("redeploy", json.nullable(value.redeploy, json.bool)),
     #("registry_image", json.nullable(value.registry_image, json.string)),
     #("sandbox", json.nullable(value.sandbox, update_container_request_sandbox_to_json)),
-    #("scaling_option", json.nullable(value.scaling_option, fn(_) { json.null() })),
+    #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
     #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_to_json))),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
     #("timeout", json.nullable(value.timeout, json.string)),
@@ -2007,7 +2007,7 @@ pub fn update_container_request_with_description(
 /// Environment variables of the container.
 pub fn update_container_request_with_environment_variables(
   update_container_request: UpdateContainerRequest,
-  environment_variables environment_variables: Dynamic,
+  environment_variables environment_variables: json.Json,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
 }
@@ -2015,7 +2015,7 @@ pub fn update_container_request_with_environment_variables(
 /// Health check configuration of the container.
 pub fn update_container_request_with_health_check(
   update_container_request: UpdateContainerRequest,
-  health_check health_check: Dynamic,
+  health_check health_check: json.Json,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, health_check: Some(health_check))
 }
@@ -2139,7 +2139,7 @@ pub fn update_container_request_with_sandbox(
 /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
 pub fn update_container_request_with_scaling_option(
   update_container_request: UpdateContainerRequest,
-  scaling_option scaling_option: Dynamic,
+  scaling_option scaling_option: json.Json,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, scaling_option: Some(scaling_option))
 }
@@ -2312,7 +2312,7 @@ pub fn new_create_cron_params(
 pub opaque type CreateCronRequest {
   CreateCronRequest(
     /// Arguments to pass with the cron.
-    args: Option(Dynamic),
+    args: Option(json.Json),
     /// UUID of the container to invoke by the cron.
     container_id: Option(String),
     /// Name of the cron to create.
@@ -2324,7 +2324,7 @@ pub opaque type CreateCronRequest {
 
 pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
   json.object([
-    #("args", json.nullable(value.args, fn(_) { json.null() })),
+    #("args", json.nullable(value.args, fn(v) { v })),
     #("container_id", json.nullable(value.container_id, json.string)),
     #("name", json.nullable(value.name, json.string)),
     #("schedule", json.nullable(value.schedule, json.string)),
@@ -2338,7 +2338,7 @@ pub fn new_create_cron_request() -> CreateCronRequest {
 /// Arguments to pass with the cron.
 pub fn create_cron_request_with_args(
   create_cron_request: CreateCronRequest,
-  args args: Dynamic,
+  args args: json.Json,
 ) -> CreateCronRequest {
   CreateCronRequest(..create_cron_request, args: Some(args))
 }
@@ -2453,7 +2453,7 @@ pub fn new_update_cron_params(
 pub opaque type UpdateCronRequest {
   UpdateCronRequest(
     /// Arguments to pass with the cron.
-    args: Option(Dynamic),
+    args: Option(json.Json),
     /// UUID of the container invoked by the cron.
     container_id: Option(String),
     /// Name of the cron.
@@ -2465,7 +2465,7 @@ pub opaque type UpdateCronRequest {
 
 pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
   json.object([
-    #("args", json.nullable(value.args, fn(_) { json.null() })),
+    #("args", json.nullable(value.args, fn(v) { v })),
     #("container_id", json.nullable(value.container_id, json.string)),
     #("name", json.nullable(value.name, json.string)),
     #("schedule", json.nullable(value.schedule, json.string)),
@@ -2479,7 +2479,7 @@ pub fn new_update_cron_request() -> UpdateCronRequest {
 /// Arguments to pass with the cron.
 pub fn update_cron_request_with_args(
   update_cron_request: UpdateCronRequest,
-  args args: Dynamic,
+  args args: json.Json,
 ) -> UpdateCronRequest {
   UpdateCronRequest(..update_cron_request, args: Some(args))
 }
@@ -2810,7 +2810,7 @@ pub opaque type CreateNamespaceRequest {
     /// Description of the namespace to create.
     description: Option(String),
     /// Environment variables of the namespace to create.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(json.Json),
     /// Name of the namespace to create.
     name: Option(String),
     /// UUID of the Project in which the namespace will be created.
@@ -2826,7 +2826,7 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
   json.object([
     #("activate_vpc_integration", json.nullable(value.activate_vpc_integration, json.bool)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
+    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
     #("name", json.nullable(value.name, json.string)),
     #("project_id", json.nullable(value.project_id, json.string)),
     #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_to_json))),
@@ -2858,7 +2858,7 @@ pub fn create_namespace_request_with_description(
 /// Environment variables of the namespace to create.
 pub fn create_namespace_request_with_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
-  environment_variables environment_variables: Dynamic,
+  environment_variables environment_variables: json.Json,
 ) -> CreateNamespaceRequest {
   CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
 }
@@ -2983,7 +2983,7 @@ pub opaque type UpdateNamespaceRequest {
     /// Description of the namespace to update.
     description: Option(String),
     /// Environment variables of the namespace to update.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(json.Json),
     /// Secret environment variables of the namespace to update.
     secret_environment_variables: Option(List(ScalewayContainersV1beta1Secret)),
     /// Tags of the Serverless Container Namespace.
@@ -2994,7 +2994,7 @@ pub opaque type UpdateNamespaceRequest {
 pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.Json {
   json.object([
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(_) { json.null() })),
+    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
     #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.array(_, scaleway_containers_v1beta1_secret_to_json))),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
   ])
@@ -3015,7 +3015,7 @@ pub fn update_namespace_request_with_description(
 /// Environment variables of the namespace to update.
 pub fn update_namespace_request_with_environment_variables(
   update_namespace_request: UpdateNamespaceRequest,
-  environment_variables environment_variables: Dynamic,
+  environment_variables environment_variables: json.Json,
 ) -> UpdateNamespaceRequest {
   UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
 }
@@ -3349,9 +3349,9 @@ pub opaque type CreateTriggerRequest {
     /// Name of the trigger.
     name: String,
     /// Configuration for a Scaleway Messaging and Queuing NATS subject.
-    scw_nats_config: Option(Dynamic),
+    scw_nats_config: Option(json.Json),
     /// Configuration for a Scaleway Messaging and Queuing SQS queue.
-    scw_sqs_config: Option(Dynamic),
+    scw_sqs_config: Option(json.Json),
   )
 }
 
@@ -3360,8 +3360,8 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
     #("container_id", json.string(value.container_id)),
     #("description", json.nullable(value.description, json.string)),
     #("name", json.string(value.name)),
-    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(_) { json.null() })),
-    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(_) { json.null() })),
+    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(v) { v })),
+    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(v) { v })),
   ])
 }
 
@@ -3383,7 +3383,7 @@ pub fn create_trigger_request_with_description(
 /// Configuration for a Scaleway Messaging and Queuing NATS subject.
 pub fn create_trigger_request_with_scw_nats_config(
   create_trigger_request: CreateTriggerRequest,
-  scw_nats_config scw_nats_config: Dynamic,
+  scw_nats_config scw_nats_config: json.Json,
 ) -> CreateTriggerRequest {
   CreateTriggerRequest(..create_trigger_request, scw_nats_config: Some(scw_nats_config))
 }
@@ -3391,7 +3391,7 @@ pub fn create_trigger_request_with_scw_nats_config(
 /// Configuration for a Scaleway Messaging and Queuing SQS queue.
 pub fn create_trigger_request_with_scw_sqs_config(
   create_trigger_request: CreateTriggerRequest,
-  scw_sqs_config scw_sqs_config: Dynamic,
+  scw_sqs_config scw_sqs_config: json.Json,
 ) -> CreateTriggerRequest {
   CreateTriggerRequest(..create_trigger_request, scw_sqs_config: Some(scw_sqs_config))
 }
