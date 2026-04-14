@@ -1,6 +1,8 @@
 import gleam/io
+import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/result
+import gleam/string
 
 import argv
 import clip.{type Command}
@@ -22,6 +24,7 @@ type Args {
     optionality: codegen.Optionality,
     indent: Int,
     optional_query_params: Bool,
+    client_default_parameters: List(String),
   )
   Version
 }
@@ -77,6 +80,19 @@ fn optional_query_params_flag() -> flag.Flag {
   |> flag.help("Make query parameters optional (default: false)")
 }
 
+fn client_default_parameters_opt() -> opt.Opt(List(String)) {
+  opt.new("client-default-parameters")
+  |> opt.help(
+    "Comma-separated list of parameter names to promote to the Client type as defaults (e.g. \"region\")",
+  )
+  |> opt.map(fn(s) {
+    string.split(s, ",")
+    |> list.map(string.trim)
+    |> list.filter(fn(s) { s != "" })
+  })
+  |> opt.default([])
+}
+
 fn generate_command() -> Command(Args) {
   clip.command({
     use source <- clip.parameter
@@ -84,13 +100,22 @@ fn generate_command() -> Command(Args) {
     use optionality <- clip.parameter
     use indent <- clip.parameter
     use optional_query_params <- clip.parameter
-    Generate(source:, output:, optionality:, indent:, optional_query_params:)
+    use client_default_parameters <- clip.parameter
+    Generate(
+      source:,
+      output:,
+      optionality:,
+      indent:,
+      optional_query_params:,
+      client_default_parameters:,
+    )
   })
   |> clip.arg(source_arg())
   |> clip.opt(output_opt())
   |> clip.opt(optionality_opt())
   |> clip.opt(indent_opt())
   |> clip.flag(optional_query_params_flag())
+  |> clip.opt(client_default_parameters_opt())
   |> clip.help(help.simple(
     "generate",
     "Generate code from an OpenAPI specification",
@@ -130,12 +155,20 @@ pub fn main() -> Nil {
 fn run(args: Args) -> Nil {
   case args {
     Version -> io.println("Gilly version " <> version)
-    Generate(source:, output:, optionality:, indent:, optional_query_params:) -> {
+    Generate(
+      source:,
+      output:,
+      optionality:,
+      indent:,
+      optional_query_params:,
+      client_default_parameters:,
+    ) -> {
       let builder =
         gilly.new()
         |> gilly.with_optionality(optionality)
         |> gilly.with_indent(indent)
         |> gilly.with_optional_query_params(optional_query_params)
+        |> gilly.with_client_default_parameters(client_default_parameters)
 
       case gilly.generate_code_from_file(builder, source) {
         Ok(code) -> {

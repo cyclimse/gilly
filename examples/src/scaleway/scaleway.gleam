@@ -15,13 +15,16 @@ pub fn main() {
   let region = envoy.get("SCW_REGION") |> result.unwrap(default_region)
 
   let api_client =
-    client.new(fn(req) {
-      let req = request.prepend_header(req, "X-Auth-Token", scw_secret_key)
-      httpc.send(req)
-      |> result.map_error(fn(e) { "HTTP error: " <> string.inspect(e) })
-    })
+    client.new(
+      fn(req) {
+        let req = request.prepend_header(req, "X-Auth-Token", scw_secret_key)
+        httpc.send(req)
+        |> result.map_error(fn(e) { "HTTP error: " <> string.inspect(e) })
+      },
+      region: region,
+    )
 
-  let params = client.new_list_containers_request(region: region)
+  let params = client.new_list_containers_request()
 
   let assert Ok(resp) =
     client.list_containers(request: params, client: api_client)

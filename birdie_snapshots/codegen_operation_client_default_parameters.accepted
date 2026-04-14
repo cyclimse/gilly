@@ -1,0 +1,135 @@
+---
+version: 1.5.4
+title: codegen operation client default parameters
+---
+import gleam/dynamic/decode
+import gleam/http
+import gleam/http/request
+import gleam/http/response
+import gleam/int
+import gleam/json
+import gleam/list
+import gleam/option.{None, Some, type Option}
+import gleam/result
+
+pub type ApiError(err) {
+  JsonDecodeError(json.DecodeError)
+  ClientError(err)
+}
+
+pub opaque type Client(err) {
+  Client(
+    http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+    base_url: String,
+    region: String,
+  )
+}
+
+pub fn new(
+  http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
+  region region: String,
+) -> Client(err) {
+  Client(http_client:, base_url: "", region:)
+}
+
+pub fn with_base_url(
+  client: Client(err),
+  base_url: String,
+) -> Client(err) {
+  Client(..client, base_url:)
+}
+
+pub fn with_region(
+  client: Client(err),
+  region region: String,
+) -> Client(err) {
+  Client(..client, region:)
+}
+
+pub opaque type ListRegionContainersRequest {
+  ListRegionContainersRequest(
+    region: Option(String),
+    page: Option(Int),
+    name: Option(String),
+  )
+}
+
+pub fn new_list_region_containers_request() -> ListRegionContainersRequest {
+  ListRegionContainersRequest(region: None, page: None, name: None)
+}
+
+pub fn list_region_containers_request_with_region(
+  list_region_containers_request: ListRegionContainersRequest,
+  region region: String,
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, region: Some(region))
+}
+
+pub fn list_region_containers_request_with_page(
+  list_region_containers_request: ListRegionContainersRequest,
+  page page: Int,
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, page: Some(page))
+}
+
+pub fn list_region_containers_request_with_name(
+  list_region_containers_request: ListRegionContainersRequest,
+  name name: String,
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, name: Some(name))
+}
+
+/// List containers in region
+pub fn list_region_containers(
+  request params: ListRegionContainersRequest,
+  client client: Client(err),
+) -> Result(Nil, ApiError(err)) {
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/regions/" <> region <> "/containers")
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let query = []
+  let query = list.append(query, option.values([
+    option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
+    option.map(params.name, fn(v) { #("name", v) }),
+  ]))
+  let req = request.set_query(req, query)
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  let _ = resp
+  Ok(Nil)
+}
+
+pub opaque type DeleteContainerRequest {
+  DeleteContainerRequest(
+    region: Option(String),
+    container_id: String,
+  )
+}
+
+pub fn new_delete_container_request(
+  container_id container_id: String,
+) -> DeleteContainerRequest {
+  DeleteContainerRequest(region: None, container_id:)
+}
+
+pub fn delete_container_request_with_region(
+  delete_container_request: DeleteContainerRequest,
+  region region: String,
+) -> DeleteContainerRequest {
+  DeleteContainerRequest(..delete_container_request, region: Some(region))
+}
+
+/// Delete a container
+pub fn delete_container(
+  request params: DeleteContainerRequest,
+  client client: Client(err),
+) -> Result(Nil, ApiError(err)) {
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/regions/" <> region <> "/containers/" <> params.container_id)
+  let req = request.set_method(req, http.Delete)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  let _ = resp
+  Ok(Nil)
+}
+
