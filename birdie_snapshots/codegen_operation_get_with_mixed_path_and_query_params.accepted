@@ -39,8 +39,8 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type ListRegionContainersParams {
-  ListRegionContainersParams(
+pub opaque type ListRegionContainersRequest {
+  ListRegionContainersRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -48,37 +48,37 @@ pub opaque type ListRegionContainersParams {
   )
 }
 
-pub fn new_list_region_containers_params(
+pub fn new_list_region_containers_request(
   region region: String,
-) -> ListRegionContainersParams {
-  ListRegionContainersParams(region:, page: None, page_size: None, name: None)
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(region:, page: None, page_size: None, name: None)
 }
 
-pub fn list_region_containers_params_with_page(
-  list_region_containers_params: ListRegionContainersParams,
+pub fn list_region_containers_request_with_page(
+  list_region_containers_request: ListRegionContainersRequest,
   page page: Int,
-) -> ListRegionContainersParams {
-  ListRegionContainersParams(..list_region_containers_params, page: Some(page))
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, page: Some(page))
 }
 
-pub fn list_region_containers_params_with_page_size(
-  list_region_containers_params: ListRegionContainersParams,
+pub fn list_region_containers_request_with_page_size(
+  list_region_containers_request: ListRegionContainersRequest,
   page_size page_size: Int,
-) -> ListRegionContainersParams {
-  ListRegionContainersParams(..list_region_containers_params, page_size: Some(page_size))
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, page_size: Some(page_size))
 }
 
-pub fn list_region_containers_params_with_name(
-  list_region_containers_params: ListRegionContainersParams,
+pub fn list_region_containers_request_with_name(
+  list_region_containers_request: ListRegionContainersRequest,
   name name: String,
-) -> ListRegionContainersParams {
-  ListRegionContainersParams(..list_region_containers_params, name: Some(name))
+) -> ListRegionContainersRequest {
+  ListRegionContainersRequest(..list_region_containers_request, name: Some(name))
 }
 
 /// List containers in region
 pub fn list_region_containers(
-  client: Client(err),
-  params params: ListRegionContainersParams,
+  request params: ListRegionContainersRequest,
+  client client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/regions/" <> params.region <> "/containers")
   let req = request.set_method(req, http.Get)

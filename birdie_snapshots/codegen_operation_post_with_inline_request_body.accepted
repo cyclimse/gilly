@@ -1,6 +1,8 @@
 ---
 version: 1.5.4
 title: codegen operation post with inline request body
+file: ./test/gilly/internal/codegen_test.gleam
+test_name: post_with_inline_request_body_test
 ---
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
@@ -36,20 +38,9 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type CreateContainerParams {
-  CreateContainerParams(
-    region: String,
-  )
-}
-
-pub fn new_create_container_params(
-  region region: String,
-) -> CreateContainerParams {
-  CreateContainerParams(region:)
-}
-
 pub opaque type CreateContainerRequest {
   CreateContainerRequest(
+    region: String,
     name: String,
     description: Option(String),
     min_scale: Option(Int),
@@ -65,9 +56,10 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
 }
 
 pub fn new_create_container_request(
+  region region: String,
   name name: String,
 ) -> CreateContainerRequest {
-  CreateContainerRequest(name:, description: None, min_scale: None)
+  CreateContainerRequest(region:, name:, description: None, min_scale: None)
 }
 
 pub fn create_container_request_with_description(
@@ -86,14 +78,13 @@ pub fn create_container_request_with_min_scale(
 
 /// Create a new container
 pub fn create_container(
-  client: Client(err),
-  params params: CreateContainerParams,
-  body body: CreateContainerRequest,
+  request params: CreateContainerRequest,
+  client client: Client(err),
 ) -> Result(Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/" <> params.region <> "/containers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_container_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, container_decoder())
   |> result.map_error(JsonDecodeError)

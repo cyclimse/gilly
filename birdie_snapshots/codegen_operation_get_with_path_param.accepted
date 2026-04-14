@@ -37,22 +37,22 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type GetPetByIdParams {
-  GetPetByIdParams(
+pub opaque type GetPetByIdRequest {
+  GetPetByIdRequest(
     pet_id: Int,
   )
 }
 
-pub fn new_get_pet_by_id_params(
+pub fn new_get_pet_by_id_request(
   pet_id pet_id: Int,
-) -> GetPetByIdParams {
-  GetPetByIdParams(pet_id:)
+) -> GetPetByIdRequest {
+  GetPetByIdRequest(pet_id:)
 }
 
 /// Find pet by ID
 pub fn get_pet_by_id(
-  client: Client(err),
-  params params: GetPetByIdParams,
+  request params: GetPetByIdRequest,
+  client client: Client(err),
 ) -> Result(Pet, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Get)

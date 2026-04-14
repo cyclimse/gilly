@@ -36,22 +36,22 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type FindPetsByTagsParams {
-  FindPetsByTagsParams(
+pub opaque type FindPetsByTagsRequest {
+  FindPetsByTagsRequest(
     tags: List(String),
   )
 }
 
-pub fn new_find_pets_by_tags_params(
+pub fn new_find_pets_by_tags_request(
   tags tags: List(String),
-) -> FindPetsByTagsParams {
-  FindPetsByTagsParams(tags:)
+) -> FindPetsByTagsRequest {
+  FindPetsByTagsRequest(tags:)
 }
 
 /// Find pets by tags
 pub fn find_pets_by_tags(
-  client: Client(err),
-  params params: FindPetsByTagsParams,
+  request params: FindPetsByTagsRequest,
+  client client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/findByTags")
   let req = request.set_method(req, http.Get)
