@@ -1,8 +1,6 @@
 ---
 version: 1.5.4
 title: codegen operation delete with path param
-file: ./test/gilly/internal/codegen_test.gleam
-test_name: delete_with_path_param_test
 ---
 import gleam/dynamic/decode
 import gleam/http
@@ -37,22 +35,22 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type DeletePetParams {
-  DeletePetParams(
+pub opaque type DeletePetRequest {
+  DeletePetRequest(
     pet_id: Int,
   )
 }
 
-pub fn new_delete_pet_params(
+pub fn new_delete_pet_request(
   pet_id pet_id: Int,
-) -> DeletePetParams {
-  DeletePetParams(pet_id:)
+) -> DeletePetRequest {
+  DeletePetRequest(pet_id:)
 }
 
 /// Deletes a pet
 pub fn delete_pet(
-  client: Client(err),
-  params params: DeletePetParams,
+  request params: DeletePetRequest,
+  client client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet/" <> int.to_string(params.pet_id))
   let req = request.set_method(req, http.Delete)

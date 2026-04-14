@@ -561,6 +561,13 @@ fn path_item_to_docs(
   })
 }
 
+/// Describes the kind of request body an operation has.
+type BodyInfo {
+  NoBody
+  RefBody(type_doc: Document, schema: Schema)
+  InlineBody(base: BaseSchema, obj_schema: ObjectSchema)
+}
+
 fn operation_doc(
   state: State,
   path: String,
@@ -571,6 +578,7 @@ fn operation_doc(
 ) -> #(State, Document) {
   let indent = config.indent
   let fn_name = operation_fn_name(op, path, method)
+  let request_type_name = to_type_name(fn_name) <> "Request"
 
   // Separate path and query parameters
   let path_params = list.filter(op.parameters, fn(p) { p.in_ == Path })
@@ -585,120 +593,168 @@ fn operation_doc(
 
   let has_params = !list.is_empty(path_params) || !list.is_empty(query_params)
 
-  // Build the request body type (if any)
-  // If the body is an inline object, generate a named schema for it so we get
-  // a proper type + to_json encoder instead of Dynamic/json.null().
-  let #(state, body_param, inline_body_docs, all_schemas) = case
-    op.request_body
-  {
+  // Determine body kind: None, $ref, or inline object
+  let #(state, body_info) = case op.request_body {
     Some(rb) -> {
       let #(state, param) = request_body_param(state, rb, all_schemas)
       case param {
-        Some(#(arg_name, _type_doc, schema.Object(base, obj_schema))) -> {
-          // Derive a name from the operation id, e.g. "CreateContainer" -> "CreateContainerRequest"
-          let request_type_name = case op.operation_id {
-            Some(id) -> to_type_name(id) <> "Request"
-            None -> "RequestBody"
-          }
-          // Register the inline body schema as RequestOnly so it gets opaque type
-          let state =
-            State(
-              ..state,
-              schema_usages: dict.insert(
-                state.schema_usages,
-                request_type_name,
-                RequestOnly,
-              ),
-            )
-          // Track enums registered before schema generation
-          let enums_before = state.enums
-          // Generate schema docs (type + decoder + to_json) for the inline body
-          let #(state, schema_doc) =
-            schema_to_type_doc(
-              state,
-              request_type_name,
-              schema.Object(base, obj_schema),
-              all_schemas,
-              config,
-            )
-          // Generate enum docs for any enums newly registered by the inline body
-          let new_enums =
-            dict.to_list(state.enums)
-            |> list.filter(fn(entry) { !dict.has_key(enums_before, entry.0) })
-          let enum_docs = case new_enums {
-            [] -> []
-            _ -> {
-              let temp_state = State(..state, enums: dict.from_list(new_enums))
-              [enums_doc(temp_state, config.indent)]
-            }
-          }
-          // Replace the body param with a Ref to the generated type
-          let ref_schema =
-            schema.Ref(ref: "#/components/schemas/" <> request_type_name)
-          let type_doc = doc.from_string(request_type_name)
-          // Add the inline schema to all_schemas so ref_to_json can find it
-          let all_schemas = [
-            #(request_type_name, schema.Object(base, obj_schema)),
-            ..all_schemas
-          ]
-          #(
-            state,
-            Some(#(arg_name, type_doc, ref_schema)),
-            list.flatten([enum_docs, [schema_doc]]),
-            all_schemas,
-          )
-        }
-        _ -> #(state, param, [], all_schemas)
+        Some(#(_arg_name, _type_doc, schema.Object(base, obj_schema))) -> #(
+          state,
+          InlineBody(base, obj_schema),
+        )
+        Some(#(_arg_name, type_doc, schema)) -> #(
+          state,
+          RefBody(type_doc, schema),
+        )
+        None -> #(state, NoBody)
       }
     }
-    None -> #(state, None, [], all_schemas)
+    None -> #(state, NoBody)
   }
 
   // Build the response type from the 200/201 response
   let #(state, response_type) = response_type_from_op(state, op, all_schemas)
 
-  // Generate params type + constructor + setters if operation has path/query params
-  let params_type_name = to_type_name(fn_name) <> "Params"
-  let #(state, params_docs, params_prefix) = case has_params {
-    True -> {
-      let #(state, pdocs) =
-        operation_params_docs(
+  // Generate request type and determine function arguments + body accessor
+  // Uses "request params:" label trick: external label is "request" (for callers),
+  // internal variable is "params" (avoids shadowing gleam/http/request module).
+  let #(state, request_docs, all_args, body_param, params_prefix, all_schemas) = case
+    body_info,
+    has_params
+  {
+    // Case A: No body, no params → fn(client)
+    NoBody, False -> #(
+      state,
+      [],
+      [doc.from_string("client client: Client(err)")],
+      None,
+      "",
+      all_schemas,
+    )
+
+    // Case B: No body, has params → generate XxxRequest from params
+    NoBody, True -> {
+      let #(state, docs) =
+        operation_request_docs(
           state,
-          params_type_name,
+          request_type_name,
           path_params,
           query_params,
+          None,
           all_schemas,
           config,
         )
-      #(state, pdocs, "params.")
+      #(
+        state,
+        docs,
+        [
+          doc.from_string("request params: " <> request_type_name),
+          doc.from_string("client client: Client(err)"),
+        ],
+        None,
+        "params.",
+        all_schemas,
+      )
     }
-    False -> #(state, [], "")
-  }
 
-  // Build function arguments
-  let client_arg = doc.from_string("client: Client(err)")
+    // Case C: $ref body, no params → fn(body, client)
+    RefBody(type_doc, body_schema), False -> #(
+      state,
+      [],
+      [
+        doc.concat([doc.from_string("body: "), type_doc]),
+        doc.from_string("client client: Client(err)"),
+      ],
+      Some(#("body", type_doc, body_schema)),
+      "",
+      all_schemas,
+    )
 
-  let params_arg = case has_params {
-    True -> [doc.from_string("params params: " <> params_type_name)]
-    False -> []
-  }
-
-  let #(state, body_args) = case body_param {
-    Some(#(arg_name, type_doc, _schema)) -> {
-      let arg =
-        doc.concat([
-          doc.from_string(arg_name <> " " <> arg_name <> ": "),
-          type_doc,
-        ])
-      #(state, [arg])
+    // Case D: $ref body, has params → wrapper XxxRequest with params + body field
+    RefBody(type_doc, body_schema), True -> {
+      let #(state, docs) =
+        operation_request_docs(
+          state,
+          request_type_name,
+          path_params,
+          query_params,
+          Some(#("body", type_doc)),
+          all_schemas,
+          config,
+        )
+      // body_param accessor is "params.body" since the body is a field on the request
+      let ref_schema = body_schema
+      #(
+        state,
+        docs,
+        [
+          doc.from_string("request params: " <> request_type_name),
+          doc.from_string("client client: Client(err)"),
+        ],
+        Some(#("params.body", type_doc, ref_schema)),
+        "params.",
+        all_schemas,
+      )
     }
-    None -> #(state, [])
-  }
 
-  let all_args =
-    [client_arg]
-    |> list.append(params_arg)
-    |> list.append(body_args)
+    // Case E: Inline body, no params → generate XxxRequest from body schema
+    InlineBody(base, obj_schema), False -> {
+      let #(state, docs, all_schemas) =
+        operation_inline_body_request_docs(
+          state,
+          request_type_name,
+          [],
+          [],
+          base,
+          obj_schema,
+          all_schemas,
+          config,
+        )
+      // Body is the request itself, encoded via xxx_to_json(params)
+      let ref_schema =
+        schema.Ref(ref: "#/components/schemas/" <> request_type_name)
+      #(
+        state,
+        docs,
+        [
+          doc.from_string("request params: " <> request_type_name),
+          doc.from_string("client client: Client(err)"),
+        ],
+        Some(#("params", doc.from_string(request_type_name), ref_schema)),
+        "params.",
+        all_schemas,
+      )
+    }
+
+    // Case F: Inline body, has params → merge params + body into XxxRequest
+    InlineBody(base, obj_schema), True -> {
+      let #(state, docs, all_schemas) =
+        operation_inline_body_request_docs(
+          state,
+          request_type_name,
+          path_params,
+          query_params,
+          base,
+          obj_schema,
+          all_schemas,
+          config,
+        )
+      // Body is the request itself, encoded via xxx_to_json(params)
+      let ref_schema =
+        schema.Ref(ref: "#/components/schemas/" <> request_type_name)
+      #(
+        state,
+        docs,
+        [
+          doc.from_string("request params: " <> request_type_name),
+          doc.from_string("client client: Client(err)"),
+        ],
+        Some(#("params", doc.from_string(request_type_name), ref_schema)),
+        "params.",
+        all_schemas,
+      )
+    }
+  }
 
   // Build URL expression with path parameter substitution
   let url_expr = build_url_expression(path, path_params, params_prefix)
@@ -805,14 +861,12 @@ fn operation_doc(
       doc.from_string("}"),
     ])
 
-  // Prepend params type docs, then inline body schema docs, then the function
-  let prefix_docs = list.flatten([params_docs, inline_body_docs])
-
-  let full_doc = case prefix_docs {
+  // Prepend request type docs, then the function
+  let full_doc = case request_docs {
     [] -> fn_doc
     _ ->
       doc.concat([
-        doc.join(prefix_docs, with: doc.lines(2)),
+        doc.join(request_docs, with: doc.lines(2)),
         doc.lines(2),
         fn_doc,
       ])
@@ -821,13 +875,14 @@ fn operation_doc(
   #(state, full_doc)
 }
 
-/// Generate the Params type, new_ constructor, and with_ setters for an operation's
-/// path and query parameters.
-fn operation_params_docs(
+/// Generate the Request type, new_ constructor, and with_ setters for an operation's
+/// path and query parameters, optionally including a body $ref field.
+fn operation_request_docs(
   state: State,
   type_name: String,
   path_params: List(Parameter),
   query_params: List(Parameter),
+  body_ref: Option(#(String, Document)),
   all_schemas: List(#(String, Schema)),
   config: Config,
 ) -> #(State, List(Document)) {
@@ -853,6 +908,16 @@ fn operation_params_docs(
       }
       #(state, list.append(fields, [field_doc]))
     })
+
+  // Add body $ref field if present (always required)
+  let fields = case body_ref {
+    Some(#(name, btype_doc)) -> {
+      let field_doc =
+        doc.concat([doc.from_string(to_field_name(name) <> ": "), btype_doc])
+      list.append(fields, [field_doc])
+    }
+    None -> fields
+  }
 
   // Import Option type if there are optional params
   let has_optional = list.any(all_params, fn(p) { !p.required })
@@ -890,7 +955,7 @@ fn operation_params_docs(
       ])
   }
 
-  // Constructor: takes required params (path params + required query params)
+  // Constructor: takes required params (path params + required query params) + body ref
   let required_params = list.filter(all_params, fn(p) { p.required })
   let optional_params = list.filter(all_params, fn(p) { !p.required })
 
@@ -912,6 +977,21 @@ fn operation_params_docs(
       #(state, list.append(args, [arg]))
     })
 
+  // Add body ref as a required constructor arg
+  let required_args = case body_ref {
+    Some(#(name, btype_doc)) -> {
+      let arg =
+        doc.concat([
+          doc.from_string(
+            to_field_name(name) <> " " <> to_field_name(name) <> ": ",
+          ),
+          btype_doc,
+        ])
+      list.append(required_args, [arg])
+    }
+    None -> required_args
+  }
+
   let field_inits =
     list.map(all_params, fn(param) {
       let field_name = to_field_name(param.name)
@@ -920,6 +1000,12 @@ fn operation_params_docs(
         False -> field_name <> ": None"
       }
     })
+
+  // Add body ref field init
+  let field_inits = case body_ref {
+    Some(#(name, _)) -> list.append(field_inits, [to_field_name(name) <> ":"])
+    None -> field_inits
+  }
 
   let constructor_body =
     doc.from_string(type_name <> "(" <> string.join(field_inits, ", ") <> ")")
@@ -1010,6 +1096,355 @@ fn operation_params_docs(
     |> list.append(setters)
 
   #(state, all_docs)
+}
+
+/// Generate a Request type that merges path/query params with inline body fields.
+/// The to_json encoder only serializes body fields, not param fields.
+fn operation_inline_body_request_docs(
+  state: State,
+  type_name: String,
+  path_params: List(Parameter),
+  query_params: List(Parameter),
+  body_base: BaseSchema,
+  body_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, List(Document), List(#(String, Schema))) {
+  let indent = config.indent
+  let request_only = True
+  let all_params = list.append(path_params, query_params)
+
+  // Register as RequestOnly so it gets opaque type
+  let state =
+    State(
+      ..state,
+      schema_usages: dict.insert(state.schema_usages, type_name, RequestOnly),
+    )
+
+  // Track enums registered before schema generation
+  let enums_before = state.enums
+
+  // --- Build type definition fields ---
+
+  // Param fields
+  let #(state, param_fields) =
+    list.fold(all_params, #(state, []), fn(acc, param) {
+      let #(state, fields) = acc
+      let field_name = to_field_name(param.name)
+      let #(state, type_doc) = param_to_type(state, param, all_schemas)
+      let field_doc = case param.required {
+        True -> doc.concat([doc.from_string(field_name <> ": "), type_doc])
+        False ->
+          doc.concat([
+            doc.from_string(field_name <> ": Option("),
+            type_doc,
+            doc.from_string(")"),
+          ])
+      }
+      #(state, list.append(fields, [field_doc]))
+    })
+
+  // Body fields (same logic as object_type_doc)
+  let #(state, body_fields) =
+    list.fold(body_schema.properties, #(state, []), fn(acc, prop) {
+      let #(state, fields) = acc
+      let #(prop_name, prop_schema) = prop
+      let field_name = to_field_name(prop_name)
+      let in_required = list.contains(body_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      let enum_hint = type_name <> to_type_name(prop_name)
+      let #(state, field_type) =
+        schema_to_gleam_type(
+          state,
+          prop_schema,
+          !optional,
+          all_schemas,
+          enum_hint,
+          request_only,
+        )
+
+      let field_line =
+        doc.concat([doc.from_string(field_name <> ": "), field_type])
+
+      let field_doc = case schema_description(prop_schema) {
+        Some(comment) -> doc.concat([comment, doc.line, field_line])
+        None -> field_line
+      }
+
+      #(state, [field_doc, ..fields])
+    })
+  let body_fields = list.reverse(body_fields)
+
+  let all_fields = list.append(param_fields, body_fields)
+
+  // Import Option if there are optional params or body fields
+  let has_optional_params = list.any(all_params, fn(p) { !p.required })
+  let state = case has_optional_params {
+    True -> import_qualified(state, "gleam/option", "type Option")
+    False -> state
+  }
+
+  // Type definition (always opaque for RequestOnly)
+  let comment = base_schema_comment(body_base)
+  let type_body = case all_fields {
+    [] ->
+      doc.concat([
+        doc.from_string("pub opaque type " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        doc.from_string(type_name) |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+    _ ->
+      doc.concat([
+        doc.from_string("pub opaque type " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        doc.concat([
+          doc.from_string(type_name <> "("),
+          doc.line |> doc.nest(by: indent),
+          doc.join(
+            all_fields,
+            with: doc.concat([doc.from_string(","), doc.line]),
+          )
+            |> doc.nest(by: indent),
+          doc.concat([doc.from_string(","), doc.line]),
+          doc.from_string(")"),
+        ])
+          |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+  }
+  let type_doc = case comment {
+    Some(c) -> doc.concat([c, doc.line, type_body])
+    None -> type_body
+  }
+
+  // --- to_json: ONLY body fields ---
+  let #(state, to_json_doc) =
+    record_to_json_doc(
+      state,
+      type_name,
+      body_schema,
+      all_schemas,
+      config,
+      request_only,
+    )
+
+  // --- Constructor: required params + required body fields ---
+  // Classify body fields
+  let body_field_info =
+    list.map(body_schema.properties, fn(prop) {
+      let #(prop_name, prop_schema) = prop
+      let field_name = to_field_name(prop_name)
+      let in_required = list.contains(body_schema.required, prop_name)
+      let optional =
+        is_field_optional(prop_schema, in_required, config.optionality)
+      #(prop_name, field_name, prop_schema, optional)
+    })
+
+  let has_optional_body = list.any(body_field_info, fn(f) { f.3 })
+
+  let state = case has_optional_params || has_optional_body {
+    True -> import_qualified(state, "gleam/option", "None")
+    False -> state
+  }
+
+  // Required param args
+  let #(state, param_required_args) =
+    list.fold(
+      list.filter(all_params, fn(p) { p.required }),
+      #(state, []),
+      fn(acc, param) {
+        let #(state, args) = acc
+        let field_name = to_field_name(param.name)
+        let #(state, type_doc) = param_to_type(state, param, all_schemas)
+        let arg =
+          doc.concat([
+            doc.from_string(field_name <> " " <> field_name <> ": "),
+            type_doc,
+          ])
+        #(state, list.append(args, [arg]))
+      },
+    )
+
+  // Required body field args
+  let #(state, body_required_args) =
+    list.fold(body_field_info, #(state, []), fn(acc, f) {
+      let #(state, args) = acc
+      let #(prop_name, field_name, prop_schema, optional) = f
+      case optional {
+        True -> #(state, args)
+        False -> {
+          let enum_hint = type_name <> to_type_name(prop_name)
+          let #(state, field_type) =
+            schema_to_gleam_type(
+              state,
+              prop_schema,
+              True,
+              all_schemas,
+              enum_hint,
+              request_only,
+            )
+          let arg =
+            doc.concat([
+              doc.from_string(field_name <> " " <> field_name <> ": "),
+              field_type,
+            ])
+          #(state, list.append(args, [arg]))
+        }
+      }
+    })
+
+  let required_args = list.append(param_required_args, body_required_args)
+
+  // Field initializers
+  let param_inits =
+    list.map(all_params, fn(p) {
+      let field_name = to_field_name(p.name)
+      case p.required {
+        True -> field_name <> ":"
+        False -> field_name <> ": None"
+      }
+    })
+  let body_inits =
+    list.map(body_field_info, fn(f) {
+      let #(_, field_name, _, optional) = f
+      case optional {
+        True -> field_name <> ": None"
+        False -> field_name <> ":"
+      }
+    })
+  let field_inits = list.append(param_inits, body_inits)
+
+  let constructor_body =
+    doc.from_string(type_name <> "(" <> string.join(field_inits, ", ") <> ")")
+
+  let constructor_fn_name = "new_" <> justin.snake_case(type_name)
+  let constructor_doc = case required_args {
+    [] ->
+      doc.concat([
+        doc.from_string(
+          "pub fn " <> constructor_fn_name <> "() -> " <> type_name <> " {",
+        ),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+    _ ->
+      doc.concat([
+        doc.from_string("pub fn " <> constructor_fn_name <> "("),
+        doc.line |> doc.nest(by: indent),
+        doc.join(
+          required_args,
+          with: doc.concat([doc.from_string(","), doc.line]),
+        )
+          |> doc.nest(by: indent),
+        doc.concat([doc.from_string(","), doc.line]),
+        doc.from_string(") -> " <> type_name <> " {"),
+        doc.line |> doc.nest(by: indent),
+        constructor_body |> doc.nest(by: indent),
+        doc.line,
+        doc.from_string("}"),
+      ])
+  }
+
+  // --- Setters: optional params + optional body fields ---
+
+  // Param setters
+  let var_name = justin.snake_case(type_name)
+  let optional_params = list.filter(all_params, fn(p) { !p.required })
+  let #(state, param_setters) =
+    list.fold(optional_params, #(state, []), fn(acc, param) {
+      let #(state, setters) = acc
+      let field_name = to_field_name(param.name)
+      let setter_fn_name =
+        justin.snake_case(type_name) <> "_with_" <> field_name
+      let #(state, inner_type) = param_to_type(state, param, all_schemas)
+      let state = import_qualified(state, "gleam/option", "Some")
+
+      let comment_part = case param.description {
+        Some(desc) -> [description_to_comment(desc), doc.line]
+        None -> []
+      }
+
+      let setter_doc =
+        doc.concat(
+          list.append(comment_part, [
+            doc.from_string("pub fn " <> setter_fn_name <> "("),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(var_name <> ": " <> type_name <> ",")
+              |> doc.nest(by: indent),
+            doc.line |> doc.nest(by: indent),
+            doc.concat([
+              doc.from_string(field_name <> " " <> field_name <> ": "),
+              inner_type,
+              doc.from_string(","),
+            ])
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string(") -> " <> type_name <> " {"),
+            doc.line |> doc.nest(by: indent),
+            doc.from_string(
+              type_name
+              <> "(.."
+              <> var_name
+              <> ", "
+              <> field_name
+              <> ": Some("
+              <> field_name
+              <> "))",
+            )
+              |> doc.nest(by: indent),
+            doc.line,
+            doc.from_string("}"),
+          ]),
+        )
+
+      #(state, list.append(setters, [setter_doc]))
+    })
+
+  // Body field setters (reuse record_with_field_docs)
+  let #(state, body_setters) =
+    record_with_field_docs(
+      state,
+      type_name,
+      body_schema,
+      all_schemas,
+      config,
+      request_only,
+    )
+
+  let all_setters = list.append(param_setters, body_setters)
+
+  // --- Enum docs for any newly discovered enums ---
+  let new_enums =
+    dict.to_list(state.enums)
+    |> list.filter(fn(entry) { !dict.has_key(enums_before, entry.0) })
+  let enum_docs = case new_enums {
+    [] -> []
+    _ -> {
+      let temp_state = State(..state, enums: dict.from_list(new_enums))
+      [enums_doc(temp_state, config.indent)]
+    }
+  }
+
+  // Add the inline schema to all_schemas so ref_to_json can find it
+  let all_schemas = [
+    #(type_name, schema.Object(body_base, body_schema)),
+    ..all_schemas
+  ]
+
+  let all_docs =
+    list.flatten([
+      enum_docs,
+      [type_doc, to_json_doc, constructor_doc],
+      all_setters,
+    ])
+
+  #(state, all_docs, all_schemas)
 }
 
 fn operation_fn_name(op: Operation, path: String, method: String) -> String {

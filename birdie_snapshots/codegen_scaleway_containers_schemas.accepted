@@ -1153,8 +1153,8 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type ListContainersParams {
-  ListContainersParams(
+pub opaque type ListContainersRequest {
+  ListContainersRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -1166,65 +1166,65 @@ pub opaque type ListContainersParams {
   )
 }
 
-pub fn new_list_containers_params(
+pub fn new_list_containers_request(
   region region: String,
   namespace_id namespace_id: String,
-) -> ListContainersParams {
-  ListContainersParams(region:, page: None, page_size: None, order_by: None, namespace_id:, name: None, organization_id: None, project_id: None)
+) -> ListContainersRequest {
+  ListContainersRequest(region:, page: None, page_size: None, order_by: None, namespace_id:, name: None, organization_id: None, project_id: None)
 }
 
 /// Page number.
-pub fn list_containers_params_with_page(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_page(
+  list_containers_request: ListContainersRequest,
   page page: Int,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, page: Some(page))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, page: Some(page))
 }
 
 /// Number of containers per page.
-pub fn list_containers_params_with_page_size(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_page_size(
+  list_containers_request: ListContainersRequest,
   page_size page_size: Int,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, page_size: Some(page_size))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, page_size: Some(page_size))
 }
 
 /// Order of the containers.
-pub fn list_containers_params_with_order_by(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_order_by(
+  list_containers_request: ListContainersRequest,
   order_by order_by: String,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, order_by: Some(order_by))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, order_by: Some(order_by))
 }
 
 /// Name of the container.
-pub fn list_containers_params_with_name(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_name(
+  list_containers_request: ListContainersRequest,
   name name: String,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, name: Some(name))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, name: Some(name))
 }
 
 /// UUID of the Organization the container belongs to.
-pub fn list_containers_params_with_organization_id(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_organization_id(
+  list_containers_request: ListContainersRequest,
   organization_id organization_id: String,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, organization_id: Some(organization_id))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, organization_id: Some(organization_id))
 }
 
 /// UUID of the Project the container belongs to.
-pub fn list_containers_params_with_project_id(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_project_id(
+  list_containers_request: ListContainersRequest,
   project_id project_id: String,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, project_id: Some(project_id))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, project_id: Some(project_id))
 }
 
 /// List all your containers
 pub fn list_containers(
-  client: Client(err),
-  params params: ListContainersParams,
+  request params: ListContainersRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListContainersResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers")
   let req = request.set_method(req, http.Get)
@@ -1242,18 +1242,6 @@ pub fn list_containers(
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_list_containers_response_decoder())
   |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type CreateContainerParams {
-  CreateContainerParams(
-    region: String,
-  )
-}
-
-pub fn new_create_container_params(
-  region region: String,
-) -> CreateContainerParams {
-  CreateContainerParams(region:)
 }
 
 pub type CreateContainerRequestHttpOption {
@@ -1370,6 +1358,7 @@ pub fn create_container_request_sandbox_decoder() -> decode.Decoder(CreateContai
 
 pub opaque type CreateContainerRequest {
   CreateContainerRequest(
+    region: String,
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: Option(List(String)),
@@ -1460,8 +1449,10 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
   ])
 }
 
-pub fn new_create_container_request() -> CreateContainerRequest {
-  CreateContainerRequest(args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name: None, namespace_id: None, port: None, privacy: None, private_network_id: None, protocol: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
+pub fn new_create_container_request(
+  region region: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(region:, args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name: None, namespace_id: None, port: None, privacy: None, private_network_id: None, protocol: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
 }
 
 /// Container arguments.
@@ -1668,37 +1659,36 @@ pub fn create_container_request_with_timeout(
 
 /// Create a new container
 pub fn create_container(
-  client: Client(err),
-  params params: CreateContainerParams,
-  body body: CreateContainerRequest,
+  request params: CreateContainerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_container_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetContainerParams {
-  GetContainerParams(
+pub opaque type GetContainerRequest {
+  GetContainerRequest(
     region: String,
     container_id: String,
   )
 }
 
-pub fn new_get_container_params(
+pub fn new_get_container_request(
   region region: String,
   container_id container_id: String,
-) -> GetContainerParams {
-  GetContainerParams(region:, container_id:)
+) -> GetContainerRequest {
+  GetContainerRequest(region:, container_id:)
 }
 
 /// Get a container
 pub fn get_container(
-  client: Client(err),
-  params params: GetContainerParams,
+  request params: GetContainerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Get)
@@ -1708,24 +1698,24 @@ pub fn get_container(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteContainerParams {
-  DeleteContainerParams(
+pub opaque type DeleteContainerRequest {
+  DeleteContainerRequest(
     region: String,
     container_id: String,
   )
 }
 
-pub fn new_delete_container_params(
+pub fn new_delete_container_request(
   region region: String,
   container_id container_id: String,
-) -> DeleteContainerParams {
-  DeleteContainerParams(region:, container_id:)
+) -> DeleteContainerRequest {
+  DeleteContainerRequest(region:, container_id:)
 }
 
 /// Delete a container
 pub fn delete_container(
-  client: Client(err),
-  params params: DeleteContainerParams,
+  request params: DeleteContainerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Delete)
@@ -1733,20 +1723,6 @@ pub fn delete_container(
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
   |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type UpdateContainerParams {
-  UpdateContainerParams(
-    region: String,
-    container_id: String,
-  )
-}
-
-pub fn new_update_container_params(
-  region region: String,
-  container_id container_id: String,
-) -> UpdateContainerParams {
-  UpdateContainerParams(region:, container_id:)
 }
 
 pub type UpdateContainerRequestHttpOption {
@@ -1863,6 +1839,8 @@ pub fn update_container_request_sandbox_decoder() -> decode.Decoder(UpdateContai
 
 pub opaque type UpdateContainerRequest {
   UpdateContainerRequest(
+    region: String,
+    container_id: String,
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: Option(List(String)),
@@ -1966,8 +1944,11 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
   ])
 }
 
-pub fn new_update_container_request() -> UpdateContainerRequest {
-  UpdateContainerRequest(args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy: None, private_network_id: None, protocol: None, redeploy: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
+pub fn new_update_container_request(
+  region region: String,
+  container_id container_id: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(region:, container_id:, args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option: None, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy: None, private_network_id: None, protocol: None, redeploy: None, registry_image: None, sandbox: None, scaling_option: None, secret_environment_variables: None, tags: None, timeout: None)
 }
 
 /// Container arguments.
@@ -2182,62 +2163,52 @@ pub fn update_container_request_with_timeout(
 
 /// Update an existing container
 pub fn update_container(
-  client: Client(err),
-  params params: UpdateContainerParams,
-  body body: UpdateContainerRequest,
+  request params: UpdateContainerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(update_container_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(update_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeployContainerParams {
-  DeployContainerParams(
+pub opaque type DeployContainerRequest {
+  DeployContainerRequest(
     region: String,
     container_id: String,
   )
-}
-
-pub fn new_deploy_container_params(
-  region region: String,
-  container_id container_id: String,
-) -> DeployContainerParams {
-  DeployContainerParams(region:, container_id:)
-}
-
-pub opaque type DeployContainerRequest {
-  DeployContainerRequest
 }
 
 pub fn deploy_container_request_to_json(value: DeployContainerRequest) -> json.Json {
   json.object([])
 }
 
-pub fn new_deploy_container_request() -> DeployContainerRequest {
-  DeployContainerRequest
+pub fn new_deploy_container_request(
+  region region: String,
+  container_id container_id: String,
+) -> DeployContainerRequest {
+  DeployContainerRequest(region:, container_id:)
 }
 
 /// Deploy a container
 pub fn deploy_container(
-  client: Client(err),
-  params params: DeployContainerParams,
-  body body: DeployContainerRequest,
+  request params: DeployContainerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/containers/" <> params.container_id <> "/deploy")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(deploy_container_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(deploy_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type ListCronsParams {
-  ListCronsParams(
+pub opaque type ListCronsRequest {
+  ListCronsRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -2246,41 +2217,41 @@ pub opaque type ListCronsParams {
   )
 }
 
-pub fn new_list_crons_params(
+pub fn new_list_crons_request(
   region region: String,
   container_id container_id: String,
-) -> ListCronsParams {
-  ListCronsParams(region:, page: None, page_size: None, order_by: None, container_id:)
+) -> ListCronsRequest {
+  ListCronsRequest(region:, page: None, page_size: None, order_by: None, container_id:)
 }
 
 /// Page number.
-pub fn list_crons_params_with_page(
-  list_crons_params: ListCronsParams,
+pub fn list_crons_request_with_page(
+  list_crons_request: ListCronsRequest,
   page page: Int,
-) -> ListCronsParams {
-  ListCronsParams(..list_crons_params, page: Some(page))
+) -> ListCronsRequest {
+  ListCronsRequest(..list_crons_request, page: Some(page))
 }
 
 /// Number of crons per page.
-pub fn list_crons_params_with_page_size(
-  list_crons_params: ListCronsParams,
+pub fn list_crons_request_with_page_size(
+  list_crons_request: ListCronsRequest,
   page_size page_size: Int,
-) -> ListCronsParams {
-  ListCronsParams(..list_crons_params, page_size: Some(page_size))
+) -> ListCronsRequest {
+  ListCronsRequest(..list_crons_request, page_size: Some(page_size))
 }
 
 /// Order of the crons.
-pub fn list_crons_params_with_order_by(
-  list_crons_params: ListCronsParams,
+pub fn list_crons_request_with_order_by(
+  list_crons_request: ListCronsRequest,
   order_by order_by: String,
-) -> ListCronsParams {
-  ListCronsParams(..list_crons_params, order_by: Some(order_by))
+) -> ListCronsRequest {
+  ListCronsRequest(..list_crons_request, order_by: Some(order_by))
 }
 
 /// List all your crons
 pub fn list_crons(
-  client: Client(err),
-  params params: ListCronsParams,
+  request params: ListCronsRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListCronsResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons")
   let req = request.set_method(req, http.Get)
@@ -2297,20 +2268,9 @@ pub fn list_crons(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type CreateCronParams {
-  CreateCronParams(
-    region: String,
-  )
-}
-
-pub fn new_create_cron_params(
-  region region: String,
-) -> CreateCronParams {
-  CreateCronParams(region:)
-}
-
 pub opaque type CreateCronRequest {
   CreateCronRequest(
+    region: String,
     /// Arguments to pass with the cron.
     args: Option(json.Json),
     /// UUID of the container to invoke by the cron.
@@ -2331,8 +2291,10 @@ pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
   ])
 }
 
-pub fn new_create_cron_request() -> CreateCronRequest {
-  CreateCronRequest(args: None, container_id: None, name: None, schedule: None)
+pub fn new_create_cron_request(
+  region region: String,
+) -> CreateCronRequest {
+  CreateCronRequest(region:, args: None, container_id: None, name: None, schedule: None)
 }
 
 /// Arguments to pass with the cron.
@@ -2369,37 +2331,36 @@ pub fn create_cron_request_with_schedule(
 
 /// Create a new cron
 pub fn create_cron(
-  client: Client(err),
-  params params: CreateCronParams,
-  body body: CreateCronRequest,
+  request params: CreateCronRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_cron_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_cron_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetCronParams {
-  GetCronParams(
+pub opaque type GetCronRequest {
+  GetCronRequest(
     region: String,
     cron_id: String,
   )
 }
 
-pub fn new_get_cron_params(
+pub fn new_get_cron_request(
   region region: String,
   cron_id cron_id: String,
-) -> GetCronParams {
-  GetCronParams(region:, cron_id:)
+) -> GetCronRequest {
+  GetCronRequest(region:, cron_id:)
 }
 
 /// Get a cron
 pub fn get_cron(
-  client: Client(err),
-  params params: GetCronParams,
+  request params: GetCronRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Get)
@@ -2409,24 +2370,24 @@ pub fn get_cron(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteCronParams {
-  DeleteCronParams(
+pub opaque type DeleteCronRequest {
+  DeleteCronRequest(
     region: String,
     cron_id: String,
   )
 }
 
-pub fn new_delete_cron_params(
+pub fn new_delete_cron_request(
   region region: String,
   cron_id cron_id: String,
-) -> DeleteCronParams {
-  DeleteCronParams(region:, cron_id:)
+) -> DeleteCronRequest {
+  DeleteCronRequest(region:, cron_id:)
 }
 
 /// Delete an existing cron
 pub fn delete_cron(
-  client: Client(err),
-  params params: DeleteCronParams,
+  request params: DeleteCronRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Delete)
@@ -2436,22 +2397,10 @@ pub fn delete_cron(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type UpdateCronParams {
-  UpdateCronParams(
-    region: String,
-    cron_id: String,
-  )
-}
-
-pub fn new_update_cron_params(
-  region region: String,
-  cron_id cron_id: String,
-) -> UpdateCronParams {
-  UpdateCronParams(region:, cron_id:)
-}
-
 pub opaque type UpdateCronRequest {
   UpdateCronRequest(
+    region: String,
+    cron_id: String,
     /// Arguments to pass with the cron.
     args: Option(json.Json),
     /// UUID of the container invoked by the cron.
@@ -2472,8 +2421,11 @@ pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
   ])
 }
 
-pub fn new_update_cron_request() -> UpdateCronRequest {
-  UpdateCronRequest(args: None, container_id: None, name: None, schedule: None)
+pub fn new_update_cron_request(
+  region region: String,
+  cron_id cron_id: String,
+) -> UpdateCronRequest {
+  UpdateCronRequest(region:, cron_id:, args: None, container_id: None, name: None, schedule: None)
 }
 
 /// Arguments to pass with the cron.
@@ -2510,21 +2462,20 @@ pub fn update_cron_request_with_schedule(
 
 /// Update an existing cron
 pub fn update_cron(
-  client: Client(err),
-  params params: UpdateCronParams,
-  body body: UpdateCronRequest,
+  request params: UpdateCronRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/crons/" <> params.cron_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(update_cron_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(update_cron_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type ListDomainsParams {
-  ListDomainsParams(
+pub opaque type ListDomainsRequest {
+  ListDomainsRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -2533,41 +2484,41 @@ pub opaque type ListDomainsParams {
   )
 }
 
-pub fn new_list_domains_params(
+pub fn new_list_domains_request(
   region region: String,
   container_id container_id: String,
-) -> ListDomainsParams {
-  ListDomainsParams(region:, page: None, page_size: None, order_by: None, container_id:)
+) -> ListDomainsRequest {
+  ListDomainsRequest(region:, page: None, page_size: None, order_by: None, container_id:)
 }
 
 /// Page number.
-pub fn list_domains_params_with_page(
-  list_domains_params: ListDomainsParams,
+pub fn list_domains_request_with_page(
+  list_domains_request: ListDomainsRequest,
   page page: Int,
-) -> ListDomainsParams {
-  ListDomainsParams(..list_domains_params, page: Some(page))
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, page: Some(page))
 }
 
 /// Number of domains per page.
-pub fn list_domains_params_with_page_size(
-  list_domains_params: ListDomainsParams,
+pub fn list_domains_request_with_page_size(
+  list_domains_request: ListDomainsRequest,
   page_size page_size: Int,
-) -> ListDomainsParams {
-  ListDomainsParams(..list_domains_params, page_size: Some(page_size))
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, page_size: Some(page_size))
 }
 
 /// Order of the domains.
-pub fn list_domains_params_with_order_by(
-  list_domains_params: ListDomainsParams,
+pub fn list_domains_request_with_order_by(
+  list_domains_request: ListDomainsRequest,
   order_by order_by: String,
-) -> ListDomainsParams {
-  ListDomainsParams(..list_domains_params, order_by: Some(order_by))
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, order_by: Some(order_by))
 }
 
 /// List all custom domains
 pub fn list_domains(
-  client: Client(err),
-  params params: ListDomainsParams,
+  request params: ListDomainsRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListDomainsResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains")
   let req = request.set_method(req, http.Get)
@@ -2584,20 +2535,9 @@ pub fn list_domains(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type CreateDomainParams {
-  CreateDomainParams(
-    region: String,
-  )
-}
-
-pub fn new_create_domain_params(
-  region region: String,
-) -> CreateDomainParams {
-  CreateDomainParams(region:)
-}
-
 pub opaque type CreateDomainRequest {
   CreateDomainRequest(
+    region: String,
     /// UUID of the container to assign the domain to.
     container_id: Option(String),
     /// Domain to assign.
@@ -2612,8 +2552,10 @@ pub fn create_domain_request_to_json(value: CreateDomainRequest) -> json.Json {
   ])
 }
 
-pub fn new_create_domain_request() -> CreateDomainRequest {
-  CreateDomainRequest(container_id: None, hostname: None)
+pub fn new_create_domain_request(
+  region region: String,
+) -> CreateDomainRequest {
+  CreateDomainRequest(region:, container_id: None, hostname: None)
 }
 
 /// UUID of the container to assign the domain to.
@@ -2634,37 +2576,36 @@ pub fn create_domain_request_with_hostname(
 
 /// Create a custom domain
 pub fn create_domain(
-  client: Client(err),
-  params params: CreateDomainParams,
-  body body: CreateDomainRequest,
+  request params: CreateDomainRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_domain_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_domain_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetDomainParams {
-  GetDomainParams(
+pub opaque type GetDomainRequest {
+  GetDomainRequest(
     region: String,
     domain_id: String,
   )
 }
 
-pub fn new_get_domain_params(
+pub fn new_get_domain_request(
   region region: String,
   domain_id domain_id: String,
-) -> GetDomainParams {
-  GetDomainParams(region:, domain_id:)
+) -> GetDomainRequest {
+  GetDomainRequest(region:, domain_id:)
 }
 
 /// Get a custom domain
 pub fn get_domain(
-  client: Client(err),
-  params params: GetDomainParams,
+  request params: GetDomainRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Get)
@@ -2674,24 +2615,24 @@ pub fn get_domain(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteDomainParams {
-  DeleteDomainParams(
+pub opaque type DeleteDomainRequest {
+  DeleteDomainRequest(
     region: String,
     domain_id: String,
   )
 }
 
-pub fn new_delete_domain_params(
+pub fn new_delete_domain_request(
   region region: String,
   domain_id domain_id: String,
-) -> DeleteDomainParams {
-  DeleteDomainParams(region:, domain_id:)
+) -> DeleteDomainRequest {
+  DeleteDomainRequest(region:, domain_id:)
 }
 
 /// Delete a custom domain
 pub fn delete_domain(
-  client: Client(err),
-  params params: DeleteDomainParams,
+  request params: DeleteDomainRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Delete)
@@ -2701,8 +2642,8 @@ pub fn delete_domain(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type ListNamespacesParams {
-  ListNamespacesParams(
+pub opaque type ListNamespacesRequest {
+  ListNamespacesRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -2713,64 +2654,64 @@ pub opaque type ListNamespacesParams {
   )
 }
 
-pub fn new_list_namespaces_params(
+pub fn new_list_namespaces_request(
   region region: String,
-) -> ListNamespacesParams {
-  ListNamespacesParams(region:, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(region:, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
 }
 
 /// Page number.
-pub fn list_namespaces_params_with_page(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_page(
+  list_namespaces_request: ListNamespacesRequest,
   page page: Int,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, page: Some(page))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, page: Some(page))
 }
 
 /// Number of namespaces per page.
-pub fn list_namespaces_params_with_page_size(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_page_size(
+  list_namespaces_request: ListNamespacesRequest,
   page_size page_size: Int,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, page_size: Some(page_size))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, page_size: Some(page_size))
 }
 
 /// Order of the namespaces.
-pub fn list_namespaces_params_with_order_by(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_order_by(
+  list_namespaces_request: ListNamespacesRequest,
   order_by order_by: String,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, order_by: Some(order_by))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, order_by: Some(order_by))
 }
 
 /// Name of the namespaces.
-pub fn list_namespaces_params_with_name(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_name(
+  list_namespaces_request: ListNamespacesRequest,
   name name: String,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, name: Some(name))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, name: Some(name))
 }
 
 /// UUID of the Organization the namespace belongs to.
-pub fn list_namespaces_params_with_organization_id(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_organization_id(
+  list_namespaces_request: ListNamespacesRequest,
   organization_id organization_id: String,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, organization_id: Some(organization_id))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, organization_id: Some(organization_id))
 }
 
 /// UUID of the Project the namespace belongs to.
-pub fn list_namespaces_params_with_project_id(
-  list_namespaces_params: ListNamespacesParams,
+pub fn list_namespaces_request_with_project_id(
+  list_namespaces_request: ListNamespacesRequest,
   project_id project_id: String,
-) -> ListNamespacesParams {
-  ListNamespacesParams(..list_namespaces_params, project_id: Some(project_id))
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, project_id: Some(project_id))
 }
 
 /// List all your namespaces
 pub fn list_namespaces(
-  client: Client(err),
-  params params: ListNamespacesParams,
+  request params: ListNamespacesRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListNamespacesResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces")
   let req = request.set_method(req, http.Get)
@@ -2790,20 +2731,9 @@ pub fn list_namespaces(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type CreateNamespaceParams {
-  CreateNamespaceParams(
-    region: String,
-  )
-}
-
-pub fn new_create_namespace_params(
-  region region: String,
-) -> CreateNamespaceParams {
-  CreateNamespaceParams(region:)
-}
-
 pub opaque type CreateNamespaceRequest {
   CreateNamespaceRequest(
+    region: String,
     /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
     /// Setting this field to true doesn't matter anymore. It will be removed in a near future.
     activate_vpc_integration: Option(Bool),
@@ -2834,8 +2764,10 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
   ])
 }
 
-pub fn new_create_namespace_request() -> CreateNamespaceRequest {
-  CreateNamespaceRequest(activate_vpc_integration: None, description: None, environment_variables: None, name: None, project_id: None, secret_environment_variables: None, tags: None)
+pub fn new_create_namespace_request(
+  region region: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(region:, activate_vpc_integration: None, description: None, environment_variables: None, name: None, project_id: None, secret_environment_variables: None, tags: None)
 }
 
 /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
@@ -2897,37 +2829,36 @@ pub fn create_namespace_request_with_tags(
 
 /// Create a new namespace
 pub fn create_namespace(
-  client: Client(err),
-  params params: CreateNamespaceParams,
-  body body: CreateNamespaceRequest,
+  request params: CreateNamespaceRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_namespace_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_namespace_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetNamespaceParams {
-  GetNamespaceParams(
+pub opaque type GetNamespaceRequest {
+  GetNamespaceRequest(
     region: String,
     namespace_id: String,
   )
 }
 
-pub fn new_get_namespace_params(
+pub fn new_get_namespace_request(
   region region: String,
   namespace_id namespace_id: String,
-) -> GetNamespaceParams {
-  GetNamespaceParams(region:, namespace_id:)
+) -> GetNamespaceRequest {
+  GetNamespaceRequest(region:, namespace_id:)
 }
 
 /// Get a namespace
 pub fn get_namespace(
-  client: Client(err),
-  params params: GetNamespaceParams,
+  request params: GetNamespaceRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Get)
@@ -2937,24 +2868,24 @@ pub fn get_namespace(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteNamespaceParams {
-  DeleteNamespaceParams(
+pub opaque type DeleteNamespaceRequest {
+  DeleteNamespaceRequest(
     region: String,
     namespace_id: String,
   )
 }
 
-pub fn new_delete_namespace_params(
+pub fn new_delete_namespace_request(
   region region: String,
   namespace_id namespace_id: String,
-) -> DeleteNamespaceParams {
-  DeleteNamespaceParams(region:, namespace_id:)
+) -> DeleteNamespaceRequest {
+  DeleteNamespaceRequest(region:, namespace_id:)
 }
 
 /// Delete an existing namespace
 pub fn delete_namespace(
-  client: Client(err),
-  params params: DeleteNamespaceParams,
+  request params: DeleteNamespaceRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Delete)
@@ -2964,22 +2895,10 @@ pub fn delete_namespace(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type UpdateNamespaceParams {
-  UpdateNamespaceParams(
-    region: String,
-    namespace_id: String,
-  )
-}
-
-pub fn new_update_namespace_params(
-  region region: String,
-  namespace_id namespace_id: String,
-) -> UpdateNamespaceParams {
-  UpdateNamespaceParams(region:, namespace_id:)
-}
-
 pub opaque type UpdateNamespaceRequest {
   UpdateNamespaceRequest(
+    region: String,
+    namespace_id: String,
     /// Description of the namespace to update.
     description: Option(String),
     /// Environment variables of the namespace to update.
@@ -3000,8 +2919,11 @@ pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.J
   ])
 }
 
-pub fn new_update_namespace_request() -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(description: None, environment_variables: None, secret_environment_variables: None, tags: None)
+pub fn new_update_namespace_request(
+  region region: String,
+  namespace_id namespace_id: String,
+) -> UpdateNamespaceRequest {
+  UpdateNamespaceRequest(region:, namespace_id:, description: None, environment_variables: None, secret_environment_variables: None, tags: None)
 }
 
 /// Description of the namespace to update.
@@ -3038,21 +2960,20 @@ pub fn update_namespace_request_with_tags(
 
 /// Update an existing namespace
 pub fn update_namespace(
-  client: Client(err),
-  params params: UpdateNamespaceParams,
-  body body: UpdateNamespaceRequest,
+  request params: UpdateNamespaceRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(update_namespace_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(update_namespace_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type ListTokensParams {
-  ListTokensParams(
+pub opaque type ListTokensRequest {
+  ListTokensRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -3062,56 +2983,56 @@ pub opaque type ListTokensParams {
   )
 }
 
-pub fn new_list_tokens_params(
+pub fn new_list_tokens_request(
   region region: String,
-) -> ListTokensParams {
-  ListTokensParams(region:, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
+) -> ListTokensRequest {
+  ListTokensRequest(region:, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
 }
 
 /// Page number.
-pub fn list_tokens_params_with_page(
-  list_tokens_params: ListTokensParams,
+pub fn list_tokens_request_with_page(
+  list_tokens_request: ListTokensRequest,
   page page: Int,
-) -> ListTokensParams {
-  ListTokensParams(..list_tokens_params, page: Some(page))
+) -> ListTokensRequest {
+  ListTokensRequest(..list_tokens_request, page: Some(page))
 }
 
 /// Number of tokens per page.
-pub fn list_tokens_params_with_page_size(
-  list_tokens_params: ListTokensParams,
+pub fn list_tokens_request_with_page_size(
+  list_tokens_request: ListTokensRequest,
   page_size page_size: Int,
-) -> ListTokensParams {
-  ListTokensParams(..list_tokens_params, page_size: Some(page_size))
+) -> ListTokensRequest {
+  ListTokensRequest(..list_tokens_request, page_size: Some(page_size))
 }
 
 /// Order of the tokens.
-pub fn list_tokens_params_with_order_by(
-  list_tokens_params: ListTokensParams,
+pub fn list_tokens_request_with_order_by(
+  list_tokens_request: ListTokensRequest,
   order_by order_by: String,
-) -> ListTokensParams {
-  ListTokensParams(..list_tokens_params, order_by: Some(order_by))
+) -> ListTokensRequest {
+  ListTokensRequest(..list_tokens_request, order_by: Some(order_by))
 }
 
 /// UUID of the container the token belongs to.
-pub fn list_tokens_params_with_container_id(
-  list_tokens_params: ListTokensParams,
+pub fn list_tokens_request_with_container_id(
+  list_tokens_request: ListTokensRequest,
   container_id container_id: String,
-) -> ListTokensParams {
-  ListTokensParams(..list_tokens_params, container_id: Some(container_id))
+) -> ListTokensRequest {
+  ListTokensRequest(..list_tokens_request, container_id: Some(container_id))
 }
 
 /// UUID of the namespace the token belongs to.
-pub fn list_tokens_params_with_namespace_id(
-  list_tokens_params: ListTokensParams,
+pub fn list_tokens_request_with_namespace_id(
+  list_tokens_request: ListTokensRequest,
   namespace_id namespace_id: String,
-) -> ListTokensParams {
-  ListTokensParams(..list_tokens_params, namespace_id: Some(namespace_id))
+) -> ListTokensRequest {
+  ListTokensRequest(..list_tokens_request, namespace_id: Some(namespace_id))
 }
 
 /// List all tokens
 pub fn list_tokens(
-  client: Client(err),
-  params params: ListTokensParams,
+  request params: ListTokensRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListTokensResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens")
   let req = request.set_method(req, http.Get)
@@ -3130,20 +3051,9 @@ pub fn list_tokens(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type CreateTokenParams {
-  CreateTokenParams(
-    region: String,
-  )
-}
-
-pub fn new_create_token_params(
-  region region: String,
-) -> CreateTokenParams {
-  CreateTokenParams(region:)
-}
-
 pub opaque type CreateTokenRequest {
   CreateTokenRequest(
+    region: String,
     /// UUID of the container to create the token for.
     container_id: Option(String),
     /// Description of the token.
@@ -3164,8 +3074,10 @@ pub fn create_token_request_to_json(value: CreateTokenRequest) -> json.Json {
   ])
 }
 
-pub fn new_create_token_request() -> CreateTokenRequest {
-  CreateTokenRequest(container_id: None, description: None, expires_at: None, namespace_id: None)
+pub fn new_create_token_request(
+  region region: String,
+) -> CreateTokenRequest {
+  CreateTokenRequest(region:, container_id: None, description: None, expires_at: None, namespace_id: None)
 }
 
 /// UUID of the container to create the token for.
@@ -3202,37 +3114,36 @@ pub fn create_token_request_with_namespace_id(
 
 /// Create a new revocable token
 pub fn create_token(
-  client: Client(err),
-  params params: CreateTokenParams,
-  body body: CreateTokenRequest,
+  request params: CreateTokenRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_token_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_token_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetTokenParams {
-  GetTokenParams(
+pub opaque type GetTokenRequest {
+  GetTokenRequest(
     region: String,
     token_id: String,
   )
 }
 
-pub fn new_get_token_params(
+pub fn new_get_token_request(
   region region: String,
   token_id token_id: String,
-) -> GetTokenParams {
-  GetTokenParams(region:, token_id:)
+) -> GetTokenRequest {
+  GetTokenRequest(region:, token_id:)
 }
 
 /// Get a token
 pub fn get_token(
-  client: Client(err),
-  params params: GetTokenParams,
+  request params: GetTokenRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens/" <> params.token_id)
   let req = request.set_method(req, http.Get)
@@ -3242,24 +3153,24 @@ pub fn get_token(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteTokenParams {
-  DeleteTokenParams(
+pub opaque type DeleteTokenRequest {
+  DeleteTokenRequest(
     region: String,
     token_id: String,
   )
 }
 
-pub fn new_delete_token_params(
+pub fn new_delete_token_request(
   region region: String,
   token_id token_id: String,
-) -> DeleteTokenParams {
-  DeleteTokenParams(region:, token_id:)
+) -> DeleteTokenRequest {
+  DeleteTokenRequest(region:, token_id:)
 }
 
 /// Delete a token
 pub fn delete_token(
-  client: Client(err),
-  params params: DeleteTokenParams,
+  request params: DeleteTokenRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/tokens/" <> params.token_id)
   let req = request.set_method(req, http.Delete)
@@ -3269,8 +3180,8 @@ pub fn delete_token(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type ListTriggersParams {
-  ListTriggersParams(
+pub opaque type ListTriggersRequest {
+  ListTriggersRequest(
     region: String,
     page: Option(Int),
     page_size: Option(Int),
@@ -3278,40 +3189,40 @@ pub opaque type ListTriggersParams {
   )
 }
 
-pub fn new_list_triggers_params(
+pub fn new_list_triggers_request(
   region region: String,
-) -> ListTriggersParams {
-  ListTriggersParams(region:, page: None, page_size: None, order_by: None)
+) -> ListTriggersRequest {
+  ListTriggersRequest(region:, page: None, page_size: None, order_by: None)
 }
 
 /// Page number to return.
-pub fn list_triggers_params_with_page(
-  list_triggers_params: ListTriggersParams,
+pub fn list_triggers_request_with_page(
+  list_triggers_request: ListTriggersRequest,
   page page: Int,
-) -> ListTriggersParams {
-  ListTriggersParams(..list_triggers_params, page: Some(page))
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, page: Some(page))
 }
 
 /// Maximum number of triggers to return per page.
-pub fn list_triggers_params_with_page_size(
-  list_triggers_params: ListTriggersParams,
+pub fn list_triggers_request_with_page_size(
+  list_triggers_request: ListTriggersRequest,
   page_size page_size: Int,
-) -> ListTriggersParams {
-  ListTriggersParams(..list_triggers_params, page_size: Some(page_size))
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, page_size: Some(page_size))
 }
 
 /// Order in which to return results.
-pub fn list_triggers_params_with_order_by(
-  list_triggers_params: ListTriggersParams,
+pub fn list_triggers_request_with_order_by(
+  list_triggers_request: ListTriggersRequest,
   order_by order_by: String,
-) -> ListTriggersParams {
-  ListTriggersParams(..list_triggers_params, order_by: Some(order_by))
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, order_by: Some(order_by))
 }
 
 /// List all triggers
 pub fn list_triggers(
-  client: Client(err),
-  params params: ListTriggersParams,
+  request params: ListTriggersRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1ListTriggersResponse, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers")
   let req = request.set_method(req, http.Get)
@@ -3328,20 +3239,9 @@ pub fn list_triggers(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type CreateTriggerParams {
-  CreateTriggerParams(
-    region: String,
-  )
-}
-
-pub fn new_create_trigger_params(
-  region region: String,
-) -> CreateTriggerParams {
-  CreateTriggerParams(region:)
-}
-
 pub opaque type CreateTriggerRequest {
   CreateTriggerRequest(
+    region: String,
     /// ID of the container to trigger.
     container_id: String,
     /// Description of the trigger.
@@ -3366,10 +3266,11 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
 }
 
 pub fn new_create_trigger_request(
+  region region: String,
   container_id container_id: String,
   name name: String,
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
+  CreateTriggerRequest(region:, container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
 }
 
 /// Description of the trigger.
@@ -3398,37 +3299,36 @@ pub fn create_trigger_request_with_scw_sqs_config(
 
 /// Create a trigger
 pub fn create_trigger(
-  client: Client(err),
-  params params: CreateTriggerParams,
-  body body: CreateTriggerRequest,
+  request params: CreateTriggerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_trigger_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(create_trigger_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type GetTriggerParams {
-  GetTriggerParams(
+pub opaque type GetTriggerRequest {
+  GetTriggerRequest(
     region: String,
     trigger_id: String,
   )
 }
 
-pub fn new_get_trigger_params(
+pub fn new_get_trigger_request(
   region region: String,
   trigger_id trigger_id: String,
-) -> GetTriggerParams {
-  GetTriggerParams(region:, trigger_id:)
+) -> GetTriggerRequest {
+  GetTriggerRequest(region:, trigger_id:)
 }
 
 /// Get a trigger
 pub fn get_trigger(
-  client: Client(err),
-  params params: GetTriggerParams,
+  request params: GetTriggerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Get)
@@ -3438,24 +3338,24 @@ pub fn get_trigger(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeleteTriggerParams {
-  DeleteTriggerParams(
+pub opaque type DeleteTriggerRequest {
+  DeleteTriggerRequest(
     region: String,
     trigger_id: String,
   )
 }
 
-pub fn new_delete_trigger_params(
+pub fn new_delete_trigger_request(
   region region: String,
   trigger_id trigger_id: String,
-) -> DeleteTriggerParams {
-  DeleteTriggerParams(region:, trigger_id:)
+) -> DeleteTriggerRequest {
+  DeleteTriggerRequest(region:, trigger_id:)
 }
 
 /// Delete a trigger
 pub fn delete_trigger(
-  client: Client(err),
-  params params: DeleteTriggerParams,
+  request params: DeleteTriggerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Delete)
@@ -3465,22 +3365,10 @@ pub fn delete_trigger(
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type UpdateTriggerParams {
-  UpdateTriggerParams(
-    region: String,
-    trigger_id: String,
-  )
-}
-
-pub fn new_update_trigger_params(
-  region region: String,
-  trigger_id trigger_id: String,
-) -> UpdateTriggerParams {
-  UpdateTriggerParams(region:, trigger_id:)
-}
-
 pub opaque type UpdateTriggerRequest {
   UpdateTriggerRequest(
+    region: String,
+    trigger_id: String,
     /// Description of the trigger.
     description: Option(String),
     /// Name of the trigger.
@@ -3495,8 +3383,11 @@ pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json 
   ])
 }
 
-pub fn new_update_trigger_request() -> UpdateTriggerRequest {
-  UpdateTriggerRequest(description: None, name: None)
+pub fn new_update_trigger_request(
+  region region: String,
+  trigger_id trigger_id: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(region:, trigger_id:, description: None, name: None)
 }
 
 /// Description of the trigger.
@@ -3517,14 +3408,13 @@ pub fn update_trigger_request_with_name(
 
 /// Update a trigger
 pub fn update_trigger(
-  client: Client(err),
-  params params: UpdateTriggerParams,
-  body body: UpdateTriggerRequest,
+  request params: UpdateTriggerRequest,
+  client client: Client(err),
 ) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> params.region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(update_trigger_request_to_json(body)))
+  let req = request.set_body(req, json.to_string(update_trigger_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
   json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
   |> result.map_error(JsonDecodeError)

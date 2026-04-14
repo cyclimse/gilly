@@ -1,8 +1,6 @@
 ---
 version: 1.5.4
 title: codegen operation get with optional query params
-file: ./test/gilly/internal/codegen_test.gleam
-test_name: get_with_optional_query_params_test
 ---
 import gleam/dynamic/decode
 import gleam/http
@@ -39,35 +37,35 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type ListContainersParams {
-  ListContainersParams(
+pub opaque type ListContainersRequest {
+  ListContainersRequest(
     name: Option(String),
     page: Option(Int),
   )
 }
 
-pub fn new_list_containers_params() -> ListContainersParams {
-  ListContainersParams(name: None, page: None)
+pub fn new_list_containers_request() -> ListContainersRequest {
+  ListContainersRequest(name: None, page: None)
 }
 
-pub fn list_containers_params_with_name(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_name(
+  list_containers_request: ListContainersRequest,
   name name: String,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, name: Some(name))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, name: Some(name))
 }
 
-pub fn list_containers_params_with_page(
-  list_containers_params: ListContainersParams,
+pub fn list_containers_request_with_page(
+  list_containers_request: ListContainersRequest,
   page page: Int,
-) -> ListContainersParams {
-  ListContainersParams(..list_containers_params, page: Some(page))
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, page: Some(page))
 }
 
 /// List containers
 pub fn list_containers(
-  client: Client(err),
-  params params: ListContainersParams,
+  request params: ListContainersRequest,
+  client client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/containers")
   let req = request.set_method(req, http.Get)

@@ -1,8 +1,6 @@
 ---
 version: 1.5.4
 title: codegen operation post with request body
-file: ./test/gilly/internal/codegen_test.gleam
-test_name: post_with_request_body_test
 ---
 import gleam/dynamic/decode
 import gleam/http
@@ -38,8 +36,8 @@ pub fn with_base_url(
 
 /// Add a new pet
 pub fn add_pet(
-  client: Client(err),
-  body body: Pet,
+  body: Pet,
+  client client: Client(err),
 ) -> Result(Pet, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/pet")
   let req = request.set_method(req, http.Post)

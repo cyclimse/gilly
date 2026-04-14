@@ -39,7 +39,7 @@ pub fn create_pet_test() {
 
   let lucy = lucy(10)
 
-  let assert Ok(created) = client.add_pet(api_client, lucy)
+  let assert Ok(created) = client.add_pet(lucy, api_client)
   assert lucy.id == created.id
 
   created |> pprint.format |> birdie.snap(title: "Created Lucy (10)")
@@ -50,14 +50,14 @@ pub fn create_and_delete_pet_test() {
 
   let lucy = lucy(20)
 
-  let assert Ok(created) = client.add_pet(api_client, lucy)
+  let assert Ok(created) = client.add_pet(lucy, api_client)
   assert lucy.id == created.id
 
   created |> pprint.format |> birdie.snap(title: "Created Lucy (20)")
 
   let assert Some(pet_id) = created.id
   let assert Ok(Nil) =
-    client.delete_pet(api_client, client.new_delete_pet_params(pet_id))
+    client.delete_pet(client.new_delete_pet_request(pet_id), api_client)
 }
 
 pub fn create_and_update_pet_test() {
@@ -65,7 +65,7 @@ pub fn create_and_update_pet_test() {
 
   let lucy = lucy(30)
 
-  let assert Ok(created) = client.add_pet(api_client, lucy)
+  let assert Ok(created) = client.add_pet(lucy, api_client)
   assert lucy.id == created.id
 
   created |> pprint.format |> birdie.snap(title: "Created Lucy (30)")
@@ -80,7 +80,7 @@ pub fn create_and_update_pet_test() {
       status: Some(client.PetStatusSold),
     )
 
-  let assert Ok(updated) = client.update_pet(api_client, updated_lucy)
+  let assert Ok(updated) = client.update_pet(updated_lucy, api_client)
   assert updated.name == "Lucy Updated"
   assert updated.status == Some(client.PetStatusSold)
 
@@ -94,14 +94,14 @@ pub fn list_pets_by_status_test() {
   let test_pet_ids = [40, 41, 42]
   list.each(test_pet_ids, fn(id) {
     let pet = lucy(id)
-    let assert Ok(created) = client.add_pet(api_client, pet)
+    let assert Ok(created) = client.add_pet(pet, api_client)
     assert pet.id == created.id
   })
 
   let assert Ok(pets) =
     client.find_pets_by_status(
+      client.new_find_pets_by_status_request("available"),
       api_client,
-      client.new_find_pets_by_status_params("available"),
     )
   let found_test_pets =
     list.filter(pets, fn(p) {

@@ -1,8 +1,6 @@
 ---
 version: 1.5.4
 title: codegen operation get with required integer query param
-file: ./test/gilly/internal/codegen_test.gleam
-test_name: get_with_required_integer_query_param_test
 ---
 import gleam/dynamic/decode
 import gleam/http
@@ -37,22 +35,22 @@ pub fn with_base_url(
   Client(..client, base_url:)
 }
 
-pub opaque type ListItemsParams {
-  ListItemsParams(
+pub opaque type ListItemsRequest {
+  ListItemsRequest(
     limit: Int,
   )
 }
 
-pub fn new_list_items_params(
+pub fn new_list_items_request(
   limit limit: Int,
-) -> ListItemsParams {
-  ListItemsParams(limit:)
+) -> ListItemsRequest {
+  ListItemsRequest(limit:)
 }
 
 /// List items
 pub fn list_items(
-  client: Client(err),
-  params params: ListItemsParams,
+  request params: ListItemsRequest,
+  client client: Client(err),
 ) -> Result(Nil, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/items")
   let req = request.set_method(req, http.Get)

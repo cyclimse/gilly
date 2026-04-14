@@ -21,9 +21,10 @@ pub fn main() {
       |> result.map_error(fn(e) { "HTTP error: " <> string.inspect(e) })
     })
 
-  let params = client.new_list_containers_params(region: region)
+  let params = client.new_list_containers_request(region: region)
 
-  let assert Ok(resp) = client.list_containers(api_client, params: params)
+  let assert Ok(resp) =
+    client.list_containers(request: params, client: api_client)
 
   list.each(
     resp.containers,

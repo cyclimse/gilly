@@ -42,7 +42,7 @@ pub fn with_base_url(
 
 /// Say hello.
 pub fn say_hello(
-  client: Client(err),
+  client client: Client(err),
 ) -> Result(Dynamic, ApiError(err)) {
   let assert Ok(req) = request.to(client.base_url <> "/hello")
   let req = request.set_method(req, http.Get)
