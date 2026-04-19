@@ -2,12 +2,16 @@ version: 2
 
 project_name: gilly
 
+before:
+  hooks:
+    - hack/gleam_set_version.sh {{ .Version }}
+
 builds:
   - skip: true
 
 archives:
   - id: meta
-    formats: [tar.gz]
+    formats: [ tar.gz ]
     meta: true
     name_template: "{{ .ProjectName }}_{{ .Version }}"
     files:
@@ -37,7 +41,7 @@ changelog:
 
 release:
   footer: >-
-
+    
     ---
 
     Released by [GoReleaser](https://github.com/goreleaser/goreleaser).

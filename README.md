@@ -44,7 +44,7 @@ Gilly can also be used as a library directly. Please refer to the [HexDocs](http
 ## Flags
 
 | Flag                          | Short | Description                                                                                                                                                                                                                                               | Default        |
-|-------------------------------|-------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| ----------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | `--output OUTPUT`             | `-o`  | Output file path (prints to stdout if omitted)                                                                                                                                                                                                            | None           |
 | `--optionality OPTIONALITY`   |       | How to determine optional fields: `RequiredOnly` (only fields not listed as required are optional), `NullableOnly` (only fields marked `nullable: true` are optional), `RequiredAndNullable` (fields are optional if either not required or nullable)     | `RequiredOnly` |
 | `--indent INDENT`             |       | Number of spaces for indentation                                                                                                                                                                                                                          | `2`            |
@@ -79,7 +79,10 @@ To dry-run a release, you can use:
 goreleaser release --snapshot --skip=publish --clean
 ```
 
+> [!NOTE]
+> If you're wondering why the Hex sources don't match the version in `gleam.toml`, it's because the version in `gleam.toml` is replaced by GoReleaser during the release process.
+
 ## References
 
-- [giacomocavalieri/squirrel](https://github.com/giacomocavalieri/squirrel) a Postgres client generator for Gleam, which inspired the design of this project.
-- [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) a Go code generator for OpenAPI specifications. Extremely similar project (that probably works better) but does not support Gleam.
+- [giacomocavalieri/squirrel](https://github.com/giacomocavalieri/squirrel) an excellent Postgres client generator for Gleam, which inspired the design of this project.
+- [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) a Go code generator for OpenAPI specifications. Extremely similar project (that definitely works better) but does not support Gleam.
