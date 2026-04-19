@@ -1,6 +1,6 @@
 name = "gilly"
 # Note: version is replaced by GoReleaser during the release process.
-version = "0.3.0-SNAPSHOT-52a4b67"
+version = "0.1.0"
 description = "✨ Generate Gleam SDKs from OpenAPI specifications"
 licences = ["Unlicense"]
 repository = { type = "github", user = "cyclimse", repo = "gilly" }

@@ -1,7 +1,7 @@
 // Note: version is replaced by GoReleaser during the release process.
 //
 /// Gilly's current version.
-pub const version = "0.3.0-SNAPSHOT-52a4b67"
+pub const version = "0.1.0"
 
 // Ideally, we should support YAML as well, but Gleam has no YAML parsing libraries ATM. 
 // See: https://github.com/lpil/cymbal/pull/2
