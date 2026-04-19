@@ -43,11 +43,10 @@ pub fn main() {
     )
 
   let assert Ok(namespace) =
-    client.new_create_namespace_request(
-      name: "gilly-example",
-      description: "Namespace created by Gilly example code",
-      tags: ["example", "gilly"],
-    )
+    client.new_create_namespace_request(name: "gilly-example", tags: [
+      "example",
+      "gilly",
+    ])
     |> client.create_namespace(api_client)
 
   io.println("Namespace created with ID: " <> namespace.id)
@@ -68,23 +67,17 @@ pub fn main() {
     client.new_create_container_request(
       namespace_id: namespace.id,
       name: "gilly-nginx",
-      description: "Container created by Gilly example code",
-      tags: ["example", "gilly"],
       image: "nginx:latest",
-      port: 80,
       args: [],
       command: [],
       privacy: client.CreateContainerRequestPrivacyPublic,
       protocol: client.CreateContainerRequestProtocolHttp1,
       sandbox: client.CreateContainerRequestSandboxV2,
-      https_connections_only: True,
-      mvcpu_limit: 1000,
-      memory_limit_bytes: gb_to_bytes(1),
-      local_storage_limit_bytes: gb_to_bytes(1),
-      min_scale: 0,
-      max_scale: 5,
-      private_network_id: "",
+      tags: ["example", "gilly"],
     )
+    |> client.create_container_request_with_mvcpu_limit(1000)
+    |> client.create_container_request_with_memory_limit_bytes(gb_to_bytes(1))
+    |> client.create_container_request_with_port(80)
     |> client.create_container(api_client)
 
   io.println("Container created with ID: " <> container.id)

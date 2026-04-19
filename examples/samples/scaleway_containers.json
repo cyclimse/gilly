@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Serverless Containers API",
-        "description": "Scaleway Serverless Containers is a «Container As A Service» product which gives users the ability to deploy atomic serverless workloads and only pay for resources used while containers are running.\n\nIt provides many advantages, such as:\n\n- Containers are only executed when an event is triggered, which allows users to save money while code is not running\n- Auto-Scalability:\n  - Automated `Scaling up and down` based on user configuration (e.g. min: 0, max: 50 replicas of my container).\n  - Automated `Scaling to zero` when a container is not executed, which is cost-effective for the user and saves computing resources for the cloud provider.\n- Endpoint-only scaling\n\n### Serverless Framework\n\nThis page explains how to use the Scaleway Containers API, including a quickstart and the full API documentation. However, you may prefer to use the\n[Serverless Framework plugin](https://github.com/scaleway/serverless-scaleway-functions) enabling users to deploy their serverless workloads\nmuch more easily with a single `serverless deploy` command.\n\nIf what you are looking for is an easy way to deploy your code, you may prefer Serverless Framework.\n\nBelow, you will find a step-by-step guide on how to create a `namespace`, configure and deploy `containers`, and trigger your `containers` via HTTP, CRON triggers, or messaging triggers.\n\n## Concepts\n\nRefer to our [dedicated concepts page](https://www.scaleway.com/en/docs/serverless/containers/concepts/) to find definitions of the different terms referring to Serverless Containers.\n\n## Technical information\n\nA **Container** in Scaleway Containers consists of multiple components:\n\n- **Environment variables**: Users may configure specific environment variables (Database host/credentials for example) which are safely encrypted in our Database, and will be mounted inside your containers. **Note** that environment variables set at `namespace` level will also be mounted (in every container). Environment variables written at `container` level override the ones set at `namespace` level (if two of them bear the same name for example).\n- **Docker image**: A Docker image contains all the elements required to run your software: code, a runtime environment, tools, scripts, libraries, etc.\n- **Resources**: Users may decide how much computing resource to allocate to each container -> `Memory Limit` (in MB). We will then allocate the right amount of `CPU` based on Memory Limit choice. The right choice for your container's resources is very important, as you will be billed based on compute usage over time and the number of Containers executions.\n\n### Product features\n\n- Fully isolated environments\n- Scaling to zero (saves money and computing resources while the code is not executed)\n- High availability and scalability (automated and configurable, each container may scale automatically according to incoming workloads)\n- Multiple event sources:\n  - HTTP (request on our gateway will execute the container)\n  - CRON (time-based job, runs according to configurable cron schedule)\n  - SQS messaging, compatible with [Scaleway Queues](https://www.scaleway.com/en/docs/queues/)\n  - NATS messaging, compatible with [Scaleway NATS](https://www.scaleway.com/en/docs/nats/)\n- Integrated to the Scaleway Container Registry product:\n  - Deploy any docker image from one of your registry namespace\n- Flexible resources: you can choose values separately for your memory and CPU within a range in respect with maximum and minimum allowed values in [Containers Limitation documentation](https://www.scaleway.com/en/docs/serverless/containers/reference-content/containers-limitations/).\n\n### Regions\n\nServerless Containers is available in the Paris, Amsterdam and Warsaw regions, which are represented by the following path parameters:\n\n- `fr-par`\n- `nl-ams`\n- `pl-waw`\n\n### Authentication\n\nBy default new containers are `public` meaning that no credentials are required to invoke them.\n\nA container can be `private` or `public`. This can be configured through the `privacy` parameter.\n\nCalling a `private` container without authentication will return HTTP code `403`.\n\n### Logs\n\nContainers logs are sent to the project's [Cockpit](https://www.scaleway.com/en/developers/api/cockpit/regional-api/).\n\nThe **Serverless Containers Logs** dashboard in Grafana can be used to see containers logs. More complex queries can be done using the \"Explore\" section of Grafana, and LogQL queries:\n\n```logql\n{resource_type=\"serverless_container\"}\n```\n\nAdditionally, the logs can be retrieved programmatically. For instance, using the `logcli` utility. For more information, refer to our [dedicated documentation](https://www.scaleway.com/en/docs/cockpit/api-cli/querying-logs-with-logcli/).\n\n## Going further\n\nFor more help using Scaleway Serverless containers, check out the following resources:\n\n- Our [main documentation](https://www.scaleway.com/en/docs/serverless/containers/)\n- The #serverless-containers channel on our [Slack Community](https://www.scaleway.com/en/docs/tutorials/scaleway-slack-community/)\n- Our [support ticketing system](https://www.scaleway.com/en/docs/console/account/how-to/open-a-support-ticket/).",
+        "description": "Easily run containers on the cloud with a single command.\n\n- **From containers to production in seconds**: With Serverless Containers, you can rapidly deploy your containers in any language you want. You only have to focus on the design of your applications. Serverless Containers takes care of the execution, responding to the triggers you define.\n- **Reduce operational costs**: Serverless Containers simplifies the management of your resources, only using them when they are needed. Reduce operational costs by removing the need for oversized or additional servers to manage traffic on your services.\n- **No infrastructure management**: Managing infrastructure can be complicated, especially when it comes to scaling to handle traffic spikes. Serverless Containers abstracts infrastructure management by adapting the resources according to the traffic, simplifying the operation of your apps.",
         "version": "v1"
     },
     "servers": [
@@ -86,7 +86,8 @@
                     },
                     "error_message": {
                         "type": "string",
-                        "description": "Container last error message."
+                        "description": "Container last error message.",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -146,7 +147,7 @@
                     },
                     "local_storage_limit_bytes": {
                         "type": "integer",
-                        "description": "Local storage limit of the container (in bytes). (in bytes)",
+                        "description": "Local storage limit of the container in bytes. (in bytes)",
                         "format": "uint64"
                     },
                     "timeout": {
@@ -163,13 +164,6 @@
                             "public",
                             "private"
                         ],
-                        "x-enum-descriptions": {
-                            "values": {
-                                "unknown_privacy": "Unknown privacy",
-                                "public": "Container is public, and can be accessed without authentication",
-                                "private": "Container is private, and can only be accessed by providing an authentication token (IAM or legacy JWTs)"
-                            }
-                        },
                         "default": "unknown_privacy"
                     },
                     "image": {
@@ -184,13 +178,6 @@
                             "http1",
                             "h2c"
                         ],
-                        "x-enum-descriptions": {
-                            "values": {
-                                "unknown_protocol": "Unknown protocol",
-                                "http1": "HTTP/1 protocol. Recommended for most use cases",
-                                "h2c": "HTTP/2 protocol. Useful for gRPC applications. Requires that the container explicitly supports HTTP/2 (e.g. Nginx's `listen 80 http2` directive)."
-                            }
-                        },
                         "default": "unknown_protocol"
                     },
                     "port": {
@@ -200,7 +187,8 @@
                     },
                     "https_connections_only": {
                         "type": "boolean",
-                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP)."
+                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).",
+                        "default": false
                     },
                     "sandbox": {
                         "type": "string",
@@ -210,13 +198,6 @@
                             "v1",
                             "v2"
                         ],
-                        "x-enum-descriptions": {
-                            "values": {
-                                "unknown_sandbox": "Unknown sandbox",
-                                "v1": "Legacy sandbox with slower cold starts. Fully supports the Linux system call interface",
-                                "v2": "Recommended sandbox with faster cold starts"
-                            }
-                        },
                         "default": "unknown_sandbox"
                     },
                     "scaling_option": {
@@ -225,21 +206,18 @@
                         "properties": {
                             "concurrent_requests_threshold": {
                                 "type": "integer",
-                                "description": "Scale depending on the number of concurrent requests being processed per container instance. The threshold value is the number of concurrent requests above which the container will be scaled up.",
                                 "format": "uint32",
                                 "nullable": true,
                                 "x-one-of": "scaling_rule"
                             },
                             "cpu_usage_threshold": {
                                 "type": "integer",
-                                "description": "Scale depending on the CPU usage of a container instance. The threshold value is the percentage of CPU usage above which the container will be scaled up.",
                                 "format": "uint32",
                                 "nullable": true,
                                 "x-one-of": "scaling_rule"
                             },
                             "memory_usage_threshold": {
                                 "type": "integer",
-                                "description": "Scale depending on the memory usage of a container instance. The threshold value is the percentage of memory usage above which the container will be scaled up.",
                                 "format": "uint32",
                                 "nullable": true,
                                 "x-one-of": "scaling_rule"
@@ -253,38 +231,29 @@
                     },
                     "liveness_probe": {
                         "type": "object",
-                        "description": "Defines how to check if the container is running and healthy.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
+                        "description": "It defines how to check if the container is still running.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
                         "properties": {
                             "failure_threshold": {
                                 "type": "integer",
-                                "description": "Number of consecutive failures before considering the container as unhealthy.\nUnhealthy containers do not receive traffic from incoming requests.",
                                 "format": "uint32"
                             },
                             "interval": {
                                 "type": "string",
-                                "description": "Time interval between checks. (in seconds)",
+                                "description": "(in seconds)",
                                 "example": "2.5s",
                                 "nullable": true
                             },
                             "timeout": {
                                 "type": "string",
-                                "description": "Duration before the check times out. (in seconds)",
+                                "description": "(in seconds)",
                                 "example": "2.5s",
                                 "nullable": true
                             },
-                            "tcp": {
-                                "type": "object",
-                                "description": "Perform TCP check on the container.\nThe check is successful if a TCP connection can be established with the container within the specified timeout.",
-                                "nullable": true,
-                                "x-one-of": "probe"
-                            },
                             "http": {
                                 "type": "object",
-                                "description": "Perform HTTP check on the container.\nThe check is successful if an HTTP request to the specified path returns a successful status code (e.g. 2XX or 3XX) within the specified timeout.",
                                 "properties": {
                                     "path": {
-                                        "type": "string",
-                                        "description": "HTTP path to perform the check on."
+                                        "type": "string"
                                     }
                                 },
                                 "nullable": true,
@@ -292,50 +261,46 @@
                                     "path"
                                 ],
                                 "x-one-of": "probe"
+                            },
+                            "tcp": {
+                                "type": "object",
+                                "nullable": true,
+                                "x-one-of": "probe"
                             }
                         },
                         "x-properties-order": [
                             "failure_threshold",
                             "interval",
                             "timeout",
-                            "tcp",
-                            "http"
+                            "http",
+                            "tcp"
                         ]
                     },
                     "startup_probe": {
                         "type": "object",
-                        "description": "Defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
+                        "description": "It defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
                         "properties": {
                             "failure_threshold": {
                                 "type": "integer",
-                                "description": "Number of consecutive failures before considering the container as unhealthy.\nUnhealthy containers do not receive traffic from incoming requests.",
                                 "format": "uint32"
                             },
                             "interval": {
                                 "type": "string",
-                                "description": "Time interval between checks. (in seconds)",
+                                "description": "(in seconds)",
                                 "example": "2.5s",
                                 "nullable": true
                             },
                             "timeout": {
                                 "type": "string",
-                                "description": "Duration before the check times out. (in seconds)",
+                                "description": "(in seconds)",
                                 "example": "2.5s",
                                 "nullable": true
                             },
-                            "tcp": {
-                                "type": "object",
-                                "description": "Perform TCP check on the container.\nThe check is successful if a TCP connection can be established with the container within the specified timeout.",
-                                "nullable": true,
-                                "x-one-of": "probe"
-                            },
                             "http": {
                                 "type": "object",
-                                "description": "Perform HTTP check on the container.\nThe check is successful if an HTTP request to the specified path returns a successful status code (e.g. 2XX or 3XX) within the specified timeout.",
                                 "properties": {
                                     "path": {
-                                        "type": "string",
-                                        "description": "HTTP path to perform the check on."
+                                        "type": "string"
                                     }
                                 },
                                 "nullable": true,
@@ -343,19 +308,24 @@
                                     "path"
                                 ],
                                 "x-one-of": "probe"
+                            },
+                            "tcp": {
+                                "type": "object",
+                                "nullable": true,
+                                "x-one-of": "probe"
                             }
                         },
                         "x-properties-order": [
                             "failure_threshold",
                             "interval",
                             "timeout",
-                            "tcp",
-                            "http"
+                            "http",
+                            "tcp"
                         ]
                     },
                     "tags": {
                         "type": "array",
-                        "description": "Tags of the Serverless Container.",
+                        "description": "List of tags applied to the Serverless Container.",
                         "items": {
                             "type": "string"
                         }
@@ -363,7 +333,8 @@
                     "private_network_id": {
                         "type": "string",
                         "description": "ID of the Private Network the container is connected to.\nWhen connected to a Private Network, the container can access other Scaleway resources in this Private Network. (UUID format)",
-                        "example": "6170692e-7363-616c-6577-61792e636f6d"
+                        "example": "6170692e-7363-616c-6577-61792e636f6d",
+                        "nullable": true
                     },
                     "command": {
                         "type": "array",
@@ -470,7 +441,8 @@
                     },
                     "error_message": {
                         "type": "string",
-                        "description": "Domain last error message."
+                        "description": "Domain last error message.",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -678,7 +650,8 @@
                     },
                     "error_message": {
                         "type": "string",
-                        "description": "Namespace last error message."
+                        "description": "Namespace last error message.",
+                        "nullable": true
                     },
                     "environment_variables": {
                         "type": "object",
@@ -798,7 +771,8 @@
                     },
                     "error_message": {
                         "type": "string",
-                        "description": "Trigger last error message."
+                        "description": "Trigger last error message.",
+                        "nullable": true
                     },
                     "container_id": {
                         "type": "string",
@@ -973,6 +947,15 @@
                     "updated_at"
                 ]
             },
+            "scaleway.std.MapStringStringValue": {
+                "type": "object",
+                "properties": {
+                    "<key>": {
+                        "type": "string"
+                    }
+                },
+                "nullable": true
+            },
             "scaleway.std.ServiceInfo": {
                 "type": "object",
                 "properties": {
@@ -1007,6 +990,13 @@
                     "built_at",
                     "git_commit"
                 ]
+            },
+            "scaleway.std.StringsValue": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                    "type": "string"
+                }
             }
         },
         "securitySchemes": {
@@ -1072,8 +1062,8 @@
                     "Containers"
                 ],
                 "operationId": "ListContainers",
-                "summary": "List all containers the caller can access (read permission).",
-                "description": "By default, the containers listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, and `name`.",
+                "summary": "List all containers",
+                "description": "List all containers the caller can access (read permission).\n\nBy default, the containers listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, and `name`.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1174,8 +1164,8 @@
                     "Containers"
                 ],
                 "operationId": "CreateContainer",
-                "summary": "Create a new container in a namespace.",
-                "description": "Name must be unique inside the given namespace.",
+                "summary": "Create a new container",
+                "description": "Create a new container in a namespace.\n\nName must be unique inside the given namespace.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1244,22 +1234,26 @@
                                     "min_scale": {
                                         "type": "integer",
                                         "description": "Minimum number of instances to scale the container to.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "max_scale": {
                                         "type": "integer",
                                         "description": "Maximum number of instances to scale the container to.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "memory_limit_bytes": {
                                         "type": "integer",
                                         "description": "Memory limit of the container in bytes. (in bytes)",
-                                        "format": "uint64"
+                                        "format": "uint64",
+                                        "nullable": true
                                     },
                                     "mvcpu_limit": {
                                         "type": "integer",
                                         "description": "CPU limit of the container in mvCPU.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "timeout": {
                                         "type": "string",
@@ -1275,18 +1269,12 @@
                                             "public",
                                             "private"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_privacy": "Unknown privacy",
-                                                "public": "Container is public, and can be accessed without authentication",
-                                                "private": "Container is private, and can only be accessed by providing an authentication token (IAM or legacy JWTs)"
-                                            }
-                                        },
                                         "default": "unknown_privacy"
                                     },
                                     "description": {
                                         "type": "string",
-                                        "description": "Container description."
+                                        "description": "Container description.",
+                                        "nullable": true
                                     },
                                     "image": {
                                         "type": "string",
@@ -1300,23 +1288,18 @@
                                             "http1",
                                             "h2c"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_protocol": "Unknown protocol",
-                                                "http1": "HTTP/1 protocol. Recommended for most use cases",
-                                                "h2c": "HTTP/2 protocol. Useful for gRPC applications. Requires that the container explicitly supports HTTP/2 (e.g. Nginx's `listen 80 http2` directive)."
-                                            }
-                                        },
                                         "default": "unknown_protocol"
                                     },
                                     "port": {
                                         "type": "integer",
                                         "description": "Port the container listens on.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "https_connections_only": {
                                         "type": "boolean",
-                                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP)."
+                                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).",
+                                        "nullable": true
                                     },
                                     "sandbox": {
                                         "type": "string",
@@ -1326,19 +1309,13 @@
                                             "v1",
                                             "v2"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_sandbox": "Unknown sandbox",
-                                                "v1": "Legacy sandbox with slower cold starts. Fully supports the Linux system call interface",
-                                                "v2": "Recommended sandbox with faster cold starts"
-                                            }
-                                        },
                                         "default": "unknown_sandbox"
                                     },
                                     "local_storage_limit_bytes": {
                                         "type": "integer",
                                         "description": "Local storage limit of the container (in bytes). (in bytes)",
-                                        "format": "uint64"
+                                        "format": "uint64",
+                                        "nullable": true
                                     },
                                     "scaling_option": {
                                         "type": "object",
@@ -1346,21 +1323,18 @@
                                         "properties": {
                                             "concurrent_requests_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the number of concurrent requests being processed per container instance. The threshold value is the number of concurrent requests above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
                                             },
                                             "cpu_usage_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the CPU usage of a container instance. The threshold value is the percentage of CPU usage above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
                                             },
                                             "memory_usage_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the memory usage of a container instance. The threshold value is the percentage of memory usage above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
@@ -1374,38 +1348,29 @@
                                     },
                                     "liveness_probe": {
                                         "type": "object",
-                                        "description": "Defines how to check if the container is running and healthy.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
+                                        "description": "It defines how to check if the container is still running.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
                                         "properties": {
                                             "failure_threshold": {
                                                 "type": "integer",
-                                                "description": "Number of consecutive failures before considering the container as unhealthy.\nUnhealthy containers do not receive traffic from incoming requests.",
                                                 "format": "uint32"
                                             },
                                             "interval": {
                                                 "type": "string",
-                                                "description": "Time interval between checks. (in seconds)",
+                                                "description": "(in seconds)",
                                                 "example": "2.5s",
                                                 "nullable": true
                                             },
                                             "timeout": {
                                                 "type": "string",
-                                                "description": "Duration before the check times out. (in seconds)",
+                                                "description": "(in seconds)",
                                                 "example": "2.5s",
                                                 "nullable": true
                                             },
-                                            "tcp": {
-                                                "type": "object",
-                                                "description": "Perform TCP check on the container.\nThe check is successful if a TCP connection can be established with the container within the specified timeout.",
-                                                "nullable": true,
-                                                "x-one-of": "probe"
-                                            },
                                             "http": {
                                                 "type": "object",
-                                                "description": "Perform HTTP check on the container.\nThe check is successful if an HTTP request to the specified path returns a successful status code (e.g. 2XX or 3XX) within the specified timeout.",
                                                 "properties": {
                                                     "path": {
-                                                        "type": "string",
-                                                        "description": "HTTP path to perform the check on."
+                                                        "type": "string"
                                                     }
                                                 },
                                                 "nullable": true,
@@ -1413,50 +1378,46 @@
                                                     "path"
                                                 ],
                                                 "x-one-of": "probe"
+                                            },
+                                            "tcp": {
+                                                "type": "object",
+                                                "nullable": true,
+                                                "x-one-of": "probe"
                                             }
                                         },
                                         "x-properties-order": [
                                             "failure_threshold",
                                             "interval",
                                             "timeout",
-                                            "tcp",
-                                            "http"
+                                            "http",
+                                            "tcp"
                                         ]
                                     },
                                     "startup_probe": {
                                         "type": "object",
-                                        "description": "Defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
+                                        "description": "It defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
                                         "properties": {
                                             "failure_threshold": {
                                                 "type": "integer",
-                                                "description": "Number of consecutive failures before considering the container as unhealthy.\nUnhealthy containers do not receive traffic from incoming requests.",
                                                 "format": "uint32"
                                             },
                                             "interval": {
                                                 "type": "string",
-                                                "description": "Time interval between checks. (in seconds)",
+                                                "description": "(in seconds)",
                                                 "example": "2.5s",
                                                 "nullable": true
                                             },
                                             "timeout": {
                                                 "type": "string",
-                                                "description": "Duration before the check times out. (in seconds)",
+                                                "description": "(in seconds)",
                                                 "example": "2.5s",
                                                 "nullable": true
                                             },
-                                            "tcp": {
-                                                "type": "object",
-                                                "description": "Perform TCP check on the container.\nThe check is successful if a TCP connection can be established with the container within the specified timeout.",
-                                                "nullable": true,
-                                                "x-one-of": "probe"
-                                            },
                                             "http": {
                                                 "type": "object",
-                                                "description": "Perform HTTP check on the container.\nThe check is successful if an HTTP request to the specified path returns a successful status code (e.g. 2XX or 3XX) within the specified timeout.",
                                                 "properties": {
                                                     "path": {
-                                                        "type": "string",
-                                                        "description": "HTTP path to perform the check on."
+                                                        "type": "string"
                                                     }
                                                 },
                                                 "nullable": true,
@@ -1464,14 +1425,19 @@
                                                     "path"
                                                 ],
                                                 "x-one-of": "probe"
+                                            },
+                                            "tcp": {
+                                                "type": "object",
+                                                "nullable": true,
+                                                "x-one-of": "probe"
                                             }
                                         },
                                         "x-properties-order": [
                                             "failure_threshold",
                                             "interval",
                                             "timeout",
-                                            "tcp",
-                                            "http"
+                                            "http",
+                                            "tcp"
                                         ]
                                     },
                                     "tags": {
@@ -1483,7 +1449,8 @@
                                     },
                                     "private_network_id": {
                                         "type": "string",
-                                        "description": "ID of the Private Network the container is connected to.\nWhen connected to a Private Network, the container can access other Scaleway resources in this Private Network."
+                                        "description": "ID of the Private Network the container is connected to.\nWhen connected to a Private Network, the container can access other Scaleway resources in this Private Network.",
+                                        "nullable": true
                                     },
                                     "command": {
                                         "type": "array",
@@ -1500,11 +1467,6 @@
                                         }
                                     }
                                 },
-                                "required": [
-                                    "namespace_id",
-                                    "name",
-                                    "image"
-                                ],
                                 "x-properties-order": [
                                     "namespace_id",
                                     "name",
@@ -1558,7 +1520,8 @@
                     "Containers"
                 ],
                 "operationId": "GetContainer",
-                "summary": "Get the container associated with the specified ID.",
+                "summary": "Get a container",
+                "description": "Get the container associated with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1616,8 +1579,8 @@
                     "Containers"
                 ],
                 "operationId": "UpdateContainer",
-                "summary": "Update the container associated with the specified ID.",
-                "description": "Only fields present in the request are updated; others are left untouched.",
+                "summary": "Update an existing container",
+                "description": "Update the container associated with the specified ID.\n\nOnly fields present in the request are updated; others are left untouched.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1685,22 +1648,26 @@
                                     "min_scale": {
                                         "type": "integer",
                                         "description": "Minimum number of instances to scale the container to.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "max_scale": {
                                         "type": "integer",
                                         "description": "Maximum number of instances to scale the container to.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "memory_limit_bytes": {
                                         "type": "integer",
                                         "description": "Memory limit of the container in bytes. (in bytes)",
-                                        "format": "uint64"
+                                        "format": "uint64",
+                                        "nullable": true
                                     },
                                     "mvcpu_limit": {
                                         "type": "integer",
-                                        "description": "CPU limit of the container in mvCPU.",
-                                        "format": "uint32"
+                                        "description": "CPU limit of the container in mVCPU.",
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "timeout": {
                                         "type": "string",
@@ -1716,22 +1683,17 @@
                                             "public",
                                             "private"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_privacy": "Unknown privacy",
-                                                "public": "Container is public, and can be accessed without authentication",
-                                                "private": "Container is private, and can only be accessed by providing an authentication token (IAM or legacy JWTs)"
-                                            }
-                                        },
                                         "default": "unknown_privacy"
                                     },
                                     "description": {
                                         "type": "string",
-                                        "description": "Container description."
+                                        "description": "Description of the container.",
+                                        "nullable": true
                                     },
                                     "image": {
                                         "type": "string",
-                                        "description": "Image reference (e.g. \"rg.fr-par.scw.cloud/my-registry-namespace/image:tag\")."
+                                        "description": "Image reference (e.g. \"rg.fr-par.scw.cloud/my-registry-namespace/image:tag\").",
+                                        "nullable": true
                                     },
                                     "protocol": {
                                         "type": "string",
@@ -1741,23 +1703,18 @@
                                             "http1",
                                             "h2c"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_protocol": "Unknown protocol",
-                                                "http1": "HTTP/1 protocol. Recommended for most use cases",
-                                                "h2c": "HTTP/2 protocol. Useful for gRPC applications. Requires that the container explicitly supports HTTP/2 (e.g. Nginx's `listen 80 http2` directive)."
-                                            }
-                                        },
                                         "default": "unknown_protocol"
                                     },
                                     "port": {
                                         "type": "integer",
                                         "description": "Port the container listens on.",
-                                        "format": "uint32"
+                                        "format": "uint32",
+                                        "nullable": true
                                     },
                                     "https_connection_only": {
                                         "type": "boolean",
-                                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP)."
+                                        "description": "If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).",
+                                        "nullable": true
                                     },
                                     "sandbox": {
                                         "type": "string",
@@ -1767,19 +1724,13 @@
                                             "v1",
                                             "v2"
                                         ],
-                                        "x-enum-descriptions": {
-                                            "values": {
-                                                "unknown_sandbox": "Unknown sandbox",
-                                                "v1": "Legacy sandbox with slower cold starts. Fully supports the Linux system call interface",
-                                                "v2": "Recommended sandbox with faster cold starts"
-                                            }
-                                        },
                                         "default": "unknown_sandbox"
                                     },
                                     "local_storage_limit_bytes": {
                                         "type": "integer",
                                         "description": "Local storage limit of the container (in bytes). (in bytes)",
-                                        "format": "uint64"
+                                        "format": "uint64",
+                                        "nullable": true
                                     },
                                     "scaling_option": {
                                         "type": "object",
@@ -1787,21 +1738,18 @@
                                         "properties": {
                                             "concurrent_requests_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the number of concurrent requests being processed per container instance. The threshold value is the number of concurrent requests above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
                                             },
                                             "cpu_usage_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the CPU usage of a container instance. The threshold value is the percentage of CPU usage above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
                                             },
                                             "memory_usage_threshold": {
                                                 "type": "integer",
-                                                "description": "Scale depending on the memory usage of a container instance. The threshold value is the percentage of memory usage above which the container will be scaled up.",
                                                 "format": "uint32",
                                                 "nullable": true,
                                                 "x-one-of": "scaling_rule"
@@ -1815,58 +1763,7 @@
                                     },
                                     "liveness_probe": {
                                         "type": "object",
-                                        "description": "Defines how to check if the container is running and healthy.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
-                                        "properties": {
-                                            "failure_threshold": {
-                                                "type": "integer",
-                                                "description": "Number of consecutive failures before considering the container as unhealthy.\nUnhealthy containers do not receive traffic from incoming requests.",
-                                                "format": "uint32"
-                                            },
-                                            "interval": {
-                                                "type": "string",
-                                                "description": "Time interval between checks. (in seconds)",
-                                                "example": "2.5s",
-                                                "nullable": true
-                                            },
-                                            "timeout": {
-                                                "type": "string",
-                                                "description": "Duration before the check times out. (in seconds)",
-                                                "example": "2.5s",
-                                                "nullable": true
-                                            },
-                                            "tcp": {
-                                                "type": "object",
-                                                "description": "Perform TCP check on the container.\nThe check is successful if a TCP connection can be established with the container within the specified timeout.",
-                                                "nullable": true,
-                                                "x-one-of": "probe"
-                                            },
-                                            "http": {
-                                                "type": "object",
-                                                "description": "Perform HTTP check on the container.\nThe check is successful if an HTTP request to the specified path returns a successful status code (e.g. 2XX or 3XX) within the specified timeout.",
-                                                "properties": {
-                                                    "path": {
-                                                        "type": "string",
-                                                        "description": "HTTP path to perform the check on."
-                                                    }
-                                                },
-                                                "nullable": true,
-                                                "x-properties-order": [
-                                                    "path"
-                                                ],
-                                                "x-one-of": "probe"
-                                            }
-                                        },
-                                        "x-properties-order": [
-                                            "failure_threshold",
-                                            "interval",
-                                            "timeout",
-                                            "tcp",
-                                            "http"
-                                        ]
-                                    },
-                                    "startup_probe": {
-                                        "type": "object",
-                                        "description": "Defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\n\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.",
+                                        "description": "It defines how to check if the container is still running.\nIf the liveness probe fails, the container will be restarted.\nIt is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
                                         "properties": {
                                             "failure_threshold": {
                                                 "type": "integer",
@@ -1911,6 +1808,55 @@
                                             "tcp"
                                         ]
                                     },
+                                    "startup_probe": {
+                                        "type": "object",
+                                        "description": "It defines how to check if the container has started successfully.\nIf the startup probe fails, the container will be restarted.\nThis check is useful for applications that might take a long time to start. It is only performed when the container is starting.\nPossible check types:\n- http: Perform HTTP check on the container with the specified path.\n- tcp: Perform TCP check on the container.\nFor each check type, you can also configure the following parameters:\n- interval: Time interval between checks (in seconds).\n- failure_threshold: Number of consecutive failures before considering the container has to be restarted.\n- timeout: Duration before the check times out (in seconds).",
+                                        "properties": {
+                                            "failure_threshold": {
+                                                "type": "integer",
+                                                "format": "uint32",
+                                                "nullable": true
+                                            },
+                                            "interval": {
+                                                "type": "string",
+                                                "description": "(in seconds)",
+                                                "example": "2.5s",
+                                                "nullable": true
+                                            },
+                                            "timeout": {
+                                                "type": "string",
+                                                "description": "(in seconds)",
+                                                "example": "2.5s",
+                                                "nullable": true
+                                            },
+                                            "http": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "path": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "nullable": true,
+                                                "x-properties-order": [
+                                                    "path"
+                                                ],
+                                                "x-one-of": "probe"
+                                            },
+                                            "tcp": {
+                                                "type": "object",
+                                                "nullable": true,
+                                                "x-one-of": "probe"
+                                            }
+                                        },
+                                        "x-properties-order": [
+                                            "failure_threshold",
+                                            "interval",
+                                            "timeout",
+                                            "http",
+                                            "tcp"
+                                        ]
+                                    },
                                     "tags": {
                                         "type": "array",
                                         "description": "Tags of the Serverless Container.",
@@ -1921,7 +1867,8 @@
                                     },
                                     "private_network_id": {
                                         "type": "string",
-                                        "description": "ID of the Private Network the container is connected to.\nWhen connected to a Private Network, the container can access other Scaleway resources in this Private Network."
+                                        "description": "ID of the Private Network the container is connected to.\nWhen connected to a Private Network, the container can access other Scaleway resources in this Private Network.",
+                                        "nullable": true
                                     },
                                     "command": {
                                         "type": "array",
@@ -1989,8 +1936,8 @@
                     "Containers"
                 ],
                 "operationId": "DeleteContainer",
-                "summary": "Delete the container associated with the specified ID.",
-                "description": "It also deletes in cascade any resource linked to the container (crons, tokens, etc.).\n\nThis action **cannot** be undone.",
+                "summary": "Delete an existing container",
+                "description": "Delete the container associated with the specified ID.\n\nIt also deletes in cascade any resource linked to the container (crons, tokens, etc.).\n\nThis action **cannot** be undone.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2009,7 +1956,6 @@
                     {
                         "in": "path",
                         "name": "container_id",
-                        "description": "UUID of the container to delete.",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2123,8 +2069,8 @@
                     "Domains"
                 ],
                 "operationId": "ListDomains",
-                "summary": "List all custom domains the caller can access (read permission).",
-                "description": "By default, the custom domains listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n    \nAdditional parameters can be set in the query to filter the output, such as `organization_id`, `project_id`, `namespace_id`, or `container_id`.",
+                "summary": "List all custom domains",
+                "description": "List all custom domains the caller can access (read permission).\n    \nBy default, the custom domains listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n    \nAdditional parameters can be set in the query to filter the output, such as `organization_id`, `project_id`, `namespace_id`, or `container_id`.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2225,7 +2171,8 @@
                     "Domains"
                 ],
                 "operationId": "CreateDomain",
-                "summary": "Create a new custom domain for the container with the specified ID.",
+                "summary": "Create a new custom domain",
+                "description": "Create a new custom domain for the container with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2262,25 +2209,18 @@
                                 "type": "object",
                                 "properties": {
                                     "container_id": {
-                                        "type": "string",
-                                        "description": "Unique ID of the container the domain will be assigned to."
+                                        "type": "string"
                                     },
                                     "hostname": {
-                                        "type": "string",
-                                        "description": "Domain assigned to the container."
+                                        "type": "string"
                                     },
                                     "tags": {
                                         "type": "array",
-                                        "description": "A list of arbitrary tags associated with the domain.",
                                         "items": {
                                             "type": "string"
                                         }
                                     }
                                 },
-                                "required": [
-                                    "container_id",
-                                    "hostname"
-                                ],
                                 "x-properties-order": [
                                     "container_id",
                                     "hostname",
@@ -2313,7 +2253,8 @@
                     "Domains"
                 ],
                 "operationId": "GetDomain",
-                "summary": "Get the custom domain associated with the specified ID.",
+                "summary": "Get a custom domain",
+                "description": "Get the custom domain associated with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2371,8 +2312,8 @@
                     "Domains"
                 ],
                 "operationId": "UpdateDomain",
-                "summary": "Update the domain associated with the specified ID.",
-                "description": "Only fields present in the request are updated; others are left untouched.",
+                "summary": "Update an existing domain",
+                "description": "Update the domain associated with the specified ID.\n\nOnly fields present in the request are updated; others are left untouched.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2391,7 +2332,6 @@
                     {
                         "in": "path",
                         "name": "domain_id",
-                        "description": "UUID of the domain to update.",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2418,12 +2358,7 @@
                                 "type": "object",
                                 "properties": {
                                     "tags": {
-                                        "type": "array",
-                                        "description": "A list of arbitrary tags associated with the domain.",
-                                        "nullable": true,
-                                        "items": {
-                                            "type": "string"
-                                        }
+                                        "$ref": "#/components/schemas/scaleway.std.StringsValue"
                                     }
                                 },
                                 "x-properties-order": [
@@ -2454,7 +2389,8 @@
                     "Domains"
                 ],
                 "operationId": "DeleteDomain",
-                "summary": "Delete the custom domain associated with the specified ID.",
+                "summary": "Delete a custom domain",
+                "description": "Delete the custom domain associated with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2473,7 +2409,6 @@
                     {
                         "in": "path",
                         "name": "domain_id",
-                        "description": "UUID of the domain to delete.",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2515,8 +2450,8 @@
                     "Namespaces"
                 ],
                 "operationId": "ListNamespaces",
-                "summary": "List all namespaces the caller can access (read permission).",
-                "description": "By default, the namespaces listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, and `name`.",
+                "summary": "List all namespaces",
+                "description": "List all namespaces the caller can access (read permission).\n\nBy default, the namespaces listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, and `name`.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2610,8 +2545,8 @@
                     "Namespaces"
                 ],
                 "operationId": "CreateNamespace",
-                "summary": "Create a new namespace.",
-                "description": "Namespace name must be unique inside a project.",
+                "summary": "Create a new namespace",
+                "description": "Create a new namespace.\n\nNamespace name must be unique inside a project.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2647,55 +2582,44 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "project_id": {
-                                        "type": "string",
-                                        "description": "Unique ID of the Project the namespace belongs to."
-                                    },
                                     "name": {
-                                        "type": "string",
-                                        "description": "Namespace name."
+                                        "type": "string"
+                                    },
+                                    "project_id": {
+                                        "type": "string"
                                     },
                                     "description": {
                                         "type": "string",
-                                        "description": "Namespace description."
+                                        "nullable": true
                                     },
                                     "environment_variables": {
                                         "type": "object",
-                                        "description": "Namespace environment variables.",
                                         "properties": {
                                             "<environment_variableKey>": {
-                                                "type": "string",
-                                                "description": "Namespace environment variables."
+                                                "type": "string"
                                             }
                                         },
                                         "additionalProperties": true
                                     },
                                     "secret_environment_variables": {
                                         "type": "object",
-                                        "description": "Namespace secret environment variables.",
                                         "properties": {
                                             "<secret_environment_variableKey>": {
-                                                "type": "string",
-                                                "description": "Namespace secret environment variables."
+                                                "type": "string"
                                             }
                                         },
                                         "additionalProperties": true
                                     },
                                     "tags": {
                                         "type": "array",
-                                        "description": "A list of arbitrary tags associated with the namespace.",
                                         "items": {
                                             "type": "string"
                                         }
                                     }
                                 },
-                                "required": [
-                                    "project_id",
-                                    "name"
-                                ],
                                 "x-properties-order": [
-                                    "project_id",
                                     "name",
+                                    "project_id",
                                     "description",
                                     "environment_variables",
                                     "secret_environment_variables",
@@ -2728,7 +2652,8 @@
                     "Namespaces"
                 ],
                 "operationId": "GetNamespace",
-                "summary": "Get the namespace associated with the specified ID.",
+                "summary": "Get a namespace",
+                "description": "Get the namespace associated with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2786,8 +2711,8 @@
                     "Namespaces"
                 ],
                 "operationId": "UpdateNamespace",
-                "summary": "Update the namespace associated with the specified ID.",
-                "description": "Only fields present in the request are updated; others are left untouched.",
+                "summary": "Update an existing namespace",
+                "description": "Update the namespace associated with the specified ID.\n\nOnly fields present in the request are updated; others are left untouched.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2806,7 +2731,6 @@
                     {
                         "in": "path",
                         "name": "namespace_id",
-                        "description": "UUID of the namespace to update.",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2834,42 +2758,23 @@
                                 "properties": {
                                     "description": {
                                         "type": "string",
-                                        "description": "Namespace description."
+                                        "nullable": true
                                     },
                                     "environment_variables": {
-                                        "type": "object",
-                                        "description": "Namespace environment variables.",
-                                        "properties": {
-                                            "<key>": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "nullable": true
-                                    },
-                                    "secret_environment_variables": {
-                                        "type": "object",
-                                        "description": "Namespace secret environment variables.",
-                                        "properties": {
-                                            "<key>": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "nullable": true
+                                        "$ref": "#/components/schemas/scaleway.std.MapStringStringValue"
                                     },
                                     "tags": {
-                                        "type": "array",
-                                        "description": "A list of arbitrary tags associated with the namespace.",
-                                        "nullable": true,
-                                        "items": {
-                                            "type": "string"
-                                        }
+                                        "$ref": "#/components/schemas/scaleway.std.StringsValue"
+                                    },
+                                    "secret_environment_variables": {
+                                        "$ref": "#/components/schemas/scaleway.std.MapStringStringValue"
                                     }
                                 },
                                 "x-properties-order": [
                                     "description",
                                     "environment_variables",
-                                    "secret_environment_variables",
-                                    "tags"
+                                    "tags",
+                                    "secret_environment_variables"
                                 ]
                             }
                         }
@@ -2896,8 +2801,8 @@
                     "Namespaces"
                 ],
                 "operationId": "DeleteNamespace",
-                "summary": "Delete the namespace associated with the specified ID.",
-                "description": "It also deletes in cascade any resource inside the namespace.\n\nThis action **cannot** be undone.",
+                "summary": "Delete an existing namespace",
+                "description": "Delete the namespace associated with the specified ID.\n\nIt also deletes in cascade any resource inside the namespace.\n\nThis action **cannot** be undone.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2916,7 +2821,6 @@
                     {
                         "in": "path",
                         "name": "namespace_id",
-                        "description": "UUID of the namespace to delete.",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -2958,8 +2862,8 @@
                     "Triggers"
                 ],
                 "operationId": "ListTriggers",
-                "summary": "List all triggers the caller can access (read permission).",
-                "description": "By default, the triggers listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, `namespace_id`, or `container_id`.",
+                "summary": "List all triggers",
+                "description": "List all triggers the caller can access (read permission).\n\nBy default, the triggers listed are ordered by creation date in ascending order. This can be modified via the `order_by` field.\n\nAdditional parameters can be set in the query to filter, such as `organization_id`, `project_id`, `namespace_id`, or `container_id`.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3060,7 +2964,8 @@
                     "Triggers"
                 ],
                 "operationId": "CreateTrigger",
-                "summary": "Create a new trigger for the container with the specified ID.",
+                "summary": "Create a new trigger",
+                "description": "Create a new trigger for the container with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3096,17 +3001,14 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "container_id": {
-                                        "type": "string",
-                                        "description": "ID of the container to trigger."
-                                    },
                                     "name": {
                                         "type": "string",
                                         "description": "Name of the trigger."
                                     },
                                     "description": {
                                         "type": "string",
-                                        "description": "Description of the trigger."
+                                        "description": "Description of the trigger.",
+                                        "nullable": true
                                     },
                                     "tags": {
                                         "type": "array",
@@ -3114,6 +3016,10 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "container_id": {
+                                        "type": "string",
+                                        "description": "ID of the container to trigger."
                                     },
                                     "destination_config": {
                                         "type": "object",
@@ -3148,7 +3054,7 @@
                                     },
                                     "cron_config": {
                                         "type": "object",
-                                        "description": "Configuration for a cron source.",
+                                        "description": "Configuration for a Cron source.",
                                         "properties": {
                                             "schedule": {
                                                 "type": "string",
@@ -3264,14 +3170,14 @@
                                     }
                                 },
                                 "required": [
-                                    "container_id",
-                                    "name"
+                                    "name",
+                                    "container_id"
                                 ],
                                 "x-properties-order": [
-                                    "container_id",
                                     "name",
                                     "description",
                                     "tags",
+                                    "container_id",
                                     "destination_config",
                                     "cron_config",
                                     "sqs_config",
@@ -3301,10 +3207,11 @@
         "/containers/v1/regions/{region}/triggers/{trigger_id}": {
             "get": {
                 "tags": [
-                    "Triggers"
+                    "Containers"
                 ],
                 "operationId": "GetTrigger",
-                "summary": "Get the trigger associated with the specified ID.",
+                "summary": "Get a trigger",
+                "description": "Get the trigger associated with the specified ID.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3362,8 +3269,8 @@
                     "Triggers"
                 ],
                 "operationId": "UpdateTrigger",
-                "summary": "Update the trigger associated with the specified ID.",
-                "description": "When updating a trigger, you cannot specify a different source type than the one already set.\nOnly fields present in the request are updated; others are left untouched.",
+                "summary": "Update an existing trigger",
+                "description": "Update the trigger associated with the specified ID.\n\nWhen updating a trigger, you cannot specify a different source type than the one already set.\nOnly fields present in the request are updated; others are left untouched.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3410,11 +3317,13 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "description": "Name of the trigger."
+                                        "description": "Name of the trigger.",
+                                        "nullable": true
                                     },
                                     "description": {
                                         "type": "string",
-                                        "description": "Description of the trigger."
+                                        "description": "Description of the trigger.",
+                                        "nullable": true
                                     },
                                     "tags": {
                                         "type": "array",
@@ -3430,7 +3339,8 @@
                                         "properties": {
                                             "http_path": {
                                                 "type": "string",
-                                                "description": "The HTTP path to send the request to (e.g., \"/my-webhook-endpoint\")."
+                                                "description": "The HTTP path to send the request to (e.g., \"/my-webhook-endpoint\").",
+                                                "nullable": true
                                             },
                                             "http_method": {
                                                 "type": "string",
@@ -3457,15 +3367,18 @@
                                         "properties": {
                                             "schedule": {
                                                 "type": "string",
-                                                "description": "UNIX cron schedule to run job (e.g., \"* * * * *\")."
+                                                "description": "UNIX cron schedule to run job (e.g., \"* * * * *\").",
+                                                "nullable": true
                                             },
                                             "timezone": {
                                                 "type": "string",
-                                                "description": "Timezone for the cron schedule, in tz database format (e.g., \"Europe/Paris\")."
+                                                "description": "Timezone for the cron schedule, in tz database format (e.g., \"Europe/Paris\").",
+                                                "nullable": true
                                             },
                                             "body": {
                                                 "type": "string",
-                                                "description": "Body to send to the container when the trigger is invoked."
+                                                "description": "Body to send to the container when the trigger is invoked.",
+                                                "nullable": true
                                             },
                                             "headers": {
                                                 "type": "object",
@@ -3493,23 +3406,28 @@
                                         "properties": {
                                             "region": {
                                                 "type": "string",
-                                                "description": "The region where the SQS queue is hosted (e.g., \"fr-par\", \"nl-ams\")."
+                                                "description": "The region where the SQS queue is hosted (e.g., \"fr-par\", \"nl-ams\").",
+                                                "nullable": true
                                             },
                                             "endpoint": {
                                                 "type": "string",
-                                                "description": "Endpoint URL to use to access SQS (e.g., \"https://sqs.mnq.fr-par.scaleway.com\")."
+                                                "description": "Endpoint URL to use to access SQS (e.g., \"https://sqs.mnq.fr-par.scaleway.com\").",
+                                                "nullable": true
                                             },
                                             "access_key_id": {
                                                 "type": "string",
-                                                "description": "The access key for accessing the SQS queue."
+                                                "description": "The access key for accessing the SQS queue.",
+                                                "nullable": true
                                             },
                                             "secret_access_key": {
                                                 "type": "string",
-                                                "description": "The secret key for accessing the SQS queue."
+                                                "description": "The secret key for accessing the SQS queue.",
+                                                "nullable": true
                                             },
                                             "queue_url": {
                                                 "type": "string",
-                                                "description": "The URL of the SQS queue to monitor for messages."
+                                                "description": "The URL of the SQS queue to monitor for messages.",
+                                                "nullable": true
                                             }
                                         },
                                         "nullable": true,
@@ -3536,11 +3454,13 @@
                                             },
                                             "subject": {
                                                 "type": "string",
-                                                "description": "NATS subject to subscribe to (e.g., \"my-subject\")."
+                                                "description": "NATS subject to subscribe to (e.g., \"my-subject\").",
+                                                "nullable": true
                                             },
                                             "credentials_file_content": {
                                                 "type": "string",
-                                                "description": "The content of the NATS credentials file.\nThe credentials from this file will be used to authenticate with the NATS server and subscribe to the specified subject."
+                                                "description": "The content of the NATS credentials file.\nThe credentials from this file will be used to authenticate with the NATS server and subscribe to the specified subject.",
+                                                "nullable": true
                                             }
                                         },
                                         "nullable": true,
@@ -3586,8 +3506,8 @@
                     "Triggers"
                 ],
                 "operationId": "DeleteTrigger",
-                "summary": "Delete the trigger associated with the specified ID.",
-                "description": "This action **cannot** be undone.",
+                "summary": "Delete a trigger",
+                "description": "Delete the trigger associated with the specified ID.\n\nThis action is irreversible and cannot be undone.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3606,7 +3526,6 @@
                     {
                         "in": "path",
                         "name": "trigger_id",
-                        "description": "ID of the trigger to delete.",
                         "required": true,
                         "schema": {
                             "type": "string"

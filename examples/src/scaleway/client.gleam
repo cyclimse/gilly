@@ -2,6 +2,7 @@
 // To regenerate, run: gilly <path_to_openapi_spec.json>
 
 
+import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/http
@@ -29,24 +30,27 @@ pub type ScalewayContainersV1Container {
     /// Container description.
     description: String,
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(Dict(String, String)),
     /// Container last error message.
-    error_message: String,
+    error_message: Option(String),
     /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
     https_connections_only: Bool,
     /// Container unique ID. (UUID format)
     id: String,
     /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
     image: String,
-    /// Defines how to check if the container is running and healthy.
+    /// It defines how to check if the container is still running.
     /// If the liveness probe fails, the container will be restarted.
     /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     liveness_probe: Option(Dynamic),
-    /// Local storage limit of the container (in bytes). (in bytes)
+    /// Local storage limit of the container in bytes. (in bytes)
     local_storage_limit_bytes: Int,
     /// Maximum number of instances to scale the container to.
     max_scale: Int,
@@ -66,7 +70,7 @@ pub type ScalewayContainersV1Container {
     privacy: ScalewayContainersV1ContainerPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network. (UUID format)
-    private_network_id: String,
+    private_network_id: Option(String),
     /// Protocol the container uses.
     protocol: ScalewayContainersV1ContainerProtocol,
     /// Public URL of the container.
@@ -79,18 +83,21 @@ pub type ScalewayContainersV1Container {
     /// Parameter used to decide when to scale up or down.
     scaling_option: Option(Dynamic),
     /// Secret environment variables of the container.
-    secret_environment_variables: Option(Dynamic),
-    /// Defines how to check if the container has started successfully.
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
     /// If the startup probe fails, the container will be restarted.
     /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     startup_probe: Option(Dynamic),
     /// Container status.
     status: ScalewayContainersV1ContainerStatus,
-    /// Tags of the Serverless Container.
+    /// List of tags applied to the Serverless Container.
     tags: List(String),
     /// Processing time limit for the container. (in seconds)
     timeout: Option(String),
@@ -104,8 +111,8 @@ pub fn scaleway_containers_v1_container_decoder() -> decode.Decoder(ScalewayCont
   use command <- decode.field("command", decode.list(decode.string))
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
   use description <- decode.field("description", decode.string)
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use error_message <- decode.field("error_message", decode.string)
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use https_connections_only <- decode.field("https_connections_only", decode.bool)
   use id <- decode.field("id", decode.string)
   use image <- decode.field("image", decode.string)
@@ -119,13 +126,13 @@ pub fn scaleway_containers_v1_container_decoder() -> decode.Decoder(ScalewayCont
   use namespace_id <- decode.field("namespace_id", decode.string)
   use port <- decode.field("port", decode.int)
   use privacy <- decode.field("privacy", scaleway_containers_v1_container_privacy_decoder())
-  use private_network_id <- decode.field("private_network_id", decode.string)
+  use private_network_id <- decode.optional_field("private_network_id", None, decode.optional(decode.string))
   use protocol <- decode.field("protocol", scaleway_containers_v1_container_protocol_decoder())
   use public_endpoint <- decode.field("public_endpoint", decode.string)
   use region <- decode.field("region", decode.string)
   use sandbox <- decode.field("sandbox", scaleway_containers_v1_container_sandbox_decoder())
   use scaling_option <- decode.optional_field("scaling_option", None, decode.optional(decode.dynamic))
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dynamic))
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use startup_probe <- decode.optional_field("startup_probe", None, decode.optional(decode.dynamic))
   use status <- decode.field("status", scaleway_containers_v1_container_status_decoder())
   use tags <- decode.field("tags", decode.list(decode.string))
@@ -141,7 +148,7 @@ pub type ScalewayContainersV1Domain {
     /// Domain creation date. (RFC 3339 format)
     created_at: Option(String),
     /// Domain last error message.
-    error_message: String,
+    error_message: Option(String),
     /// Domain assigned to the container.
     hostname: String,
     /// Domain unique ID. (UUID format)
@@ -158,7 +165,7 @@ pub type ScalewayContainersV1Domain {
 pub fn scaleway_containers_v1_domain_decoder() -> decode.Decoder(ScalewayContainersV1Domain) {
   use container_id <- decode.field("container_id", decode.string)
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
-  use error_message <- decode.field("error_message", decode.string)
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use hostname <- decode.field("hostname", decode.string)
   use id <- decode.field("id", decode.string)
   use status <- decode.field("status", scaleway_containers_v1_domain_status_decoder())
@@ -234,9 +241,9 @@ pub type ScalewayContainersV1Namespace {
     /// Namespace description.
     description: String,
     /// Namespace environment variables.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(Dict(String, String)),
     /// Namespace last error message.
-    error_message: String,
+    error_message: Option(String),
     /// Namespace unique ID. (UUID format)
     id: String,
     /// Namespace name.
@@ -248,7 +255,7 @@ pub type ScalewayContainersV1Namespace {
     /// Region in which the namespace will be created.
     region: String,
     /// Namespace secret environment variables.
-    secret_environment_variables: Option(Dynamic),
+    secret_environment_variables: Option(Dict(String, String)),
     /// Namespace status.
     status: ScalewayContainersV1NamespaceStatus,
     /// A list of arbitrary tags associated with the namespace.
@@ -261,14 +268,14 @@ pub type ScalewayContainersV1Namespace {
 pub fn scaleway_containers_v1_namespace_decoder() -> decode.Decoder(ScalewayContainersV1Namespace) {
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
   use description <- decode.field("description", decode.string)
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
-  use error_message <- decode.field("error_message", decode.string)
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use id <- decode.field("id", decode.string)
   use name <- decode.field("name", decode.string)
   use organization_id <- decode.field("organization_id", decode.string)
   use project_id <- decode.field("project_id", decode.string)
   use region <- decode.field("region", decode.string)
-  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dynamic))
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use status <- decode.field("status", scaleway_containers_v1_namespace_status_decoder())
   use tags <- decode.field("tags", decode.list(decode.string))
   use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
@@ -288,7 +295,7 @@ pub type ScalewayContainersV1Trigger {
     /// Configuration of the destination to trigger.
     destination_config: Option(Dynamic),
     /// Trigger last error message.
-    error_message: String,
+    error_message: Option(String),
     /// Trigger unique ID. (UUID format)
     id: String,
     /// Name of the trigger.
@@ -314,7 +321,7 @@ pub fn scaleway_containers_v1_trigger_decoder() -> decode.Decoder(ScalewayContai
   use cron_config <- decode.optional_field("cron_config", None, decode.optional(decode.dynamic))
   use description <- decode.field("description", decode.string)
   use destination_config <- decode.optional_field("destination_config", None, decode.optional(decode.dynamic))
-  use error_message <- decode.field("error_message", decode.string)
+  use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use id <- decode.field("id", decode.string)
   use name <- decode.field("name", decode.string)
   use nats_config <- decode.optional_field("nats_config", None, decode.optional(decode.dynamic))
@@ -325,6 +332,9 @@ pub fn scaleway_containers_v1_trigger_decoder() -> decode.Decoder(ScalewayContai
   use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
   decode.success(ScalewayContainersV1Trigger(container_id:, created_at:, cron_config:, description:, destination_config:, error_message:, id:, name:, nats_config:, source_type:, sqs_config:, status:, tags:, updated_at:))
 }
+
+pub type ScalewayStdMapStringStringValue =
+  Dict(String, String)
 
 pub type ScalewayStdServiceInfo {
   ScalewayStdServiceInfo(
@@ -347,6 +357,9 @@ pub fn scaleway_std_service_info_decoder() -> decode.Decoder(ScalewayStdServiceI
   use version <- decode.field("version", decode.string)
   decode.success(ScalewayStdServiceInfo(built_at:, description:, documentation_url:, git_commit:, name:, version:))
 }
+
+pub type ScalewayStdStringsValue =
+  List(String)
 
 
 // --- Enums -------------------------------------------------------------------
@@ -781,87 +794,11 @@ pub type ApiError(err) {
   ClientError(err)
 }
 
-/// Scaleway Serverless Containers is a «Container As A Service» product which gives users the ability to deploy atomic serverless workloads and only pay for resources used while containers are running.
+/// Easily run containers on the cloud with a single command.
 /// 
-/// It provides many advantages, such as:
-/// 
-/// - Containers are only executed when an event is triggered, which allows users to save money while code is not running
-/// - Auto-Scalability:
-/// - Automated `Scaling up and down` based on user configuration (e.g. min: 0, max: 50 replicas of my container).
-/// - Automated `Scaling to zero` when a container is not executed, which is cost-effective for the user and saves computing resources for the cloud provider.
-/// - Endpoint-only scaling
-/// 
-/// ### Serverless Framework
-/// 
-/// This page explains how to use the Scaleway Containers API, including a quickstart and the full API documentation. However, you may prefer to use the
-/// [Serverless Framework plugin](https://github.com/scaleway/serverless-scaleway-functions) enabling users to deploy their serverless workloads
-/// much more easily with a single `serverless deploy` command.
-/// 
-/// If what you are looking for is an easy way to deploy your code, you may prefer Serverless Framework.
-/// 
-/// Below, you will find a step-by-step guide on how to create a `namespace`, configure and deploy `containers`, and trigger your `containers` via HTTP, CRON triggers, or messaging triggers.
-/// 
-/// ## Concepts
-/// 
-/// Refer to our [dedicated concepts page](https://www.scaleway.com/en/docs/serverless/containers/concepts/) to find definitions of the different terms referring to Serverless Containers.
-/// 
-/// ## Technical information
-/// 
-/// A **Container** in Scaleway Containers consists of multiple components:
-/// 
-/// - **Environment variables**: Users may configure specific environment variables (Database host/credentials for example) which are safely encrypted in our Database, and will be mounted inside your containers. **Note** that environment variables set at `namespace` level will also be mounted (in every container). Environment variables written at `container` level override the ones set at `namespace` level (if two of them bear the same name for example).
-/// - **Docker image**: A Docker image contains all the elements required to run your software: code, a runtime environment, tools, scripts, libraries, etc.
-/// - **Resources**: Users may decide how much computing resource to allocate to each container -> `Memory Limit` (in MB). We will then allocate the right amount of `CPU` based on Memory Limit choice. The right choice for your container's resources is very important, as you will be billed based on compute usage over time and the number of Containers executions.
-/// 
-/// ### Product features
-/// 
-/// - Fully isolated environments
-/// - Scaling to zero (saves money and computing resources while the code is not executed)
-/// - High availability and scalability (automated and configurable, each container may scale automatically according to incoming workloads)
-/// - Multiple event sources:
-/// - HTTP (request on our gateway will execute the container)
-/// - CRON (time-based job, runs according to configurable cron schedule)
-/// - SQS messaging, compatible with [Scaleway Queues](https://www.scaleway.com/en/docs/queues/)
-/// - NATS messaging, compatible with [Scaleway NATS](https://www.scaleway.com/en/docs/nats/)
-/// - Integrated to the Scaleway Container Registry product:
-/// - Deploy any docker image from one of your registry namespace
-/// - Flexible resources: you can choose values separately for your memory and CPU within a range in respect with maximum and minimum allowed values in [Containers Limitation documentation](https://www.scaleway.com/en/docs/serverless/containers/reference-content/containers-limitations/).
-/// 
-/// ### Regions
-/// 
-/// Serverless Containers is available in the Paris, Amsterdam and Warsaw regions, which are represented by the following path parameters:
-/// 
-/// - `fr-par`
-/// - `nl-ams`
-/// - `pl-waw`
-/// 
-/// ### Authentication
-/// 
-/// By default new containers are `public` meaning that no credentials are required to invoke them.
-/// 
-/// A container can be `private` or `public`. This can be configured through the `privacy` parameter.
-/// 
-/// Calling a `private` container without authentication will return HTTP code `403`.
-/// 
-/// ### Logs
-/// 
-/// Containers logs are sent to the project's [Cockpit](https://www.scaleway.com/en/developers/api/cockpit/regional-api/).
-/// 
-/// The **Serverless Containers Logs** dashboard in Grafana can be used to see containers logs. More complex queries can be done using the "Explore" section of Grafana, and LogQL queries:
-/// 
-/// ```logql
-/// {resource_type="serverless_container"}
-/// ```
-/// 
-/// Additionally, the logs can be retrieved programmatically. For instance, using the `logcli` utility. For more information, refer to our [dedicated documentation](https://www.scaleway.com/en/docs/cockpit/api-cli/querying-logs-with-logcli/).
-/// 
-/// ## Going further
-/// 
-/// For more help using Scaleway Serverless containers, check out the following resources:
-/// 
-/// - Our [main documentation](https://www.scaleway.com/en/docs/serverless/containers/)
-/// - The #serverless-containers channel on our [Slack Community](https://www.scaleway.com/en/docs/tutorials/scaleway-slack-community/)
-/// - Our [support ticketing system](https://www.scaleway.com/en/docs/console/account/how-to/open-a-support-ticket/).
+/// - **From containers to production in seconds**: With Serverless Containers, you can rapidly deploy your containers in any language you want. You only have to focus on the design of your applications. Serverless Containers takes care of the execution, responding to the triggers you define.
+/// - **Reduce operational costs**: Serverless Containers simplifies the management of your resources, only using them when they are needed. Reduce operational costs by removing the need for oversized or additional servers to manage traffic on your services.
+/// - **No infrastructure management**: Managing infrastructure can be complicated, especially when it comes to scaling to handle traffic spikes. Serverless Containers abstracts infrastructure management by adapting the resources according to the traffic, simplifying the operation of your apps.
 pub opaque type Client(err) {
   Client(
     http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
@@ -1005,7 +942,7 @@ pub fn list_containers_request_with_name(
   ListContainersRequest(..list_containers_request, name: Some(name))
 }
 
-/// List all containers the caller can access (read permission).
+/// List all containers
 pub fn list_containers(
   request params: ListContainersRequest,
   client client: Client(err),
@@ -1124,42 +1061,45 @@ pub opaque type CreateContainerRequest {
     /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
     command: List(String),
     /// Container description.
-    description: String,
+    description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
-    https_connections_only: Bool,
+    https_connections_only: Option(Bool),
     /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
     image: String,
-    /// Defines how to check if the container is running and healthy.
+    /// It defines how to check if the container is still running.
     /// If the liveness probe fails, the container will be restarted.
     /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     liveness_probe: Option(json.Json),
     /// Local storage limit of the container (in bytes). (in bytes)
-    local_storage_limit_bytes: Int,
+    local_storage_limit_bytes: Option(Int),
     /// Maximum number of instances to scale the container to.
-    max_scale: Int,
+    max_scale: Option(Int),
     /// Memory limit of the container in bytes. (in bytes)
-    memory_limit_bytes: Int,
+    memory_limit_bytes: Option(Int),
     /// Minimum number of instances to scale the container to.
-    min_scale: Int,
+    min_scale: Option(Int),
     /// CPU limit of the container in mvCPU.
-    mvcpu_limit: Int,
+    mvcpu_limit: Option(Int),
     /// Container name.
     name: String,
     /// Unique ID of the namespace the container belongs to.
     namespace_id: String,
     /// Port the container listens on.
-    port: Int,
+    port: Option(Int),
     /// Privacy policy of the container.
     privacy: CreateContainerRequestPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
-    private_network_id: String,
+    private_network_id: Option(String),
     /// Protocol the container uses.
     protocol: CreateContainerRequestProtocol,
     /// Execution environment of the container.
@@ -1167,14 +1107,17 @@ pub opaque type CreateContainerRequest {
     /// Parameter used to decide when to scale up or down.
     scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
-    secret_environment_variables: Option(json.Json),
-    /// Defines how to check if the container has started successfully.
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
     /// If the startup probe fails, the container will be restarted.
     /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     startup_probe: Option(json.Json),
     /// Tags of the Serverless Container.
     tags: List(String),
@@ -1187,25 +1130,25 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
   json.object([
     #("args", json.array(value.args, fn(item) { json.string(item) })),
     #("command", json.array(value.command, fn(item) { json.string(item) })),
-    #("description", json.string(value.description)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("https_connections_only", json.bool(value.https_connections_only)),
+    #("description", json.nullable(value.description, json.string)),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("https_connections_only", json.nullable(value.https_connections_only, json.bool)),
     #("image", json.string(value.image)),
     #("liveness_probe", json.nullable(value.liveness_probe, fn(v) { v })),
-    #("local_storage_limit_bytes", json.int(value.local_storage_limit_bytes)),
-    #("max_scale", json.int(value.max_scale)),
-    #("memory_limit_bytes", json.int(value.memory_limit_bytes)),
-    #("min_scale", json.int(value.min_scale)),
-    #("mvcpu_limit", json.int(value.mvcpu_limit)),
+    #("local_storage_limit_bytes", json.nullable(value.local_storage_limit_bytes, json.int)),
+    #("max_scale", json.nullable(value.max_scale, json.int)),
+    #("memory_limit_bytes", json.nullable(value.memory_limit_bytes, json.int)),
+    #("min_scale", json.nullable(value.min_scale, json.int)),
+    #("mvcpu_limit", json.nullable(value.mvcpu_limit, json.int)),
     #("name", json.string(value.name)),
     #("namespace_id", json.string(value.namespace_id)),
-    #("port", json.int(value.port)),
+    #("port", json.nullable(value.port, json.int)),
     #("privacy", json.string(create_container_request_privacy_to_string(value.privacy))),
-    #("private_network_id", json.string(value.private_network_id)),
+    #("private_network_id", json.nullable(value.private_network_id, json.string)),
     #("protocol", json.string(create_container_request_protocol_to_string(value.protocol))),
     #("sandbox", json.string(create_container_request_sandbox_to_string(value.sandbox))),
     #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, fn(v) { v })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("startup_probe", json.nullable(value.startup_probe, fn(v) { v })),
     #("tags", json.array(value.tags, fn(item) { json.string(item) })),
     #("timeout", json.nullable(value.timeout, json.string)),
@@ -1215,24 +1158,15 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
 pub fn new_create_container_request(
   args args: List(String),
   command command: List(String),
-  description description: String,
-  https_connections_only https_connections_only: Bool,
   image image: String,
-  local_storage_limit_bytes local_storage_limit_bytes: Int,
-  max_scale max_scale: Int,
-  memory_limit_bytes memory_limit_bytes: Int,
-  min_scale min_scale: Int,
-  mvcpu_limit mvcpu_limit: Int,
   name name: String,
   namespace_id namespace_id: String,
-  port port: Int,
   privacy privacy: CreateContainerRequestPrivacy,
-  private_network_id private_network_id: String,
   protocol protocol: CreateContainerRequestProtocol,
   sandbox sandbox: CreateContainerRequestSandbox,
   tags tags: List(String),
 ) -> CreateContainerRequest {
-  CreateContainerRequest(region: None, args:, command:, description:, environment_variables: None, https_connections_only:, image:, liveness_probe: None, local_storage_limit_bytes:, max_scale:, memory_limit_bytes:, min_scale:, mvcpu_limit:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags:, timeout: None)
+  CreateContainerRequest(region: None, args:, command:, description: None, environment_variables: None, https_connections_only: None, image:, liveness_probe: None, local_storage_limit_bytes: None, max_scale: None, memory_limit_bytes: None, min_scale: None, mvcpu_limit: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags:, timeout: None)
 }
 
 /// The region you want to target
@@ -1243,26 +1177,102 @@ pub fn create_container_request_with_region(
   CreateContainerRequest(..create_container_request, region: Some(region))
 }
 
+/// Container description.
+pub fn create_container_request_with_description(
+  create_container_request: CreateContainerRequest,
+  description description: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, description: Some(description))
+}
+
 /// Environment variables of the container.
 pub fn create_container_request_with_environment_variables(
   create_container_request: CreateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
 }
 
-/// Defines how to check if the container is running and healthy.
+/// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+pub fn create_container_request_with_https_connections_only(
+  create_container_request: CreateContainerRequest,
+  https_connections_only https_connections_only: Bool,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, https_connections_only: Some(https_connections_only))
+}
+
+/// It defines how to check if the container is still running.
 /// If the liveness probe fails, the container will be restarted.
 /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
-/// 
 /// Possible check types:
 /// - http: Perform HTTP check on the container with the specified path.
 /// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
 pub fn create_container_request_with_liveness_probe(
   create_container_request: CreateContainerRequest,
   liveness_probe liveness_probe: json.Json,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, liveness_probe: Some(liveness_probe))
+}
+
+/// Local storage limit of the container (in bytes). (in bytes)
+pub fn create_container_request_with_local_storage_limit_bytes(
+  create_container_request: CreateContainerRequest,
+  local_storage_limit_bytes local_storage_limit_bytes: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, local_storage_limit_bytes: Some(local_storage_limit_bytes))
+}
+
+/// Maximum number of instances to scale the container to.
+pub fn create_container_request_with_max_scale(
+  create_container_request: CreateContainerRequest,
+  max_scale max_scale: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, max_scale: Some(max_scale))
+}
+
+/// Memory limit of the container in bytes. (in bytes)
+pub fn create_container_request_with_memory_limit_bytes(
+  create_container_request: CreateContainerRequest,
+  memory_limit_bytes memory_limit_bytes: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, memory_limit_bytes: Some(memory_limit_bytes))
+}
+
+/// Minimum number of instances to scale the container to.
+pub fn create_container_request_with_min_scale(
+  create_container_request: CreateContainerRequest,
+  min_scale min_scale: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, min_scale: Some(min_scale))
+}
+
+/// CPU limit of the container in mvCPU.
+pub fn create_container_request_with_mvcpu_limit(
+  create_container_request: CreateContainerRequest,
+  mvcpu_limit mvcpu_limit: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, mvcpu_limit: Some(mvcpu_limit))
+}
+
+/// Port the container listens on.
+pub fn create_container_request_with_port(
+  create_container_request: CreateContainerRequest,
+  port port: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, port: Some(port))
+}
+
+/// ID of the Private Network the container is connected to.
+/// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
+pub fn create_container_request_with_private_network_id(
+  create_container_request: CreateContainerRequest,
+  private_network_id private_network_id: String,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, private_network_id: Some(private_network_id))
 }
 
 /// Parameter used to decide when to scale up or down.
@@ -1276,18 +1286,21 @@ pub fn create_container_request_with_scaling_option(
 /// Secret environment variables of the container.
 pub fn create_container_request_with_secret_environment_variables(
   create_container_request: CreateContainerRequest,
-  secret_environment_variables secret_environment_variables: json.Json,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, secret_environment_variables: Some(secret_environment_variables))
 }
 
-/// Defines how to check if the container has started successfully.
+/// It defines how to check if the container has started successfully.
 /// If the startup probe fails, the container will be restarted.
 /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
-/// 
 /// Possible check types:
 /// - http: Perform HTTP check on the container with the specified path.
 /// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
 pub fn create_container_request_with_startup_probe(
   create_container_request: CreateContainerRequest,
   startup_probe startup_probe: json.Json,
@@ -1303,7 +1316,7 @@ pub fn create_container_request_with_timeout(
   CreateContainerRequest(..create_container_request, timeout: Some(timeout))
 }
 
-/// Create a new container in a namespace.
+/// Create a new container
 pub fn create_container(
   request params: CreateContainerRequest,
   client client: Client(err),
@@ -1339,7 +1352,7 @@ pub fn get_container_request_with_region(
   GetContainerRequest(..get_container_request, region: Some(region))
 }
 
-/// Get the container associated with the specified ID.
+/// Get a container
 pub fn get_container(
   request params: GetContainerRequest,
   client client: Client(err),
@@ -1374,7 +1387,7 @@ pub fn delete_container_request_with_region(
   DeleteContainerRequest(..delete_container_request, region: Some(region))
 }
 
-/// Delete the container associated with the specified ID.
+/// Delete an existing container
 pub fn delete_container(
   request params: DeleteContainerRequest,
   client client: Client(err),
@@ -1482,39 +1495,42 @@ pub opaque type UpdateContainerRequest {
     /// Container command.
     /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
     command: Option(List(String)),
-    /// Container description.
-    description: String,
+    /// Description of the container.
+    description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
-    https_connection_only: Bool,
+    https_connection_only: Option(Bool),
     /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
-    image: String,
-    /// Defines how to check if the container is running and healthy.
+    image: Option(String),
+    /// It defines how to check if the container is still running.
     /// If the liveness probe fails, the container will be restarted.
     /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     liveness_probe: Option(json.Json),
     /// Local storage limit of the container (in bytes). (in bytes)
-    local_storage_limit_bytes: Int,
+    local_storage_limit_bytes: Option(Int),
     /// Maximum number of instances to scale the container to.
-    max_scale: Int,
+    max_scale: Option(Int),
     /// Memory limit of the container in bytes. (in bytes)
-    memory_limit_bytes: Int,
+    memory_limit_bytes: Option(Int),
     /// Minimum number of instances to scale the container to.
-    min_scale: Int,
-    /// CPU limit of the container in mvCPU.
-    mvcpu_limit: Int,
+    min_scale: Option(Int),
+    /// CPU limit of the container in mVCPU.
+    mvcpu_limit: Option(Int),
     /// Port the container listens on.
-    port: Int,
+    port: Option(Int),
     /// Privacy policy of the container.
     privacy: UpdateContainerRequestPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
-    private_network_id: String,
+    private_network_id: Option(String),
     /// Protocol the container uses.
     protocol: UpdateContainerRequestProtocol,
     /// Execution environment of the container.
@@ -1522,14 +1538,17 @@ pub opaque type UpdateContainerRequest {
     /// Parameter used to decide when to scale up or down.
     scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
-    secret_environment_variables: Option(json.Json),
-    /// Defines how to check if the container has started successfully.
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
     /// If the startup probe fails, the container will be restarted.
     /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
-    /// 
     /// Possible check types:
     /// - http: Perform HTTP check on the container with the specified path.
     /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
     startup_probe: Option(json.Json),
     /// Tags of the Serverless Container.
     tags: Option(List(String)),
@@ -1542,23 +1561,23 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
   json.object([
     #("args", json.nullable(value.args, json.array(_, json.string))),
     #("command", json.nullable(value.command, json.array(_, json.string))),
-    #("description", json.string(value.description)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("https_connection_only", json.bool(value.https_connection_only)),
-    #("image", json.string(value.image)),
+    #("description", json.nullable(value.description, json.string)),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("https_connection_only", json.nullable(value.https_connection_only, json.bool)),
+    #("image", json.nullable(value.image, json.string)),
     #("liveness_probe", json.nullable(value.liveness_probe, fn(v) { v })),
-    #("local_storage_limit_bytes", json.int(value.local_storage_limit_bytes)),
-    #("max_scale", json.int(value.max_scale)),
-    #("memory_limit_bytes", json.int(value.memory_limit_bytes)),
-    #("min_scale", json.int(value.min_scale)),
-    #("mvcpu_limit", json.int(value.mvcpu_limit)),
-    #("port", json.int(value.port)),
+    #("local_storage_limit_bytes", json.nullable(value.local_storage_limit_bytes, json.int)),
+    #("max_scale", json.nullable(value.max_scale, json.int)),
+    #("memory_limit_bytes", json.nullable(value.memory_limit_bytes, json.int)),
+    #("min_scale", json.nullable(value.min_scale, json.int)),
+    #("mvcpu_limit", json.nullable(value.mvcpu_limit, json.int)),
+    #("port", json.nullable(value.port, json.int)),
     #("privacy", json.string(update_container_request_privacy_to_string(value.privacy))),
-    #("private_network_id", json.string(value.private_network_id)),
+    #("private_network_id", json.nullable(value.private_network_id, json.string)),
     #("protocol", json.string(update_container_request_protocol_to_string(value.protocol))),
     #("sandbox", json.string(update_container_request_sandbox_to_string(value.sandbox))),
     #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, fn(v) { v })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("startup_probe", json.nullable(value.startup_probe, fn(v) { v })),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
     #("timeout", json.nullable(value.timeout, json.string)),
@@ -1567,21 +1586,11 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
 
 pub fn new_update_container_request(
   container_id container_id: String,
-  description description: String,
-  https_connection_only https_connection_only: Bool,
-  image image: String,
-  local_storage_limit_bytes local_storage_limit_bytes: Int,
-  max_scale max_scale: Int,
-  memory_limit_bytes memory_limit_bytes: Int,
-  min_scale min_scale: Int,
-  mvcpu_limit mvcpu_limit: Int,
-  port port: Int,
   privacy privacy: UpdateContainerRequestPrivacy,
-  private_network_id private_network_id: String,
   protocol protocol: UpdateContainerRequestProtocol,
   sandbox sandbox: UpdateContainerRequestSandbox,
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(region: None, container_id:, args: None, command: None, description:, environment_variables: None, https_connection_only:, image:, liveness_probe: None, local_storage_limit_bytes:, max_scale:, memory_limit_bytes:, min_scale:, mvcpu_limit:, port:, privacy:, private_network_id:, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags: None, timeout: None)
+  UpdateContainerRequest(region: None, container_id:, args: None, command: None, description: None, environment_variables: None, https_connection_only: None, image: None, liveness_probe: None, local_storage_limit_bytes: None, max_scale: None, memory_limit_bytes: None, min_scale: None, mvcpu_limit: None, port: None, privacy:, private_network_id: None, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags: None, timeout: None)
 }
 
 /// The region you want to target
@@ -1610,26 +1619,110 @@ pub fn update_container_request_with_command(
   UpdateContainerRequest(..update_container_request, command: Some(command))
 }
 
+/// Description of the container.
+pub fn update_container_request_with_description(
+  update_container_request: UpdateContainerRequest,
+  description description: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, description: Some(description))
+}
+
 /// Environment variables of the container.
 pub fn update_container_request_with_environment_variables(
   update_container_request: UpdateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
 }
 
-/// Defines how to check if the container is running and healthy.
+/// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+pub fn update_container_request_with_https_connection_only(
+  update_container_request: UpdateContainerRequest,
+  https_connection_only https_connection_only: Bool,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, https_connection_only: Some(https_connection_only))
+}
+
+/// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
+pub fn update_container_request_with_image(
+  update_container_request: UpdateContainerRequest,
+  image image: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, image: Some(image))
+}
+
+/// It defines how to check if the container is still running.
 /// If the liveness probe fails, the container will be restarted.
 /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
-/// 
 /// Possible check types:
 /// - http: Perform HTTP check on the container with the specified path.
 /// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
 pub fn update_container_request_with_liveness_probe(
   update_container_request: UpdateContainerRequest,
   liveness_probe liveness_probe: json.Json,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, liveness_probe: Some(liveness_probe))
+}
+
+/// Local storage limit of the container (in bytes). (in bytes)
+pub fn update_container_request_with_local_storage_limit_bytes(
+  update_container_request: UpdateContainerRequest,
+  local_storage_limit_bytes local_storage_limit_bytes: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, local_storage_limit_bytes: Some(local_storage_limit_bytes))
+}
+
+/// Maximum number of instances to scale the container to.
+pub fn update_container_request_with_max_scale(
+  update_container_request: UpdateContainerRequest,
+  max_scale max_scale: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, max_scale: Some(max_scale))
+}
+
+/// Memory limit of the container in bytes. (in bytes)
+pub fn update_container_request_with_memory_limit_bytes(
+  update_container_request: UpdateContainerRequest,
+  memory_limit_bytes memory_limit_bytes: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, memory_limit_bytes: Some(memory_limit_bytes))
+}
+
+/// Minimum number of instances to scale the container to.
+pub fn update_container_request_with_min_scale(
+  update_container_request: UpdateContainerRequest,
+  min_scale min_scale: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, min_scale: Some(min_scale))
+}
+
+/// CPU limit of the container in mVCPU.
+pub fn update_container_request_with_mvcpu_limit(
+  update_container_request: UpdateContainerRequest,
+  mvcpu_limit mvcpu_limit: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, mvcpu_limit: Some(mvcpu_limit))
+}
+
+/// Port the container listens on.
+pub fn update_container_request_with_port(
+  update_container_request: UpdateContainerRequest,
+  port port: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, port: Some(port))
+}
+
+/// ID of the Private Network the container is connected to.
+/// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
+pub fn update_container_request_with_private_network_id(
+  update_container_request: UpdateContainerRequest,
+  private_network_id private_network_id: String,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, private_network_id: Some(private_network_id))
 }
 
 /// Parameter used to decide when to scale up or down.
@@ -1643,18 +1736,21 @@ pub fn update_container_request_with_scaling_option(
 /// Secret environment variables of the container.
 pub fn update_container_request_with_secret_environment_variables(
   update_container_request: UpdateContainerRequest,
-  secret_environment_variables secret_environment_variables: json.Json,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, secret_environment_variables: Some(secret_environment_variables))
 }
 
-/// Defines how to check if the container has started successfully.
+/// It defines how to check if the container has started successfully.
 /// If the startup probe fails, the container will be restarted.
 /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
-/// 
 /// Possible check types:
 /// - http: Perform HTTP check on the container with the specified path.
 /// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
 pub fn update_container_request_with_startup_probe(
   update_container_request: UpdateContainerRequest,
   startup_probe startup_probe: json.Json,
@@ -1678,7 +1774,7 @@ pub fn update_container_request_with_timeout(
   UpdateContainerRequest(..update_container_request, timeout: Some(timeout))
 }
 
-/// Update the container associated with the specified ID.
+/// Update an existing container
 pub fn update_container(
   request params: UpdateContainerRequest,
   client client: Client(err),
@@ -1807,7 +1903,7 @@ pub fn list_domains_request_with_container_id(
   ListDomainsRequest(..list_domains_request, container_id: Some(container_id))
 }
 
-/// List all custom domains the caller can access (read permission).
+/// List all custom domains
 pub fn list_domains(
   request params: ListDomainsRequest,
   client client: Client(err),
@@ -1835,11 +1931,8 @@ pub fn list_domains(
 pub opaque type CreateDomainRequest {
   CreateDomainRequest(
     region: Option(String),
-    /// Unique ID of the container the domain will be assigned to.
     container_id: String,
-    /// Domain assigned to the container.
     hostname: String,
-    /// A list of arbitrary tags associated with the domain.
     tags: List(String),
   )
 }
@@ -1868,7 +1961,7 @@ pub fn create_domain_request_with_region(
   CreateDomainRequest(..create_domain_request, region: Some(region))
 }
 
-/// Create a new custom domain for the container with the specified ID.
+/// Create a new custom domain
 pub fn create_domain(
   request params: CreateDomainRequest,
   client client: Client(err),
@@ -1904,7 +1997,7 @@ pub fn get_domain_request_with_region(
   GetDomainRequest(..get_domain_request, region: Some(region))
 }
 
-/// Get the custom domain associated with the specified ID.
+/// Get a custom domain
 pub fn get_domain(
   request params: GetDomainRequest,
   client client: Client(err),
@@ -1939,7 +2032,7 @@ pub fn delete_domain_request_with_region(
   DeleteDomainRequest(..delete_domain_request, region: Some(region))
 }
 
-/// Delete the custom domain associated with the specified ID.
+/// Delete a custom domain
 pub fn delete_domain(
   request params: DeleteDomainRequest,
   client client: Client(err),
@@ -1957,21 +2050,21 @@ pub opaque type UpdateDomainRequest {
   UpdateDomainRequest(
     region: Option(String),
     domain_id: String,
-    /// A list of arbitrary tags associated with the domain.
-    tags: Option(List(String)),
+    tags: ScalewayStdStringsValue,
   )
 }
 
 pub fn update_domain_request_to_json(value: UpdateDomainRequest) -> json.Json {
   json.object([
-    #("tags", json.nullable(value.tags, json.array(_, json.string))),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_update_domain_request(
   domain_id domain_id: String,
+  tags tags: ScalewayStdStringsValue,
 ) -> UpdateDomainRequest {
-  UpdateDomainRequest(region: None, domain_id:, tags: None)
+  UpdateDomainRequest(region: None, domain_id:, tags:)
 }
 
 /// The region you want to target
@@ -1982,15 +2075,7 @@ pub fn update_domain_request_with_region(
   UpdateDomainRequest(..update_domain_request, region: Some(region))
 }
 
-/// A list of arbitrary tags associated with the domain.
-pub fn update_domain_request_with_tags(
-  update_domain_request: UpdateDomainRequest,
-  tags tags: List(String),
-) -> UpdateDomainRequest {
-  UpdateDomainRequest(..update_domain_request, tags: Some(tags))
-}
-
-/// Update the domain associated with the specified ID.
+/// Update an existing domain
 pub fn update_domain(
   request params: UpdateDomainRequest,
   client client: Client(err),
@@ -2071,7 +2156,7 @@ pub fn list_namespaces_request_with_name(
   ListNamespacesRequest(..list_namespaces_request, name: Some(name))
 }
 
-/// List all namespaces the caller can access (read permission).
+/// List all namespaces
 pub fn list_namespaces(
   request params: ListNamespacesRequest,
   client client: Client(err),
@@ -2098,38 +2183,31 @@ pub fn list_namespaces(
 pub opaque type CreateNamespaceRequest {
   CreateNamespaceRequest(
     region: Option(String),
-    /// Namespace description.
-    description: String,
-    /// Namespace environment variables.
-    environment_variables: Option(json.Json),
-    /// Namespace name.
+    description: Option(String),
+    environment_variables: Option(Dict(String, String)),
     name: String,
-    /// Unique ID of the Project the namespace belongs to.
     project_id: Option(String),
-    /// Namespace secret environment variables.
-    secret_environment_variables: Option(json.Json),
-    /// A list of arbitrary tags associated with the namespace.
+    secret_environment_variables: Option(Dict(String, String)),
     tags: List(String),
   )
 }
 
 pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.Json {
   json.object([
-    #("description", json.string(value.description)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("description", json.nullable(value.description, json.string)),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("name", json.string(value.name)),
     #("project_id", json.nullable(value.project_id, json.string)),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, fn(v) { v })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_create_namespace_request(
-  description description: String,
   name name: String,
   tags tags: List(String),
 ) -> CreateNamespaceRequest {
-  CreateNamespaceRequest(region: None, description:, environment_variables: None, name:, project_id: None, secret_environment_variables: None, tags:)
+  CreateNamespaceRequest(region: None, description: None, environment_variables: None, name:, project_id: None, secret_environment_variables: None, tags:)
 }
 
 /// The region you want to target
@@ -2140,15 +2218,20 @@ pub fn create_namespace_request_with_region(
   CreateNamespaceRequest(..create_namespace_request, region: Some(region))
 }
 
-/// Namespace environment variables.
+pub fn create_namespace_request_with_description(
+  create_namespace_request: CreateNamespaceRequest,
+  description description: String,
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, description: Some(description))
+}
+
 pub fn create_namespace_request_with_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateNamespaceRequest {
   CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
 }
 
-/// Unique ID of the Project the namespace belongs to.
 pub fn create_namespace_request_with_project_id(
   create_namespace_request: CreateNamespaceRequest,
   project_id project_id: String,
@@ -2156,15 +2239,14 @@ pub fn create_namespace_request_with_project_id(
   CreateNamespaceRequest(..create_namespace_request, project_id: Some(project_id))
 }
 
-/// Namespace secret environment variables.
 pub fn create_namespace_request_with_secret_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
-  secret_environment_variables secret_environment_variables: json.Json,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
 ) -> CreateNamespaceRequest {
   CreateNamespaceRequest(..create_namespace_request, secret_environment_variables: Some(secret_environment_variables))
 }
 
-/// Create a new namespace.
+/// Create a new namespace
 pub fn create_namespace(
   request params: CreateNamespaceRequest,
   client client: Client(err),
@@ -2202,7 +2284,7 @@ pub fn get_namespace_request_with_region(
   GetNamespaceRequest(..get_namespace_request, region: Some(region))
 }
 
-/// Get the namespace associated with the specified ID.
+/// Get a namespace
 pub fn get_namespace(
   request params: GetNamespaceRequest,
   client client: Client(err),
@@ -2237,7 +2319,7 @@ pub fn delete_namespace_request_with_region(
   DeleteNamespaceRequest(..delete_namespace_request, region: Some(region))
 }
 
-/// Delete the namespace associated with the specified ID.
+/// Delete an existing namespace
 pub fn delete_namespace(
   request params: DeleteNamespaceRequest,
   client client: Client(err),
@@ -2255,31 +2337,29 @@ pub opaque type UpdateNamespaceRequest {
   UpdateNamespaceRequest(
     region: Option(String),
     namespace_id: String,
-    /// Namespace description.
-    description: String,
-    /// Namespace environment variables.
-    environment_variables: Option(json.Json),
-    /// Namespace secret environment variables.
-    secret_environment_variables: Option(json.Json),
-    /// A list of arbitrary tags associated with the namespace.
-    tags: Option(List(String)),
+    description: Option(String),
+    environment_variables: ScalewayStdMapStringStringValue,
+    secret_environment_variables: ScalewayStdMapStringStringValue,
+    tags: ScalewayStdStringsValue,
   )
 }
 
 pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.Json {
   json.object([
-    #("description", json.string(value.description)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("secret_environment_variables", json.nullable(value.secret_environment_variables, fn(v) { v })),
-    #("tags", json.nullable(value.tags, json.array(_, json.string))),
+    #("description", json.nullable(value.description, json.string)),
+    #("environment_variables", json.dict(value.environment_variables, fn(k) { k }, json.string)),
+    #("secret_environment_variables", json.dict(value.secret_environment_variables, fn(k) { k }, json.string)),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_update_namespace_request(
   namespace_id namespace_id: String,
-  description description: String,
+  environment_variables environment_variables: ScalewayStdMapStringStringValue,
+  secret_environment_variables secret_environment_variables: ScalewayStdMapStringStringValue,
+  tags tags: ScalewayStdStringsValue,
 ) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(region: None, namespace_id:, description:, environment_variables: None, secret_environment_variables: None, tags: None)
+  UpdateNamespaceRequest(region: None, namespace_id:, description: None, environment_variables:, secret_environment_variables:, tags:)
 }
 
 /// The region you want to target
@@ -2290,31 +2370,14 @@ pub fn update_namespace_request_with_region(
   UpdateNamespaceRequest(..update_namespace_request, region: Some(region))
 }
 
-/// Namespace environment variables.
-pub fn update_namespace_request_with_environment_variables(
+pub fn update_namespace_request_with_description(
   update_namespace_request: UpdateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
+  description description: String,
 ) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
+  UpdateNamespaceRequest(..update_namespace_request, description: Some(description))
 }
 
-/// Namespace secret environment variables.
-pub fn update_namespace_request_with_secret_environment_variables(
-  update_namespace_request: UpdateNamespaceRequest,
-  secret_environment_variables secret_environment_variables: json.Json,
-) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(..update_namespace_request, secret_environment_variables: Some(secret_environment_variables))
-}
-
-/// A list of arbitrary tags associated with the namespace.
-pub fn update_namespace_request_with_tags(
-  update_namespace_request: UpdateNamespaceRequest,
-  tags tags: List(String),
-) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(..update_namespace_request, tags: Some(tags))
-}
-
-/// Update the namespace associated with the specified ID.
+/// Update an existing namespace
 pub fn update_namespace(
   request params: UpdateNamespaceRequest,
   client client: Client(err),
@@ -2403,7 +2466,7 @@ pub fn list_triggers_request_with_container_id(
   ListTriggersRequest(..list_triggers_request, container_id: Some(container_id))
 }
 
-/// List all triggers the caller can access (read permission).
+/// List all triggers
 pub fn list_triggers(
   request params: ListTriggersRequest,
   client client: Client(err),
@@ -2433,10 +2496,10 @@ pub opaque type CreateTriggerRequest {
     region: Option(String),
     /// ID of the container to trigger.
     container_id: String,
-    /// Configuration for a cron source.
+    /// Configuration for a Cron source.
     cron_config: Option(json.Json),
     /// Description of the trigger.
-    description: String,
+    description: Option(String),
     /// Configuration of the destination to trigger.
     destination_config: Option(json.Json),
     /// Name of the trigger.
@@ -2454,7 +2517,7 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
   json.object([
     #("container_id", json.string(value.container_id)),
     #("cron_config", json.nullable(value.cron_config, fn(v) { v })),
-    #("description", json.string(value.description)),
+    #("description", json.nullable(value.description, json.string)),
     #("destination_config", json.nullable(value.destination_config, fn(v) { v })),
     #("name", json.string(value.name)),
     #("nats_config", json.nullable(value.nats_config, fn(v) { v })),
@@ -2465,11 +2528,10 @@ pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json 
 
 pub fn new_create_trigger_request(
   container_id container_id: String,
-  description description: String,
   name name: String,
   tags tags: List(String),
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(region: None, container_id:, cron_config: None, description:, destination_config: None, name:, nats_config: None, sqs_config: None, tags:)
+  CreateTriggerRequest(region: None, container_id:, cron_config: None, description: None, destination_config: None, name:, nats_config: None, sqs_config: None, tags:)
 }
 
 /// The region you want to target
@@ -2480,12 +2542,20 @@ pub fn create_trigger_request_with_region(
   CreateTriggerRequest(..create_trigger_request, region: Some(region))
 }
 
-/// Configuration for a cron source.
+/// Configuration for a Cron source.
 pub fn create_trigger_request_with_cron_config(
   create_trigger_request: CreateTriggerRequest,
   cron_config cron_config: json.Json,
 ) -> CreateTriggerRequest {
   CreateTriggerRequest(..create_trigger_request, cron_config: Some(cron_config))
+}
+
+/// Description of the trigger.
+pub fn create_trigger_request_with_description(
+  create_trigger_request: CreateTriggerRequest,
+  description description: String,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, description: Some(description))
 }
 
 /// Configuration of the destination to trigger.
@@ -2512,7 +2582,7 @@ pub fn create_trigger_request_with_sqs_config(
   CreateTriggerRequest(..create_trigger_request, sqs_config: Some(sqs_config))
 }
 
-/// Create a new trigger for the container with the specified ID.
+/// Create a new trigger
 pub fn create_trigger(
   request params: CreateTriggerRequest,
   client client: Client(err),
@@ -2548,7 +2618,7 @@ pub fn get_trigger_request_with_region(
   GetTriggerRequest(..get_trigger_request, region: Some(region))
 }
 
-/// Get the trigger associated with the specified ID.
+/// Get a trigger
 pub fn get_trigger(
   request params: GetTriggerRequest,
   client client: Client(err),
@@ -2583,7 +2653,7 @@ pub fn delete_trigger_request_with_region(
   DeleteTriggerRequest(..delete_trigger_request, region: Some(region))
 }
 
-/// Delete the trigger associated with the specified ID.
+/// Delete a trigger
 pub fn delete_trigger(
   request params: DeleteTriggerRequest,
   client client: Client(err),
@@ -2604,11 +2674,11 @@ pub opaque type UpdateTriggerRequest {
     /// Configuration for a cron source.
     cron_config: Option(json.Json),
     /// Description of the trigger.
-    description: String,
+    description: Option(String),
     /// Configuration of the destination to trigger.
     destination_config: Option(json.Json),
     /// Name of the trigger.
-    name: String,
+    name: Option(String),
     /// Configuration for a NATS source.
     nats_config: Option(json.Json),
     /// Configuration for an SQS queue source.
@@ -2621,9 +2691,9 @@ pub opaque type UpdateTriggerRequest {
 pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json {
   json.object([
     #("cron_config", json.nullable(value.cron_config, fn(v) { v })),
-    #("description", json.string(value.description)),
+    #("description", json.nullable(value.description, json.string)),
     #("destination_config", json.nullable(value.destination_config, fn(v) { v })),
-    #("name", json.string(value.name)),
+    #("name", json.nullable(value.name, json.string)),
     #("nats_config", json.nullable(value.nats_config, fn(v) { v })),
     #("sqs_config", json.nullable(value.sqs_config, fn(v) { v })),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
@@ -2632,10 +2702,8 @@ pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json 
 
 pub fn new_update_trigger_request(
   trigger_id trigger_id: String,
-  description description: String,
-  name name: String,
 ) -> UpdateTriggerRequest {
-  UpdateTriggerRequest(region: None, trigger_id:, cron_config: None, description:, destination_config: None, name:, nats_config: None, sqs_config: None, tags: None)
+  UpdateTriggerRequest(region: None, trigger_id:, cron_config: None, description: None, destination_config: None, name: None, nats_config: None, sqs_config: None, tags: None)
 }
 
 /// The region you want to target
@@ -2654,12 +2722,28 @@ pub fn update_trigger_request_with_cron_config(
   UpdateTriggerRequest(..update_trigger_request, cron_config: Some(cron_config))
 }
 
+/// Description of the trigger.
+pub fn update_trigger_request_with_description(
+  update_trigger_request: UpdateTriggerRequest,
+  description description: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, description: Some(description))
+}
+
 /// Configuration of the destination to trigger.
 pub fn update_trigger_request_with_destination_config(
   update_trigger_request: UpdateTriggerRequest,
   destination_config destination_config: json.Json,
 ) -> UpdateTriggerRequest {
   UpdateTriggerRequest(..update_trigger_request, destination_config: Some(destination_config))
+}
+
+/// Name of the trigger.
+pub fn update_trigger_request_with_name(
+  update_trigger_request: UpdateTriggerRequest,
+  name name: String,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, name: Some(name))
 }
 
 /// Configuration for a NATS source.
@@ -2686,7 +2770,7 @@ pub fn update_trigger_request_with_tags(
   UpdateTriggerRequest(..update_trigger_request, tags: Some(tags))
 }
 
-/// Update the trigger associated with the specified ID.
+/// Update an existing trigger
 pub fn update_trigger(
   request params: UpdateTriggerRequest,
   client client: Client(err),
