@@ -2,6 +2,7 @@
 version: 1.5.4
 title: Codegen Scaleway Containers Schemas (NullableOnly)
 ---
+import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/http
@@ -33,7 +34,7 @@ pub type ScalewayContainersV1beta1Container {
     /// Domain name attributed to the contaioner.
     domain_name: String,
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(Dict(String, String)),
     /// Last error message of the container.
     error_message: Option(String),
     /// Health check configuration of the container.
@@ -102,7 +103,7 @@ pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(Scalewa
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
   use description <- decode.optional_field("description", None, decode.optional(decode.string))
   use domain_name <- decode.field("domain_name", decode.string)
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use health_check <- decode.optional_field("health_check", None, decode.optional(decode.dynamic))
   use http_option <- decode.field("http_option", scaleway_containers_v1beta1_container_http_option_decoder())
@@ -134,7 +135,7 @@ pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(Scalewa
 pub type ScalewayContainersV1beta1Cron {
   ScalewayContainersV1beta1Cron(
     /// Arguments to pass with the cron.
-    args: Option(Dynamic),
+    args: Option(Dict(String, Dynamic)),
     /// UUID of the container invoked by this cron.
     container_id: String,
     /// UUID of the cron.
@@ -149,7 +150,7 @@ pub type ScalewayContainersV1beta1Cron {
 }
 
 pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayContainersV1beta1Cron) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.dynamic))
+  use args <- decode.optional_field("args", None, decode.optional(decode.dict(decode.string, decode.dynamic)))
   use container_id <- decode.field("container_id", decode.string)
   use id <- decode.field("id", decode.string)
   use name <- decode.field("name", decode.string)
@@ -280,7 +281,7 @@ pub type ScalewayContainersV1beta1Namespace {
     /// Description of the endpoint.
     description: Option(String),
     /// Environment variables of the namespace.
-    environment_variables: Option(Dynamic),
+    environment_variables: Option(Dict(String, String)),
     /// Last error message of the namesace.
     error_message: Option(String),
     /// UUID of the namespace.
@@ -314,7 +315,7 @@ pub type ScalewayContainersV1beta1Namespace {
 pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(ScalewayContainersV1beta1Namespace) {
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
   use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use id <- decode.field("id", decode.string)
   use name <- decode.field("name", decode.string)
@@ -1348,7 +1349,7 @@ pub opaque type CreateContainerRequest {
     /// Description of the container.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// Health check configuration of the container.
     health_check: Option(json.Json),
     /// Configure how HTTP and HTTPS requests are handled.
@@ -1404,7 +1405,7 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
     #("command", json.array(value.command, fn(item) { json.string(item) })),
     #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("health_check", json.nullable(value.health_check, fn(v) { v })),
     #("http_option", json.string(create_container_request_http_option_to_string(value.http_option))),
     #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
@@ -1462,7 +1463,7 @@ pub fn create_container_request_with_description(
 /// Environment variables of the container.
 pub fn create_container_request_with_environment_variables(
   create_container_request: CreateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
 }
@@ -1755,7 +1756,7 @@ pub opaque type UpdateContainerRequest {
     /// Description of the container.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// Health check configuration of the container.
     health_check: Option(json.Json),
     /// Configure how HTTP and HTTPS requests are handled.
@@ -1825,7 +1826,7 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
     #("command", json.nullable(value.command, json.array(_, json.string))),
     #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("health_check", json.nullable(value.health_check, fn(v) { v })),
     #("http_option", json.string(update_container_request_http_option_to_string(value.http_option))),
     #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
@@ -1896,7 +1897,7 @@ pub fn update_container_request_with_description(
 /// Environment variables of the container.
 pub fn update_container_request_with_environment_variables(
   update_container_request: UpdateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
 }
@@ -2125,7 +2126,7 @@ pub opaque type CreateCronRequest {
   CreateCronRequest(
     region: String,
     /// Arguments to pass with the cron.
-    args: Option(json.Json),
+    args: Option(Dict(String, json.Json)),
     /// UUID of the container to invoke by the cron.
     container_id: String,
     /// Name of the cron to create.
@@ -2137,7 +2138,7 @@ pub opaque type CreateCronRequest {
 
 pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
   json.object([
-    #("args", json.nullable(value.args, fn(v) { v })),
+    #("args", json.nullable(value.args, json.dict(_, fn(k) { k }, fn(v) { v }))),
     #("container_id", json.string(value.container_id)),
     #("name", json.nullable(value.name, json.string)),
     #("schedule", json.string(value.schedule)),
@@ -2155,7 +2156,7 @@ pub fn new_create_cron_request(
 /// Arguments to pass with the cron.
 pub fn create_cron_request_with_args(
   create_cron_request: CreateCronRequest,
-  args args: json.Json,
+  args args: Dict(String, json.Json),
 ) -> CreateCronRequest {
   CreateCronRequest(..create_cron_request, args: Some(args))
 }
@@ -2241,7 +2242,7 @@ pub opaque type UpdateCronRequest {
     region: String,
     cron_id: String,
     /// Arguments to pass with the cron.
-    args: Option(json.Json),
+    args: Option(Dict(String, json.Json)),
     /// UUID of the container invoked by the cron.
     container_id: Option(String),
     /// Name of the cron.
@@ -2253,7 +2254,7 @@ pub opaque type UpdateCronRequest {
 
 pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
   json.object([
-    #("args", json.nullable(value.args, fn(v) { v })),
+    #("args", json.nullable(value.args, json.dict(_, fn(k) { k }, fn(v) { v }))),
     #("container_id", json.nullable(value.container_id, json.string)),
     #("name", json.nullable(value.name, json.string)),
     #("schedule", json.nullable(value.schedule, json.string)),
@@ -2270,7 +2271,7 @@ pub fn new_update_cron_request(
 /// Arguments to pass with the cron.
 pub fn update_cron_request_with_args(
   update_cron_request: UpdateCronRequest,
-  args args: json.Json,
+  args args: Dict(String, json.Json),
 ) -> UpdateCronRequest {
   UpdateCronRequest(..update_cron_request, args: Some(args))
 }
@@ -2565,7 +2566,7 @@ pub opaque type CreateNamespaceRequest {
     /// Description of the namespace to create.
     description: Option(String),
     /// Environment variables of the namespace to create.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// Name of the namespace to create.
     name: String,
     /// UUID of the Project in which the namespace will be created.
@@ -2581,7 +2582,7 @@ pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.J
   json.object([
     #("activate_vpc_integration", json.bool(value.activate_vpc_integration)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("name", json.string(value.name)),
     #("project_id", json.string(value.project_id)),
     #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
@@ -2611,7 +2612,7 @@ pub fn create_namespace_request_with_description(
 /// Environment variables of the namespace to create.
 pub fn create_namespace_request_with_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateNamespaceRequest {
   CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
 }
@@ -2691,7 +2692,7 @@ pub opaque type UpdateNamespaceRequest {
     /// Description of the namespace to update.
     description: Option(String),
     /// Environment variables of the namespace to update.
-    environment_variables: Option(json.Json),
+    environment_variables: Option(Dict(String, String)),
     /// Secret environment variables of the namespace to update.
     secret_environment_variables: List(ScalewayContainersV1beta1Secret),
     /// Tags of the Serverless Container Namespace.
@@ -2702,7 +2703,7 @@ pub opaque type UpdateNamespaceRequest {
 pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.Json {
   json.object([
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
   ])
@@ -2727,7 +2728,7 @@ pub fn update_namespace_request_with_description(
 /// Environment variables of the namespace to update.
 pub fn update_namespace_request_with_environment_variables(
   update_namespace_request: UpdateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> UpdateNamespaceRequest {
   UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
 }

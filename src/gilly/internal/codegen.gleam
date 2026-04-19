@@ -1681,12 +1681,37 @@ fn param_to_type(
 
 /// Returns the expression to convert a query param value `v` to a String.
 /// For String types, this is just "v". For Int types, "int.to_string(v)".
-fn query_param_to_string_expr(param: Parameter) -> String {
+fn query_param_to_string_expr(
+  param: Parameter,
+  all_schemas: List(#(String, Schema)),
+) -> String {
   case param.schema {
     Some(schema.Integer(_, _)) -> "int.to_string(v)"
     Some(schema.Number(_)) -> "float.to_string(v)"
     Some(schema.Boolean(_)) -> "bool.to_string(v)"
+    Some(schema.Ref(ref:)) -> {
+      case resolve_ref_schema(ref, all_schemas) {
+        Some(schema.String(_, schema.StringSchema(enum: Some(_), ..))) -> {
+          let type_name = ref_to_type_name(ref)
+          justin.snake_case(type_name) <> "_to_string(v)"
+        }
+        _ -> "v"
+      }
+    }
     _ -> "v"
+  }
+}
+
+/// Look up a $ref like "#/components/schemas/Foo" in the schema list.
+fn resolve_ref_schema(
+  ref: String,
+  all_schemas: List(#(String, Schema)),
+) -> Option(Schema) {
+  case ref_to_raw_name(ref) {
+    Some(name) ->
+      list.key_find(all_schemas, name)
+      |> option.from_result
+    None -> None
   }
 }
 
@@ -1930,7 +1955,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = case query_param_to_string_expr(param) {
+          let value_expr = case query_param_to_string_expr(param, all_schemas) {
             "v" -> pname
             conv -> string.replace(conv, "v", pname)
           }
@@ -1944,7 +1969,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "let query = list.append(query, list.map("
             <> pname
@@ -1963,7 +1988,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "option.map("
             <> pname
@@ -1982,7 +2007,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "let query = list.append(query, "
             <> pname
@@ -2087,15 +2112,27 @@ fn schema_to_type_doc(
   let usage = get_schema_usage(state, name)
   case schema {
     schema.Object(base, object_schema) ->
-      object_type_doc(
-        state,
-        type_name,
-        base,
-        object_schema,
-        all_schemas,
-        config,
-        usage,
-      )
+      case is_map_object(object_schema) {
+        True ->
+          map_type_doc(state, type_name, object_schema, all_schemas, config)
+        False ->
+          object_type_doc(
+            state,
+            type_name,
+            base,
+            object_schema,
+            all_schemas,
+            config,
+            usage,
+          )
+      }
+    // Top-level string enums: register the enum (so enums_doc generates the
+    // real custom type) and emit nothing here to avoid a self-referencing
+    // type alias like `pub type X = X`.
+    schema.String(_, schema.StringSchema(enum: Some(variants), ..)) -> {
+      let state = register_enum(state, type_name, variants)
+      #(state, doc.empty)
+    }
     _ ->
       // For non-object top-level schemas, generate a type alias-like wrapper
       simple_type_doc(state, type_name, schema, all_schemas, config)
@@ -2300,6 +2337,38 @@ fn simple_type_doc(
   #(state, result)
 }
 
+fn map_type_doc(
+  state: State,
+  type_name: String,
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
+  config: Config,
+) -> #(State, Document) {
+  let value_schema = map_value_schema(object_schema)
+  let #(state, value_type) =
+    schema_to_gleam_type(
+      state,
+      value_schema,
+      True,
+      all_schemas,
+      type_name,
+      False,
+    )
+  let state = import_qualified(state, "gleam/dict", "type Dict")
+  let result =
+    doc.concat([
+      doc.from_string("pub type " <> type_name <> " ="),
+      doc.line |> doc.nest(by: config.indent),
+      doc.concat([
+        doc.from_string("Dict(String, "),
+        value_type,
+        doc.from_string(")"),
+      ])
+        |> doc.nest(by: config.indent),
+    ])
+  #(state, result)
+}
+
 // --- Type mapping ------------------------------------------------------------
 
 fn schema_to_gleam_type(
@@ -2377,21 +2446,45 @@ fn array_type(
 
 fn inline_object_type(
   state: State,
-  _object_schema: ObjectSchema,
-  _all_schemas: List(#(String, Schema)),
+  object_schema: ObjectSchema,
+  all_schemas: List(#(String, Schema)),
   request_only: Bool,
 ) -> #(State, Document) {
-  case request_only {
+  case is_map_object(object_schema) {
     True -> {
-      // For request-only schemas, use json.Json so the value is serializable
-      let state = import_module(state, "gleam/json")
-      #(state, doc.from_string("json.Json"))
+      let value_schema = map_value_schema(object_schema)
+      let #(state, value_type) =
+        schema_to_gleam_type(
+          state,
+          value_schema,
+          True,
+          all_schemas,
+          "",
+          request_only,
+        )
+      let state = import_qualified(state, "gleam/dict", "type Dict")
+      #(
+        state,
+        doc.concat([
+          doc.from_string("Dict(String, "),
+          value_type,
+          doc.from_string(")"),
+        ]),
+      )
     }
-    False -> {
-      // For response/both schemas, fall back to Dynamic (no decoder for Json)
-      let state = import_qualified(state, "gleam/dynamic", "type Dynamic")
-      #(state, doc.from_string("Dynamic"))
-    }
+    False ->
+      case request_only {
+        True -> {
+          // For request-only schemas, use json.Json so the value is serializable
+          let state = import_module(state, "gleam/json")
+          #(state, doc.from_string("json.Json"))
+        }
+        False -> {
+          // For response/both schemas, fall back to Dynamic (no decoder for Json)
+          let state = import_qualified(state, "gleam/dynamic", "type Dynamic")
+          #(state, doc.from_string("Dynamic"))
+        }
+      }
   }
 }
 
@@ -2424,7 +2517,28 @@ fn schema_to_inner_decoder(
     schema.Boolean(_) -> #(state, doc.from_string("decode.bool"))
     schema.Array(_, array_schema) ->
       array_decoder(state, array_schema, all_schemas, enum_name_hint)
-    schema.Object(_, _) -> #(state, doc.from_string("decode.dynamic"))
+    schema.Object(_, object_schema) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_decoder) =
+            schema_to_inner_decoder(
+              state,
+              value_schema,
+              all_schemas,
+              enum_name_hint,
+            )
+          #(
+            state,
+            doc.concat([
+              doc.from_string("decode.dict(decode.string, "),
+              value_decoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False -> #(state, doc.from_string("decode.dynamic"))
+      }
   }
 }
 
@@ -2482,11 +2596,27 @@ fn ref_to_decoder(
   }
   let type_name = to_type_name(raw_name)
   case list.key_find(all_schemas, raw_name) {
-    // Object types have their own decoder function
-    Ok(schema.Object(_, _)) -> {
-      let decoder_name = justin.snake_case(type_name) <> "_decoder()"
-      #(state, doc.from_string(decoder_name))
-    }
+    // Object types: map-like become Dict, others use their decoder function
+    Ok(schema.Object(_, object_schema)) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_decoder) =
+            schema_to_inner_decoder(state, value_schema, all_schemas, type_name)
+          #(
+            state,
+            doc.concat([
+              doc.from_string("decode.dict(decode.string, "),
+              value_decoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False -> {
+          let decoder_name = justin.snake_case(type_name) <> "_decoder()"
+          #(state, doc.from_string(decoder_name))
+        }
+      }
     // Other types: resolve the decoder inline
     Ok(schema) -> schema_to_inner_decoder(state, schema, all_schemas, type_name)
     // Unknown ref: dynamic fallback
@@ -2570,10 +2700,32 @@ fn schema_to_json_encoder_fn(
       )
     }
     schema.Ref(ref:) -> ref_to_json_fn(state, ref, all_schemas)
-    schema.Object(_, _) ->
-      case request_only {
-        True -> #(state, doc.from_string("fn(v) { v }"))
-        False -> #(state, doc.from_string("fn(_) { json.null() }"))
+    schema.Object(_, object_schema) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_encoder) =
+            schema_to_json_encoder_fn(
+              state,
+              value_schema,
+              all_schemas,
+              enum_name_hint,
+              request_only,
+            )
+          #(
+            state,
+            doc.concat([
+              doc.from_string("json.dict(_, fn(k) { k }, "),
+              value_encoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False ->
+          case request_only {
+            True -> #(state, doc.from_string("fn(v) { v }"))
+            False -> #(state, doc.from_string("fn(_) { json.null() }"))
+          }
       }
   }
 }
@@ -2604,10 +2756,32 @@ fn ref_to_json_fn(
   }
   let type_name = to_type_name(raw_name)
   case list.key_find(all_schemas, raw_name) {
-    Ok(schema.Object(_, _)) -> {
-      let to_json_fn = justin.snake_case(type_name) <> "_to_json"
-      #(state, doc.from_string(to_json_fn))
-    }
+    Ok(schema.Object(_, object_schema)) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_encoder) =
+            schema_to_json_encoder_fn(
+              state,
+              value_schema,
+              all_schemas,
+              type_name,
+              False,
+            )
+          #(
+            state,
+            doc.concat([
+              doc.from_string("json.dict(_, fn(k) { k }, "),
+              value_encoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False -> {
+          let to_json_fn = justin.snake_case(type_name) <> "_to_json"
+          #(state, doc.from_string(to_json_fn))
+        }
+      }
     Ok(schema) ->
       schema_to_json_encoder_fn(state, schema, all_schemas, type_name, False)
     Error(_) -> #(state, doc.from_string("fn(_) { json.null() }"))
@@ -2640,10 +2814,32 @@ fn schema_to_json_expression_inner(
     schema.Array(_, array_schema) ->
       array_to_json(state, array_schema, accessor, all_schemas, enum_name_hint)
     schema.Ref(ref:) -> ref_to_json(state, ref, accessor, all_schemas)
-    schema.Object(_, _) ->
-      case request_only {
-        True -> #(state, doc.from_string(accessor))
-        False -> #(state, doc.from_string("json.null()"))
+    schema.Object(_, object_schema) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_encoder) =
+            schema_to_json_encoder_fn(
+              state,
+              value_schema,
+              all_schemas,
+              enum_name_hint,
+              request_only,
+            )
+          #(
+            state,
+            doc.concat([
+              doc.from_string("json.dict(" <> accessor <> ", fn(k) { k }, "),
+              value_encoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False ->
+          case request_only {
+            True -> #(state, doc.from_string(accessor))
+            False -> #(state, doc.from_string("json.null()"))
+          }
       }
   }
 }
@@ -2714,10 +2910,32 @@ fn ref_to_json(
   }
   let type_name = to_type_name(raw_name)
   case list.key_find(all_schemas, raw_name) {
-    Ok(schema.Object(_, _)) -> {
-      let to_json_fn = justin.snake_case(type_name) <> "_to_json"
-      #(state, doc.from_string(to_json_fn <> "(" <> accessor <> ")"))
-    }
+    Ok(schema.Object(_, object_schema)) ->
+      case is_map_object(object_schema) {
+        True -> {
+          let value_schema = map_value_schema(object_schema)
+          let #(state, value_encoder) =
+            schema_to_json_encoder_fn(
+              state,
+              value_schema,
+              all_schemas,
+              type_name,
+              False,
+            )
+          #(
+            state,
+            doc.concat([
+              doc.from_string("json.dict(" <> accessor <> ", fn(k) { k }, "),
+              value_encoder,
+              doc.from_string(")"),
+            ]),
+          )
+        }
+        False -> {
+          let to_json_fn = justin.snake_case(type_name) <> "_to_json"
+          #(state, doc.from_string(to_json_fn <> "(" <> accessor <> ")"))
+        }
+      }
     Ok(schema) ->
       schema_to_json_expression_inner(
         state,
@@ -2789,6 +3007,29 @@ fn description_to_comment(desc: String) -> Document {
   string.split(desc, "\n")
   |> list.map(fn(line) { doc.from_string("/// " <> string.trim(line)) })
   |> doc.join(with: doc.line)
+}
+
+// --- Map-like object detection -----------------------------------------------
+
+/// Checks if an object schema represents a map/dict pattern.
+/// This is the case when all property keys are wrapped in angle brackets like
+/// `<key>`, `<environment_variableKey>`, etc.
+fn is_map_object(object_schema: ObjectSchema) -> Bool {
+  case object_schema.properties {
+    [] -> False
+    properties ->
+      list.all(properties, fn(prop) {
+        let #(key, _) = prop
+        string.starts_with(key, "<") && string.ends_with(key, ">")
+      })
+  }
+}
+
+/// Returns the value schema of a map-like object (the schema of the first
+/// `<key>` property).
+fn map_value_schema(object_schema: ObjectSchema) -> Schema {
+  let assert [#(_, value_schema), ..] = object_schema.properties
+  value_schema
 }
 
 // --- Naming helpers ----------------------------------------------------------

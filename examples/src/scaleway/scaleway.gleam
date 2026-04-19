@@ -43,12 +43,10 @@ pub fn main() {
     )
 
   let assert Ok(namespace) =
-    client.new_create_namespace_request(
-      name: "gilly-example",
-      activate_vpc_integration: True,
-      secret_environment_variables: [],
-      tags: ["example", "gilly"],
-    )
+    client.new_create_namespace_request(name: "gilly-example", tags: [
+      "example",
+      "gilly",
+    ])
     |> client.create_namespace(api_client)
 
   io.println("Namespace created with ID: " <> namespace.id)
@@ -59,9 +57,7 @@ pub fn main() {
         client.new_get_namespace_request(namespace.id)
         |> client.get_namespace(api_client)
       },
-      fn(ns) {
-        ns.status == client.ScalewayContainersV1beta1NamespaceStatusReady
-      },
+      fn(ns) { ns.status == client.ScalewayContainersV1NamespaceStatusReady },
       max_retries,
     )
 
@@ -71,16 +67,16 @@ pub fn main() {
     client.new_create_container_request(
       namespace_id: namespace.id,
       name: "gilly-nginx",
+      image: "nginx:latest",
       args: [],
       command: [],
-      http_option: client.CreateContainerRequestHttpOptionEnabled,
       privacy: client.CreateContainerRequestPrivacyPublic,
       protocol: client.CreateContainerRequestProtocolHttp1,
       sandbox: client.CreateContainerRequestSandboxV2,
-      secret_environment_variables: [],
       tags: ["example", "gilly"],
     )
-    |> client.create_container_request_with_registry_image("nginx:alpine")
+    |> client.create_container_request_with_mvcpu_limit(1000)
+    |> client.create_container_request_with_memory_limit_bytes(gb_to_bytes(1))
     |> client.create_container_request_with_port(80)
     |> client.create_container(api_client)
 
@@ -92,12 +88,15 @@ pub fn main() {
         client.new_get_container_request(container.id)
         |> client.get_container(api_client)
       },
-      fn(c) { c.status == client.ScalewayContainersV1beta1ContainerStatusReady },
+      fn(c) { c.status == client.ScalewayContainersV1ContainerStatusReady },
       max_retries,
     )
 
-  let url = "https://" <> container.domain_name
-  io.println("Container is ready to use at URL: " <> url)
+  io.println("Container is ready to use at URL: " <> container.public_endpoint)
+}
+
+fn gb_to_bytes(gb: Int) -> Int {
+  gb * 1024 * 1024 * 1024
 }
 
 type Getter(resource) =

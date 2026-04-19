@@ -2,6 +2,7 @@
 // To regenerate, run: gilly <path_to_openapi_spec.json>
 
 
+import gleam/dict.{type Dict}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/http
@@ -16,860 +17,773 @@ import gleam/result
 pub type GoogleProtobufStringValue =
   String
 
-pub type ScalewayContainersV1beta1Container {
-  ScalewayContainersV1beta1Container(
+pub type ScalewayContainersV1Container {
+  ScalewayContainersV1Container(
     /// Container arguments.
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: List(String),
     /// Container command.
-    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
+    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
     command: List(String),
-    /// CPU limit of the container in mvCPU.
-    cpu_limit: Int,
-    /// Creation date of the container. (RFC 3339 format)
+    /// Container creation date. (RFC 3339 format)
     created_at: Option(String),
-    /// Description of the container.
-    description: Option(String),
-    /// Domain name attributed to the contaioner.
-    domain_name: String,
+    /// Container description.
+    description: String,
     /// Environment variables of the container.
-    environment_variables: Option(Dynamic),
-    /// Last error message of the container.
+    environment_variables: Option(Dict(String, String)),
+    /// Container last error message.
     error_message: Option(String),
-    /// Health check configuration of the container.
-    health_check: Option(Dynamic),
-    /// Configuration for the handling of HTTP and HTTPS requests.
-    /// Possible values:
-    /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
-    /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: ScalewayContainersV1beta1ContainerHttpOption,
-    /// UUID of the container.
+    /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+    https_connections_only: Bool,
+    /// Container unique ID. (UUID format)
     id: String,
-    /// Local storage limit of the container (in MB).
-    local_storage_limit: Int,
-    /// Number of maximum concurrent executions of the container.
-    max_concurrency: Int,
+    /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
+    image: String,
+    /// It defines how to check if the container is still running.
+    /// If the liveness probe fails, the container will be restarted.
+    /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    liveness_probe: Option(Dynamic),
+    /// Local storage limit of the container in bytes. (in bytes)
+    local_storage_limit_bytes: Int,
     /// Maximum number of instances to scale the container to.
     max_scale: Int,
-    /// Memory limit of the container in MB.
-    memory_limit: Int,
+    /// Memory limit of the container in bytes. (in bytes)
+    memory_limit_bytes: Int,
     /// Minimum number of instances to scale the container to.
     min_scale: Int,
-    /// Name of the container.
+    /// CPU limit of the container in mvCPU.
+    mvcpu_limit: Int,
+    /// Container name.
     name: String,
-    /// UUID of the namespace the container belongs to.
+    /// Unique ID of the namespace the container belongs to. (UUID format)
     namespace_id: String,
     /// Port the container listens on.
     port: Int,
-    /// Privacy setting of the container.
-    privacy: ScalewayContainersV1beta1ContainerPrivacy,
+    /// Privacy policy of the container.
+    privacy: ScalewayContainersV1ContainerPrivacy,
     /// ID of the Private Network the container is connected to.
-    /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
+    /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network. (UUID format)
     private_network_id: Option(String),
     /// Protocol the container uses.
-    protocol: ScalewayContainersV1beta1ContainerProtocol,
-    /// Last date when the container was successfully deployed and set to ready. (RFC 3339 format)
-    ready_at: Option(String),
-    /// Region in which the container will be deployed.
+    protocol: ScalewayContainersV1ContainerProtocol,
+    /// Public URL of the container.
+    /// This is the default endpoint generated by Scaleway to access the container from the Internet.
+    public_endpoint: String,
+    /// Region in which the container exists.
     region: String,
-    /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-    registry_image: String,
     /// Execution environment of the container.
-    sandbox: ScalewayContainersV1beta1ContainerSandbox,
-    /// Configuration used to decide when to scale up or down.
-    /// Possible values:
-    /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
-    /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
-    /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
+    sandbox: ScalewayContainersV1ContainerSandbox,
+    /// Parameter used to decide when to scale up or down.
     scaling_option: Option(Dynamic),
     /// Secret environment variables of the container.
-    secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
-    /// Status of the container.
-    status: ScalewayContainersV1beta1ContainerStatus,
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
+    /// If the startup probe fails, the container will be restarted.
+    /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    startup_probe: Option(Dynamic),
+    /// Container status.
+    status: ScalewayContainersV1ContainerStatus,
     /// List of tags applied to the Serverless Container.
     tags: List(String),
     /// Processing time limit for the container. (in seconds)
     timeout: Option(String),
-    /// Last update date of the container. (RFC 3339 format)
+    /// Container last update date. (RFC 3339 format)
     updated_at: Option(String),
   )
 }
 
-pub fn scaleway_containers_v1beta1_container_decoder() -> decode.Decoder(ScalewayContainersV1beta1Container) {
+pub fn scaleway_containers_v1_container_decoder() -> decode.Decoder(ScalewayContainersV1Container) {
   use args <- decode.field("args", decode.list(decode.string))
   use command <- decode.field("command", decode.list(decode.string))
-  use cpu_limit <- decode.field("cpu_limit", decode.int)
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use domain_name <- decode.field("domain_name", decode.string)
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use description <- decode.field("description", decode.string)
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
-  use health_check <- decode.optional_field("health_check", None, decode.optional(decode.dynamic))
-  use http_option <- decode.field("http_option", scaleway_containers_v1beta1_container_http_option_decoder())
+  use https_connections_only <- decode.field("https_connections_only", decode.bool)
   use id <- decode.field("id", decode.string)
-  use local_storage_limit <- decode.field("local_storage_limit", decode.int)
-  use max_concurrency <- decode.field("max_concurrency", decode.int)
+  use image <- decode.field("image", decode.string)
+  use liveness_probe <- decode.optional_field("liveness_probe", None, decode.optional(decode.dynamic))
+  use local_storage_limit_bytes <- decode.field("local_storage_limit_bytes", decode.int)
   use max_scale <- decode.field("max_scale", decode.int)
-  use memory_limit <- decode.field("memory_limit", decode.int)
+  use memory_limit_bytes <- decode.field("memory_limit_bytes", decode.int)
   use min_scale <- decode.field("min_scale", decode.int)
+  use mvcpu_limit <- decode.field("mvcpu_limit", decode.int)
   use name <- decode.field("name", decode.string)
   use namespace_id <- decode.field("namespace_id", decode.string)
   use port <- decode.field("port", decode.int)
-  use privacy <- decode.field("privacy", scaleway_containers_v1beta1_container_privacy_decoder())
+  use privacy <- decode.field("privacy", scaleway_containers_v1_container_privacy_decoder())
   use private_network_id <- decode.optional_field("private_network_id", None, decode.optional(decode.string))
-  use protocol <- decode.field("protocol", scaleway_containers_v1beta1_container_protocol_decoder())
-  use ready_at <- decode.optional_field("ready_at", None, decode.optional(decode.string))
+  use protocol <- decode.field("protocol", scaleway_containers_v1_container_protocol_decoder())
+  use public_endpoint <- decode.field("public_endpoint", decode.string)
   use region <- decode.field("region", decode.string)
-  use registry_image <- decode.field("registry_image", decode.string)
-  use sandbox <- decode.field("sandbox", scaleway_containers_v1beta1_container_sandbox_decoder())
+  use sandbox <- decode.field("sandbox", scaleway_containers_v1_container_sandbox_decoder())
   use scaling_option <- decode.optional_field("scaling_option", None, decode.optional(decode.dynamic))
-  use secret_environment_variables <- decode.field("secret_environment_variables", decode.list(scaleway_containers_v1beta1_secret_hashed_value_decoder()))
-  use status <- decode.field("status", scaleway_containers_v1beta1_container_status_decoder())
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
+  use startup_probe <- decode.optional_field("startup_probe", None, decode.optional(decode.dynamic))
+  use status <- decode.field("status", scaleway_containers_v1_container_status_decoder())
   use tags <- decode.field("tags", decode.list(decode.string))
   use timeout <- decode.optional_field("timeout", None, decode.optional(decode.string))
   use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
-  decode.success(ScalewayContainersV1beta1Container(args:, command:, cpu_limit:, created_at:, description:, domain_name:, environment_variables:, error_message:, health_check:, http_option:, id:, local_storage_limit:, max_concurrency:, max_scale:, memory_limit:, min_scale:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, ready_at:, region:, registry_image:, sandbox:, scaling_option:, secret_environment_variables:, status:, tags:, timeout:, updated_at:))
+  decode.success(ScalewayContainersV1Container(args:, command:, created_at:, description:, environment_variables:, error_message:, https_connections_only:, id:, image:, liveness_probe:, local_storage_limit_bytes:, max_scale:, memory_limit_bytes:, min_scale:, mvcpu_limit:, name:, namespace_id:, port:, privacy:, private_network_id:, protocol:, public_endpoint:, region:, sandbox:, scaling_option:, secret_environment_variables:, startup_probe:, status:, tags:, timeout:, updated_at:))
 }
 
-pub type ScalewayContainersV1beta1Cron {
-  ScalewayContainersV1beta1Cron(
-    /// Arguments to pass with the cron.
-    args: Option(Dynamic),
-    /// UUID of the container invoked by this cron.
+pub type ScalewayContainersV1Domain {
+  ScalewayContainersV1Domain(
+    /// Unique ID of the container the domain is assigned to. (UUID format)
     container_id: String,
-    /// UUID of the cron.
-    id: String,
-    /// Name of the cron.
-    name: String,
-    /// UNIX cron schedule.
-    schedule: String,
-    /// Status of the cron.
-    status: ScalewayContainersV1beta1CronStatus,
-  )
-}
-
-pub fn scaleway_containers_v1beta1_cron_decoder() -> decode.Decoder(ScalewayContainersV1beta1Cron) {
-  use args <- decode.optional_field("args", None, decode.optional(decode.dynamic))
-  use container_id <- decode.field("container_id", decode.string)
-  use id <- decode.field("id", decode.string)
-  use name <- decode.field("name", decode.string)
-  use schedule <- decode.field("schedule", decode.string)
-  use status <- decode.field("status", scaleway_containers_v1beta1_cron_status_decoder())
-  decode.success(ScalewayContainersV1beta1Cron(args:, container_id:, id:, name:, schedule:, status:))
-}
-
-pub type ScalewayContainersV1beta1Domain {
-  ScalewayContainersV1beta1Domain(
-    /// UUID of the container.
-    container_id: String,
-    /// Last error message of the domain.
+    /// Domain creation date. (RFC 3339 format)
+    created_at: Option(String),
+    /// Domain last error message.
     error_message: Option(String),
     /// Domain assigned to the container.
     hostname: String,
-    /// UUID of the domain.
+    /// Domain unique ID. (UUID format)
     id: String,
-    /// Status of the domain.
-    status: ScalewayContainersV1beta1DomainStatus,
-    /// URL (TBD).
-    url: String,
+    /// Domain status.
+    status: ScalewayContainersV1DomainStatus,
+    /// A list of arbitrary tags associated with the domain.
+    tags: List(String),
+    /// Domain last update date. (RFC 3339 format)
+    updated_at: Option(String),
   )
 }
 
-pub fn scaleway_containers_v1beta1_domain_decoder() -> decode.Decoder(ScalewayContainersV1beta1Domain) {
+pub fn scaleway_containers_v1_domain_decoder() -> decode.Decoder(ScalewayContainersV1Domain) {
   use container_id <- decode.field("container_id", decode.string)
+  use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use hostname <- decode.field("hostname", decode.string)
   use id <- decode.field("id", decode.string)
-  use status <- decode.field("status", scaleway_containers_v1beta1_domain_status_decoder())
-  use url <- decode.field("url", decode.string)
-  decode.success(ScalewayContainersV1beta1Domain(container_id:, error_message:, hostname:, id:, status:, url:))
+  use status <- decode.field("status", scaleway_containers_v1_domain_status_decoder())
+  use tags <- decode.field("tags", decode.list(decode.string))
+  use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1Domain(container_id:, created_at:, error_message:, hostname:, id:, status:, tags:, updated_at:))
 }
 
-pub type ScalewayContainersV1beta1ListContainersResponse {
-  ScalewayContainersV1beta1ListContainersResponse(
-    /// Array of containers.
-    containers: List(ScalewayContainersV1beta1Container),
-    /// Total number of containers.
+
+
+pub type ScalewayContainersV1ListContainersResponse {
+  ScalewayContainersV1ListContainersResponse(
+    containers: List(ScalewayContainersV1Container),
     total_count: Int,
   )
 }
 
-pub fn scaleway_containers_v1beta1_list_containers_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListContainersResponse) {
-  use containers <- decode.field("containers", decode.list(scaleway_containers_v1beta1_container_decoder()))
+pub fn scaleway_containers_v1_list_containers_response_decoder() -> decode.Decoder(ScalewayContainersV1ListContainersResponse) {
+  use containers <- decode.field("containers", decode.list(scaleway_containers_v1_container_decoder()))
   use total_count <- decode.field("total_count", decode.int)
-  decode.success(ScalewayContainersV1beta1ListContainersResponse(containers:, total_count:))
+  decode.success(ScalewayContainersV1ListContainersResponse(containers:, total_count:))
 }
 
-pub type ScalewayContainersV1beta1ListCronsResponse {
-  ScalewayContainersV1beta1ListCronsResponse(
-    /// Array of crons.
-    crons: List(ScalewayContainersV1beta1Cron),
-    /// Total number of crons.
+
+
+pub type ScalewayContainersV1ListDomainsResponse {
+  ScalewayContainersV1ListDomainsResponse(
+    domains: List(ScalewayContainersV1Domain),
     total_count: Int,
   )
 }
 
-pub fn scaleway_containers_v1beta1_list_crons_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListCronsResponse) {
-  use crons <- decode.field("crons", decode.list(scaleway_containers_v1beta1_cron_decoder()))
+pub fn scaleway_containers_v1_list_domains_response_decoder() -> decode.Decoder(ScalewayContainersV1ListDomainsResponse) {
+  use domains <- decode.field("domains", decode.list(scaleway_containers_v1_domain_decoder()))
   use total_count <- decode.field("total_count", decode.int)
-  decode.success(ScalewayContainersV1beta1ListCronsResponse(crons:, total_count:))
+  decode.success(ScalewayContainersV1ListDomainsResponse(domains:, total_count:))
 }
 
-pub type ScalewayContainersV1beta1ListDomainsResponse {
-  ScalewayContainersV1beta1ListDomainsResponse(
-    /// Array of domains.
-    domains: List(ScalewayContainersV1beta1Domain),
-    /// Total number of domains.
+
+
+pub type ScalewayContainersV1ListNamespacesResponse {
+  ScalewayContainersV1ListNamespacesResponse(
+    namespaces: List(ScalewayContainersV1Namespace),
     total_count: Int,
   )
 }
 
-pub fn scaleway_containers_v1beta1_list_domains_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListDomainsResponse) {
-  use domains <- decode.field("domains", decode.list(scaleway_containers_v1beta1_domain_decoder()))
+pub fn scaleway_containers_v1_list_namespaces_response_decoder() -> decode.Decoder(ScalewayContainersV1ListNamespacesResponse) {
+  use namespaces <- decode.field("namespaces", decode.list(scaleway_containers_v1_namespace_decoder()))
   use total_count <- decode.field("total_count", decode.int)
-  decode.success(ScalewayContainersV1beta1ListDomainsResponse(domains:, total_count:))
+  decode.success(ScalewayContainersV1ListNamespacesResponse(namespaces:, total_count:))
 }
 
-pub type ScalewayContainersV1beta1ListNamespacesResponse {
-  ScalewayContainersV1beta1ListNamespacesResponse(
-    /// Array of the namespaces.
-    namespaces: List(ScalewayContainersV1beta1Namespace),
-    /// Total number of namespaces.
+
+
+pub type ScalewayContainersV1ListTriggersResponse {
+  ScalewayContainersV1ListTriggersResponse(
     total_count: Int,
+    triggers: List(ScalewayContainersV1Trigger),
   )
 }
 
-pub fn scaleway_containers_v1beta1_list_namespaces_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListNamespacesResponse) {
-  use namespaces <- decode.field("namespaces", decode.list(scaleway_containers_v1beta1_namespace_decoder()))
+pub fn scaleway_containers_v1_list_triggers_response_decoder() -> decode.Decoder(ScalewayContainersV1ListTriggersResponse) {
   use total_count <- decode.field("total_count", decode.int)
-  decode.success(ScalewayContainersV1beta1ListNamespacesResponse(namespaces:, total_count:))
+  use triggers <- decode.field("triggers", decode.list(scaleway_containers_v1_trigger_decoder()))
+  decode.success(ScalewayContainersV1ListTriggersResponse(total_count:, triggers:))
 }
 
-pub type ScalewayContainersV1beta1ListTokensResponse {
-  ScalewayContainersV1beta1ListTokensResponse(
-    tokens: List(ScalewayContainersV1beta1Token),
-    total_count: Int,
-  )
-}
-
-pub fn scaleway_containers_v1beta1_list_tokens_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListTokensResponse) {
-  use tokens <- decode.field("tokens", decode.list(scaleway_containers_v1beta1_token_decoder()))
-  use total_count <- decode.field("total_count", decode.int)
-  decode.success(ScalewayContainersV1beta1ListTokensResponse(tokens:, total_count:))
-}
-
-pub type ScalewayContainersV1beta1ListTriggersResponse {
-  ScalewayContainersV1beta1ListTriggersResponse(
-    /// Total count of existing triggers (matching any filters specified).
-    total_count: Int,
-    /// Triggers on this page.
-    triggers: List(ScalewayContainersV1beta1Trigger),
-  )
-}
-
-pub fn scaleway_containers_v1beta1_list_triggers_response_decoder() -> decode.Decoder(ScalewayContainersV1beta1ListTriggersResponse) {
-  use total_count <- decode.field("total_count", decode.int)
-  use triggers <- decode.field("triggers", decode.list(scaleway_containers_v1beta1_trigger_decoder()))
-  decode.success(ScalewayContainersV1beta1ListTriggersResponse(total_count:, triggers:))
-}
-
-pub type ScalewayContainersV1beta1Namespace {
-  ScalewayContainersV1beta1Namespace(
-    /// Creation date of the namespace. (RFC 3339 format)
+pub type ScalewayContainersV1Namespace {
+  ScalewayContainersV1Namespace(
+    /// Namespace creation date. (RFC 3339 format)
     created_at: Option(String),
-    /// Description of the endpoint.
-    description: Option(String),
-    /// Environment variables of the namespace.
-    environment_variables: Option(Dynamic),
-    /// Last error message of the namesace.
+    /// Namespace description.
+    description: String,
+    /// Namespace environment variables.
+    environment_variables: Option(Dict(String, String)),
+    /// Namespace last error message.
     error_message: Option(String),
-    /// UUID of the namespace.
+    /// Namespace unique ID. (UUID format)
     id: String,
-    /// Name of the namespace.
+    /// Namespace name.
     name: String,
-    /// UUID of the Organization the namespace belongs to.
+    /// Unique ID of the Organization the namespace belongs to. (UUID format)
     organization_id: String,
-    /// UUID of the Project the namespace belongs to.
+    /// Unique ID of the Project the namespace belongs to. (UUID format)
     project_id: String,
     /// Region in which the namespace will be created.
     region: String,
-    /// Registry endpoint of the namespace.
-    registry_endpoint: String,
-    /// UUID of the registry namespace.
-    registry_namespace_id: String,
-    /// Secret environment variables of the namespace.
-    secret_environment_variables: List(ScalewayContainersV1beta1SecretHashedValue),
-    /// Status of the namespace.
-    status: ScalewayContainersV1beta1NamespaceStatus,
-    /// List of tags applied to the Serverless Container Namespace.
+    /// Namespace secret environment variables.
+    secret_environment_variables: Option(Dict(String, String)),
+    /// Namespace status.
+    status: ScalewayContainersV1NamespaceStatus,
+    /// A list of arbitrary tags associated with the namespace.
     tags: List(String),
-    /// Last update date of the namespace. (RFC 3339 format)
+    /// Namespace last update date. (RFC 3339 format)
     updated_at: Option(String),
-    /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
-    /// The value of this field doesn't matter anymore, and will be removed in a near future.
-    vpc_integration_activated: Bool,
   )
 }
 
-pub fn scaleway_containers_v1beta1_namespace_decoder() -> decode.Decoder(ScalewayContainersV1beta1Namespace) {
+pub fn scaleway_containers_v1_namespace_decoder() -> decode.Decoder(ScalewayContainersV1Namespace) {
   use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dynamic))
+  use description <- decode.field("description", decode.string)
+  use environment_variables <- decode.optional_field("environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use id <- decode.field("id", decode.string)
   use name <- decode.field("name", decode.string)
   use organization_id <- decode.field("organization_id", decode.string)
   use project_id <- decode.field("project_id", decode.string)
   use region <- decode.field("region", decode.string)
-  use registry_endpoint <- decode.field("registry_endpoint", decode.string)
-  use registry_namespace_id <- decode.field("registry_namespace_id", decode.string)
-  use secret_environment_variables <- decode.field("secret_environment_variables", decode.list(scaleway_containers_v1beta1_secret_hashed_value_decoder()))
-  use status <- decode.field("status", scaleway_containers_v1beta1_namespace_status_decoder())
+  use secret_environment_variables <- decode.optional_field("secret_environment_variables", None, decode.optional(decode.dict(decode.string, decode.string)))
+  use status <- decode.field("status", scaleway_containers_v1_namespace_status_decoder())
   use tags <- decode.field("tags", decode.list(decode.string))
   use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
-  use vpc_integration_activated <- decode.field("vpc_integration_activated", decode.bool)
-  decode.success(ScalewayContainersV1beta1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, registry_endpoint:, registry_namespace_id:, secret_environment_variables:, status:, tags:, updated_at:, vpc_integration_activated:))
+  decode.success(ScalewayContainersV1Namespace(created_at:, description:, environment_variables:, error_message:, id:, name:, organization_id:, project_id:, region:, secret_environment_variables:, status:, tags:, updated_at:))
 }
 
-pub type ScalewayContainersV1beta1Secret {
-  ScalewayContainersV1beta1Secret(
-    key: String,
-    value: GoogleProtobufStringValue,
-  )
-}
-
-pub fn scaleway_containers_v1beta1_secret_decoder() -> decode.Decoder(ScalewayContainersV1beta1Secret) {
-  use key <- decode.field("key", decode.string)
-  use value <- decode.field("value", decode.string)
-  decode.success(ScalewayContainersV1beta1Secret(key:, value:))
-}
-
-pub fn scaleway_containers_v1beta1_secret_to_json(value: ScalewayContainersV1beta1Secret) -> json.Json {
-  json.object([
-    #("key", json.string(value.key)),
-    #("value", json.string(value.value)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_secret(
-  key key: String,
-  value value: GoogleProtobufStringValue,
-) -> ScalewayContainersV1beta1Secret {
-  ScalewayContainersV1beta1Secret(key:, value:)
-}
-
-pub type ScalewayContainersV1beta1SecretHashedValue {
-  ScalewayContainersV1beta1SecretHashedValue(
-    hashed_value: String,
-    key: String,
-  )
-}
-
-pub fn scaleway_containers_v1beta1_secret_hashed_value_decoder() -> decode.Decoder(ScalewayContainersV1beta1SecretHashedValue) {
-  use hashed_value <- decode.field("hashed_value", decode.string)
-  use key <- decode.field("key", decode.string)
-  decode.success(ScalewayContainersV1beta1SecretHashedValue(hashed_value:, key:))
-}
-
-pub fn scaleway_containers_v1beta1_secret_hashed_value_to_json(value: ScalewayContainersV1beta1SecretHashedValue) -> json.Json {
-  json.object([
-    #("hashed_value", json.string(value.hashed_value)),
-    #("key", json.string(value.key)),
-  ])
-}
-
-pub fn new_scaleway_containers_v1beta1_secret_hashed_value(
-  hashed_value hashed_value: String,
-  key key: String,
-) -> ScalewayContainersV1beta1SecretHashedValue {
-  ScalewayContainersV1beta1SecretHashedValue(hashed_value:, key:)
-}
-
-pub type ScalewayContainersV1beta1Token {
-  ScalewayContainersV1beta1Token(
-    /// UUID of the container the token belongs to.
-    container_id: Option(String),
-    /// Description of the token.
-    description: Option(String),
-    /// Expiry date of the token. (RFC 3339 format)
-    expires_at: Option(String),
-    /// UUID of the token.
-    id: String,
-    /// UUID of the namespace the token belongs to.
-    namespace_id: Option(String),
-    /// Public key of the token.
-    public_key: String,
-    /// Status of the token.
-    status: ScalewayContainersV1beta1TokenStatus,
-    /// Identifier of the token.
-    token: String,
-  )
-}
-
-pub fn scaleway_containers_v1beta1_token_decoder() -> decode.Decoder(ScalewayContainersV1beta1Token) {
-  use container_id <- decode.optional_field("container_id", None, decode.optional(decode.string))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
-  use expires_at <- decode.optional_field("expires_at", None, decode.optional(decode.string))
-  use id <- decode.field("id", decode.string)
-  use namespace_id <- decode.optional_field("namespace_id", None, decode.optional(decode.string))
-  use public_key <- decode.field("public_key", decode.string)
-  use status <- decode.field("status", scaleway_containers_v1beta1_token_status_decoder())
-  use token <- decode.field("token", decode.string)
-  decode.success(ScalewayContainersV1beta1Token(container_id:, description:, expires_at:, id:, namespace_id:, public_key:, status:, token:))
-}
-
-pub type ScalewayContainersV1beta1Trigger {
-  ScalewayContainersV1beta1Trigger(
-    /// ID of the container to trigger.
+pub type ScalewayContainersV1Trigger {
+  ScalewayContainersV1Trigger(
+    /// ID of the container to trigger. (UUID format)
     container_id: String,
+    /// Trigger creation date. (RFC 3339 format)
+    created_at: Option(String),
+    /// Configuration for a cron source.
+    cron_config: Option(Dynamic),
     /// Description of the trigger.
     description: String,
-    /// Error message of the trigger.
+    /// Configuration of the destination to trigger.
+    destination_config: Option(Dynamic),
+    /// Trigger last error message.
     error_message: Option(String),
-    /// ID of the trigger.
+    /// Trigger unique ID. (UUID format)
     id: String,
-    /// Type of the input.
-    input_type: ScalewayContainersV1beta1TriggerInputType,
     /// Name of the trigger.
     name: String,
-    /// Configuration for a Scaleway Messaging and Queuing NATS subject.
-    scw_nats_config: Option(Dynamic),
-    /// Configuration for a Scaleway Messaging and Queuing SQS queue.
-    scw_sqs_config: Option(Dynamic),
-    /// Status of the trigger.
-    status: ScalewayContainersV1beta1TriggerStatus,
+    /// Configuration for a NATS source.
+    nats_config: Option(Dynamic),
+    /// Type of source that will trigger the container.
+    source_type: ScalewayContainersV1TriggerSourceType,
+    /// Configuration for an SQS queue source.
+    sqs_config: Option(Dynamic),
+    /// Trigger status.
+    status: ScalewayContainersV1TriggerStatus,
+    /// Tags of the trigger.
+    tags: List(String),
+    /// Trigger last update date. (RFC 3339 format)
+    updated_at: Option(String),
   )
 }
 
-pub fn scaleway_containers_v1beta1_trigger_decoder() -> decode.Decoder(ScalewayContainersV1beta1Trigger) {
+pub fn scaleway_containers_v1_trigger_decoder() -> decode.Decoder(ScalewayContainersV1Trigger) {
   use container_id <- decode.field("container_id", decode.string)
+  use created_at <- decode.optional_field("created_at", None, decode.optional(decode.string))
+  use cron_config <- decode.optional_field("cron_config", None, decode.optional(decode.dynamic))
   use description <- decode.field("description", decode.string)
+  use destination_config <- decode.optional_field("destination_config", None, decode.optional(decode.dynamic))
   use error_message <- decode.optional_field("error_message", None, decode.optional(decode.string))
   use id <- decode.field("id", decode.string)
-  use input_type <- decode.field("input_type", scaleway_containers_v1beta1_trigger_input_type_decoder())
   use name <- decode.field("name", decode.string)
-  use scw_nats_config <- decode.optional_field("scw_nats_config", None, decode.optional(decode.dynamic))
-  use scw_sqs_config <- decode.optional_field("scw_sqs_config", None, decode.optional(decode.dynamic))
-  use status <- decode.field("status", scaleway_containers_v1beta1_trigger_status_decoder())
-  decode.success(ScalewayContainersV1beta1Trigger(container_id:, description:, error_message:, id:, input_type:, name:, scw_nats_config:, scw_sqs_config:, status:))
+  use nats_config <- decode.optional_field("nats_config", None, decode.optional(decode.dynamic))
+  use source_type <- decode.field("source_type", scaleway_containers_v1_trigger_source_type_decoder())
+  use sqs_config <- decode.optional_field("sqs_config", None, decode.optional(decode.dynamic))
+  use status <- decode.field("status", scaleway_containers_v1_trigger_status_decoder())
+  use tags <- decode.field("tags", decode.list(decode.string))
+  use updated_at <- decode.optional_field("updated_at", None, decode.optional(decode.string))
+  decode.success(ScalewayContainersV1Trigger(container_id:, created_at:, cron_config:, description:, destination_config:, error_message:, id:, name:, nats_config:, source_type:, sqs_config:, status:, tags:, updated_at:))
 }
+
+pub type ScalewayStdMapStringStringValue =
+  Dict(String, String)
+
+pub type ScalewayStdServiceInfo {
+  ScalewayStdServiceInfo(
+    /// (RFC 3339 format)
+    built_at: Option(String),
+    description: String,
+    documentation_url: GoogleProtobufStringValue,
+    git_commit: String,
+    name: String,
+    version: String,
+  )
+}
+
+pub fn scaleway_std_service_info_decoder() -> decode.Decoder(ScalewayStdServiceInfo) {
+  use built_at <- decode.optional_field("built_at", None, decode.optional(decode.string))
+  use description <- decode.field("description", decode.string)
+  use documentation_url <- decode.field("documentation_url", decode.string)
+  use git_commit <- decode.field("git_commit", decode.string)
+  use name <- decode.field("name", decode.string)
+  use version <- decode.field("version", decode.string)
+  decode.success(ScalewayStdServiceInfo(built_at:, description:, documentation_url:, git_commit:, name:, version:))
+}
+
+pub type ScalewayStdStringsValue =
+  List(String)
 
 
 // --- Enums -------------------------------------------------------------------
 
-pub type ScalewayContainersV1beta1ContainerHttpOption {
-  ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption
-  ScalewayContainersV1beta1ContainerHttpOptionEnabled
-  ScalewayContainersV1beta1ContainerHttpOptionRedirected
+pub type ScalewayContainersV1ContainerPrivacy {
+  ScalewayContainersV1ContainerPrivacyUnknownPrivacy
+  ScalewayContainersV1ContainerPrivacyPublic
+  ScalewayContainersV1ContainerPrivacyPrivate
 }
 
-pub fn scaleway_containers_v1beta1_container_http_option_to_string(value: ScalewayContainersV1beta1ContainerHttpOption) -> String {
+pub fn scaleway_containers_v1_container_privacy_to_string(value: ScalewayContainersV1ContainerPrivacy) -> String {
   case value {
-    ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption -> "unknown_http_option"
-    ScalewayContainersV1beta1ContainerHttpOptionEnabled -> "enabled"
-    ScalewayContainersV1beta1ContainerHttpOptionRedirected -> "redirected"
+    ScalewayContainersV1ContainerPrivacyUnknownPrivacy -> "unknown_privacy"
+    ScalewayContainersV1ContainerPrivacyPublic -> "public"
+    ScalewayContainersV1ContainerPrivacyPrivate -> "private"
   }
 }
 
-pub fn scaleway_containers_v1beta1_container_http_option_to_json(value: ScalewayContainersV1beta1ContainerHttpOption) -> json.Json {
-  json.string(scaleway_containers_v1beta1_container_http_option_to_string(value))
+pub fn scaleway_containers_v1_container_privacy_to_json(value: ScalewayContainersV1ContainerPrivacy) -> json.Json {
+  json.string(scaleway_containers_v1_container_privacy_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_container_http_option_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerHttpOption) {
+pub fn scaleway_containers_v1_container_privacy_decoder() -> decode.Decoder(ScalewayContainersV1ContainerPrivacy) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_http_option" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption)
-    "enabled" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionEnabled)
-    "redirected" -> decode.success(ScalewayContainersV1beta1ContainerHttpOptionRedirected)
-    _ -> decode.failure(ScalewayContainersV1beta1ContainerHttpOptionUnknownHttpOption, "ScalewayContainersV1beta1ContainerHttpOption")
+    "unknown_privacy" -> decode.success(ScalewayContainersV1ContainerPrivacyUnknownPrivacy)
+    "public" -> decode.success(ScalewayContainersV1ContainerPrivacyPublic)
+    "private" -> decode.success(ScalewayContainersV1ContainerPrivacyPrivate)
+    _ -> decode.failure(ScalewayContainersV1ContainerPrivacyUnknownPrivacy, "ScalewayContainersV1ContainerPrivacy")
   }
 }
 
-pub type ScalewayContainersV1beta1ContainerPrivacy {
-  ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy
-  ScalewayContainersV1beta1ContainerPrivacyPublic
-  ScalewayContainersV1beta1ContainerPrivacyPrivate
+pub type ScalewayContainersV1ContainerProtocol {
+  ScalewayContainersV1ContainerProtocolUnknownProtocol
+  ScalewayContainersV1ContainerProtocolHttp1
+  ScalewayContainersV1ContainerProtocolH2c
 }
 
-pub fn scaleway_containers_v1beta1_container_privacy_to_string(value: ScalewayContainersV1beta1ContainerPrivacy) -> String {
+pub fn scaleway_containers_v1_container_protocol_to_string(value: ScalewayContainersV1ContainerProtocol) -> String {
   case value {
-    ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy -> "unknown_privacy"
-    ScalewayContainersV1beta1ContainerPrivacyPublic -> "public"
-    ScalewayContainersV1beta1ContainerPrivacyPrivate -> "private"
+    ScalewayContainersV1ContainerProtocolUnknownProtocol -> "unknown_protocol"
+    ScalewayContainersV1ContainerProtocolHttp1 -> "http1"
+    ScalewayContainersV1ContainerProtocolH2c -> "h2c"
   }
 }
 
-pub fn scaleway_containers_v1beta1_container_privacy_to_json(value: ScalewayContainersV1beta1ContainerPrivacy) -> json.Json {
-  json.string(scaleway_containers_v1beta1_container_privacy_to_string(value))
+pub fn scaleway_containers_v1_container_protocol_to_json(value: ScalewayContainersV1ContainerProtocol) -> json.Json {
+  json.string(scaleway_containers_v1_container_protocol_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_container_privacy_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerPrivacy) {
+pub fn scaleway_containers_v1_container_protocol_decoder() -> decode.Decoder(ScalewayContainersV1ContainerProtocol) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_privacy" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy)
-    "public" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyPublic)
-    "private" -> decode.success(ScalewayContainersV1beta1ContainerPrivacyPrivate)
-    _ -> decode.failure(ScalewayContainersV1beta1ContainerPrivacyUnknownPrivacy, "ScalewayContainersV1beta1ContainerPrivacy")
+    "unknown_protocol" -> decode.success(ScalewayContainersV1ContainerProtocolUnknownProtocol)
+    "http1" -> decode.success(ScalewayContainersV1ContainerProtocolHttp1)
+    "h2c" -> decode.success(ScalewayContainersV1ContainerProtocolH2c)
+    _ -> decode.failure(ScalewayContainersV1ContainerProtocolUnknownProtocol, "ScalewayContainersV1ContainerProtocol")
   }
 }
 
-pub type ScalewayContainersV1beta1ContainerProtocol {
-  ScalewayContainersV1beta1ContainerProtocolUnknownProtocol
-  ScalewayContainersV1beta1ContainerProtocolHttp1
-  ScalewayContainersV1beta1ContainerProtocolH2c
+pub type ScalewayContainersV1ContainerSandbox {
+  ScalewayContainersV1ContainerSandboxUnknownSandbox
+  ScalewayContainersV1ContainerSandboxV1
+  ScalewayContainersV1ContainerSandboxV2
 }
 
-pub fn scaleway_containers_v1beta1_container_protocol_to_string(value: ScalewayContainersV1beta1ContainerProtocol) -> String {
+pub fn scaleway_containers_v1_container_sandbox_to_string(value: ScalewayContainersV1ContainerSandbox) -> String {
   case value {
-    ScalewayContainersV1beta1ContainerProtocolUnknownProtocol -> "unknown_protocol"
-    ScalewayContainersV1beta1ContainerProtocolHttp1 -> "http1"
-    ScalewayContainersV1beta1ContainerProtocolH2c -> "h2c"
+    ScalewayContainersV1ContainerSandboxUnknownSandbox -> "unknown_sandbox"
+    ScalewayContainersV1ContainerSandboxV1 -> "v1"
+    ScalewayContainersV1ContainerSandboxV2 -> "v2"
   }
 }
 
-pub fn scaleway_containers_v1beta1_container_protocol_to_json(value: ScalewayContainersV1beta1ContainerProtocol) -> json.Json {
-  json.string(scaleway_containers_v1beta1_container_protocol_to_string(value))
+pub fn scaleway_containers_v1_container_sandbox_to_json(value: ScalewayContainersV1ContainerSandbox) -> json.Json {
+  json.string(scaleway_containers_v1_container_sandbox_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_container_protocol_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerProtocol) {
+pub fn scaleway_containers_v1_container_sandbox_decoder() -> decode.Decoder(ScalewayContainersV1ContainerSandbox) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_protocol" -> decode.success(ScalewayContainersV1beta1ContainerProtocolUnknownProtocol)
-    "http1" -> decode.success(ScalewayContainersV1beta1ContainerProtocolHttp1)
-    "h2c" -> decode.success(ScalewayContainersV1beta1ContainerProtocolH2c)
-    _ -> decode.failure(ScalewayContainersV1beta1ContainerProtocolUnknownProtocol, "ScalewayContainersV1beta1ContainerProtocol")
+    "unknown_sandbox" -> decode.success(ScalewayContainersV1ContainerSandboxUnknownSandbox)
+    "v1" -> decode.success(ScalewayContainersV1ContainerSandboxV1)
+    "v2" -> decode.success(ScalewayContainersV1ContainerSandboxV2)
+    _ -> decode.failure(ScalewayContainersV1ContainerSandboxUnknownSandbox, "ScalewayContainersV1ContainerSandbox")
   }
 }
 
-pub type ScalewayContainersV1beta1ContainerSandbox {
-  ScalewayContainersV1beta1ContainerSandboxUnknownSandbox
-  ScalewayContainersV1beta1ContainerSandboxV1
-  ScalewayContainersV1beta1ContainerSandboxV2
+pub type ScalewayContainersV1ContainerStatus {
+  ScalewayContainersV1ContainerStatusUnknownStatus
+  ScalewayContainersV1ContainerStatusUpdating
+  ScalewayContainersV1ContainerStatusDeleting
+  ScalewayContainersV1ContainerStatusLocking
+  ScalewayContainersV1ContainerStatusReady
+  ScalewayContainersV1ContainerStatusError
+  ScalewayContainersV1ContainerStatusLocked
+  ScalewayContainersV1ContainerStatusCreating
+  ScalewayContainersV1ContainerStatusUpgrading
 }
 
-pub fn scaleway_containers_v1beta1_container_sandbox_to_string(value: ScalewayContainersV1beta1ContainerSandbox) -> String {
+pub fn scaleway_containers_v1_container_status_to_string(value: ScalewayContainersV1ContainerStatus) -> String {
   case value {
-    ScalewayContainersV1beta1ContainerSandboxUnknownSandbox -> "unknown_sandbox"
-    ScalewayContainersV1beta1ContainerSandboxV1 -> "v1"
-    ScalewayContainersV1beta1ContainerSandboxV2 -> "v2"
+    ScalewayContainersV1ContainerStatusUnknownStatus -> "unknown_status"
+    ScalewayContainersV1ContainerStatusUpdating -> "updating"
+    ScalewayContainersV1ContainerStatusDeleting -> "deleting"
+    ScalewayContainersV1ContainerStatusLocking -> "locking"
+    ScalewayContainersV1ContainerStatusReady -> "ready"
+    ScalewayContainersV1ContainerStatusError -> "error"
+    ScalewayContainersV1ContainerStatusLocked -> "locked"
+    ScalewayContainersV1ContainerStatusCreating -> "creating"
+    ScalewayContainersV1ContainerStatusUpgrading -> "upgrading"
   }
 }
 
-pub fn scaleway_containers_v1beta1_container_sandbox_to_json(value: ScalewayContainersV1beta1ContainerSandbox) -> json.Json {
-  json.string(scaleway_containers_v1beta1_container_sandbox_to_string(value))
+pub fn scaleway_containers_v1_container_status_to_json(value: ScalewayContainersV1ContainerStatus) -> json.Json {
+  json.string(scaleway_containers_v1_container_status_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_container_sandbox_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerSandbox) {
+pub fn scaleway_containers_v1_container_status_decoder() -> decode.Decoder(ScalewayContainersV1ContainerStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_sandbox" -> decode.success(ScalewayContainersV1beta1ContainerSandboxUnknownSandbox)
-    "v1" -> decode.success(ScalewayContainersV1beta1ContainerSandboxV1)
-    "v2" -> decode.success(ScalewayContainersV1beta1ContainerSandboxV2)
-    _ -> decode.failure(ScalewayContainersV1beta1ContainerSandboxUnknownSandbox, "ScalewayContainersV1beta1ContainerSandbox")
+    "unknown_status" -> decode.success(ScalewayContainersV1ContainerStatusUnknownStatus)
+    "updating" -> decode.success(ScalewayContainersV1ContainerStatusUpdating)
+    "deleting" -> decode.success(ScalewayContainersV1ContainerStatusDeleting)
+    "locking" -> decode.success(ScalewayContainersV1ContainerStatusLocking)
+    "ready" -> decode.success(ScalewayContainersV1ContainerStatusReady)
+    "error" -> decode.success(ScalewayContainersV1ContainerStatusError)
+    "locked" -> decode.success(ScalewayContainersV1ContainerStatusLocked)
+    "creating" -> decode.success(ScalewayContainersV1ContainerStatusCreating)
+    "upgrading" -> decode.success(ScalewayContainersV1ContainerStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1ContainerStatusUnknownStatus, "ScalewayContainersV1ContainerStatus")
   }
 }
 
-pub type ScalewayContainersV1beta1ContainerStatus {
-  ScalewayContainersV1beta1ContainerStatusUnknown
-  ScalewayContainersV1beta1ContainerStatusReady
-  ScalewayContainersV1beta1ContainerStatusDeleting
-  ScalewayContainersV1beta1ContainerStatusError
-  ScalewayContainersV1beta1ContainerStatusLocked
-  ScalewayContainersV1beta1ContainerStatusCreating
-  ScalewayContainersV1beta1ContainerStatusPending
-  ScalewayContainersV1beta1ContainerStatusCreated
-  ScalewayContainersV1beta1ContainerStatusLocking
-  ScalewayContainersV1beta1ContainerStatusUpgrading
+pub type ScalewayContainersV1DomainStatus {
+  ScalewayContainersV1DomainStatusUnknownStatus
+  ScalewayContainersV1DomainStatusCreating
+  ScalewayContainersV1DomainStatusUpdating
+  ScalewayContainersV1DomainStatusDeleting
+  ScalewayContainersV1DomainStatusReady
+  ScalewayContainersV1DomainStatusError
+  ScalewayContainersV1DomainStatusLocked
+  ScalewayContainersV1DomainStatusLocking
+  ScalewayContainersV1DomainStatusUpgrading
 }
 
-pub fn scaleway_containers_v1beta1_container_status_to_string(value: ScalewayContainersV1beta1ContainerStatus) -> String {
+pub fn scaleway_containers_v1_domain_status_to_string(value: ScalewayContainersV1DomainStatus) -> String {
   case value {
-    ScalewayContainersV1beta1ContainerStatusUnknown -> "unknown"
-    ScalewayContainersV1beta1ContainerStatusReady -> "ready"
-    ScalewayContainersV1beta1ContainerStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1ContainerStatusError -> "error"
-    ScalewayContainersV1beta1ContainerStatusLocked -> "locked"
-    ScalewayContainersV1beta1ContainerStatusCreating -> "creating"
-    ScalewayContainersV1beta1ContainerStatusPending -> "pending"
-    ScalewayContainersV1beta1ContainerStatusCreated -> "created"
-    ScalewayContainersV1beta1ContainerStatusLocking -> "locking"
-    ScalewayContainersV1beta1ContainerStatusUpgrading -> "upgrading"
+    ScalewayContainersV1DomainStatusUnknownStatus -> "unknown_status"
+    ScalewayContainersV1DomainStatusCreating -> "creating"
+    ScalewayContainersV1DomainStatusUpdating -> "updating"
+    ScalewayContainersV1DomainStatusDeleting -> "deleting"
+    ScalewayContainersV1DomainStatusReady -> "ready"
+    ScalewayContainersV1DomainStatusError -> "error"
+    ScalewayContainersV1DomainStatusLocked -> "locked"
+    ScalewayContainersV1DomainStatusLocking -> "locking"
+    ScalewayContainersV1DomainStatusUpgrading -> "upgrading"
   }
 }
 
-pub fn scaleway_containers_v1beta1_container_status_to_json(value: ScalewayContainersV1beta1ContainerStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_container_status_to_string(value))
+pub fn scaleway_containers_v1_domain_status_to_json(value: ScalewayContainersV1DomainStatus) -> json.Json {
+  json.string(scaleway_containers_v1_domain_status_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_container_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1ContainerStatus) {
+pub fn scaleway_containers_v1_domain_status_decoder() -> decode.Decoder(ScalewayContainersV1DomainStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown" -> decode.success(ScalewayContainersV1beta1ContainerStatusUnknown)
-    "ready" -> decode.success(ScalewayContainersV1beta1ContainerStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1ContainerStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1ContainerStatusError)
-    "locked" -> decode.success(ScalewayContainersV1beta1ContainerStatusLocked)
-    "creating" -> decode.success(ScalewayContainersV1beta1ContainerStatusCreating)
-    "pending" -> decode.success(ScalewayContainersV1beta1ContainerStatusPending)
-    "created" -> decode.success(ScalewayContainersV1beta1ContainerStatusCreated)
-    "locking" -> decode.success(ScalewayContainersV1beta1ContainerStatusLocking)
-    "upgrading" -> decode.success(ScalewayContainersV1beta1ContainerStatusUpgrading)
-    _ -> decode.failure(ScalewayContainersV1beta1ContainerStatusUnknown, "ScalewayContainersV1beta1ContainerStatus")
+    "unknown_status" -> decode.success(ScalewayContainersV1DomainStatusUnknownStatus)
+    "creating" -> decode.success(ScalewayContainersV1DomainStatusCreating)
+    "updating" -> decode.success(ScalewayContainersV1DomainStatusUpdating)
+    "deleting" -> decode.success(ScalewayContainersV1DomainStatusDeleting)
+    "ready" -> decode.success(ScalewayContainersV1DomainStatusReady)
+    "error" -> decode.success(ScalewayContainersV1DomainStatusError)
+    "locked" -> decode.success(ScalewayContainersV1DomainStatusLocked)
+    "locking" -> decode.success(ScalewayContainersV1DomainStatusLocking)
+    "upgrading" -> decode.success(ScalewayContainersV1DomainStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1DomainStatusUnknownStatus, "ScalewayContainersV1DomainStatus")
   }
 }
 
-pub type ScalewayContainersV1beta1CronStatus {
-  ScalewayContainersV1beta1CronStatusUnknown
-  ScalewayContainersV1beta1CronStatusReady
-  ScalewayContainersV1beta1CronStatusDeleting
-  ScalewayContainersV1beta1CronStatusError
-  ScalewayContainersV1beta1CronStatusLocked
-  ScalewayContainersV1beta1CronStatusCreating
-  ScalewayContainersV1beta1CronStatusPending
-  ScalewayContainersV1beta1CronStatusLocking
-  ScalewayContainersV1beta1CronStatusUpgrading
-  ScalewayContainersV1beta1CronStatusRebalancing
+pub type ScalewayContainersV1ListContainersRequestOrderBy {
+  ScalewayContainersV1ListContainersRequestOrderByCreatedAtAsc
+  ScalewayContainersV1ListContainersRequestOrderByCreatedAtDesc
+  ScalewayContainersV1ListContainersRequestOrderByNameAsc
+  ScalewayContainersV1ListContainersRequestOrderByNameDesc
 }
 
-pub fn scaleway_containers_v1beta1_cron_status_to_string(value: ScalewayContainersV1beta1CronStatus) -> String {
+pub fn scaleway_containers_v1_list_containers_request_order_by_to_string(value: ScalewayContainersV1ListContainersRequestOrderBy) -> String {
   case value {
-    ScalewayContainersV1beta1CronStatusUnknown -> "unknown"
-    ScalewayContainersV1beta1CronStatusReady -> "ready"
-    ScalewayContainersV1beta1CronStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1CronStatusError -> "error"
-    ScalewayContainersV1beta1CronStatusLocked -> "locked"
-    ScalewayContainersV1beta1CronStatusCreating -> "creating"
-    ScalewayContainersV1beta1CronStatusPending -> "pending"
-    ScalewayContainersV1beta1CronStatusLocking -> "locking"
-    ScalewayContainersV1beta1CronStatusUpgrading -> "upgrading"
-    ScalewayContainersV1beta1CronStatusRebalancing -> "rebalancing"
+    ScalewayContainersV1ListContainersRequestOrderByCreatedAtAsc -> "created_at_asc"
+    ScalewayContainersV1ListContainersRequestOrderByCreatedAtDesc -> "created_at_desc"
+    ScalewayContainersV1ListContainersRequestOrderByNameAsc -> "name_asc"
+    ScalewayContainersV1ListContainersRequestOrderByNameDesc -> "name_desc"
   }
 }
 
-pub fn scaleway_containers_v1beta1_cron_status_to_json(value: ScalewayContainersV1beta1CronStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_cron_status_to_string(value))
+pub fn scaleway_containers_v1_list_containers_request_order_by_to_json(value: ScalewayContainersV1ListContainersRequestOrderBy) -> json.Json {
+  json.string(scaleway_containers_v1_list_containers_request_order_by_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_cron_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1CronStatus) {
+pub fn scaleway_containers_v1_list_containers_request_order_by_decoder() -> decode.Decoder(ScalewayContainersV1ListContainersRequestOrderBy) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown" -> decode.success(ScalewayContainersV1beta1CronStatusUnknown)
-    "ready" -> decode.success(ScalewayContainersV1beta1CronStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1CronStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1CronStatusError)
-    "locked" -> decode.success(ScalewayContainersV1beta1CronStatusLocked)
-    "creating" -> decode.success(ScalewayContainersV1beta1CronStatusCreating)
-    "pending" -> decode.success(ScalewayContainersV1beta1CronStatusPending)
-    "locking" -> decode.success(ScalewayContainersV1beta1CronStatusLocking)
-    "upgrading" -> decode.success(ScalewayContainersV1beta1CronStatusUpgrading)
-    "rebalancing" -> decode.success(ScalewayContainersV1beta1CronStatusRebalancing)
-    _ -> decode.failure(ScalewayContainersV1beta1CronStatusUnknown, "ScalewayContainersV1beta1CronStatus")
+    "created_at_asc" -> decode.success(ScalewayContainersV1ListContainersRequestOrderByCreatedAtAsc)
+    "created_at_desc" -> decode.success(ScalewayContainersV1ListContainersRequestOrderByCreatedAtDesc)
+    "name_asc" -> decode.success(ScalewayContainersV1ListContainersRequestOrderByNameAsc)
+    "name_desc" -> decode.success(ScalewayContainersV1ListContainersRequestOrderByNameDesc)
+    _ -> decode.failure(ScalewayContainersV1ListContainersRequestOrderByCreatedAtAsc, "ScalewayContainersV1ListContainersRequestOrderBy")
   }
 }
 
-pub type ScalewayContainersV1beta1DomainStatus {
-  ScalewayContainersV1beta1DomainStatusUnknown
-  ScalewayContainersV1beta1DomainStatusReady
-  ScalewayContainersV1beta1DomainStatusDeleting
-  ScalewayContainersV1beta1DomainStatusError
-  ScalewayContainersV1beta1DomainStatusCreating
-  ScalewayContainersV1beta1DomainStatusPending
-  ScalewayContainersV1beta1DomainStatusLocked
-  ScalewayContainersV1beta1DomainStatusLocking
-  ScalewayContainersV1beta1DomainStatusUpgrading
+pub type ScalewayContainersV1ListDomainsRequestOrderBy {
+  ScalewayContainersV1ListDomainsRequestOrderByCreatedAtAsc
+  ScalewayContainersV1ListDomainsRequestOrderByCreatedAtDesc
+  ScalewayContainersV1ListDomainsRequestOrderByHostnameAsc
+  ScalewayContainersV1ListDomainsRequestOrderByHostnameDesc
 }
 
-pub fn scaleway_containers_v1beta1_domain_status_to_string(value: ScalewayContainersV1beta1DomainStatus) -> String {
+pub fn scaleway_containers_v1_list_domains_request_order_by_to_string(value: ScalewayContainersV1ListDomainsRequestOrderBy) -> String {
   case value {
-    ScalewayContainersV1beta1DomainStatusUnknown -> "unknown"
-    ScalewayContainersV1beta1DomainStatusReady -> "ready"
-    ScalewayContainersV1beta1DomainStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1DomainStatusError -> "error"
-    ScalewayContainersV1beta1DomainStatusCreating -> "creating"
-    ScalewayContainersV1beta1DomainStatusPending -> "pending"
-    ScalewayContainersV1beta1DomainStatusLocked -> "locked"
-    ScalewayContainersV1beta1DomainStatusLocking -> "locking"
-    ScalewayContainersV1beta1DomainStatusUpgrading -> "upgrading"
+    ScalewayContainersV1ListDomainsRequestOrderByCreatedAtAsc -> "created_at_asc"
+    ScalewayContainersV1ListDomainsRequestOrderByCreatedAtDesc -> "created_at_desc"
+    ScalewayContainersV1ListDomainsRequestOrderByHostnameAsc -> "hostname_asc"
+    ScalewayContainersV1ListDomainsRequestOrderByHostnameDesc -> "hostname_desc"
   }
 }
 
-pub fn scaleway_containers_v1beta1_domain_status_to_json(value: ScalewayContainersV1beta1DomainStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_domain_status_to_string(value))
+pub fn scaleway_containers_v1_list_domains_request_order_by_to_json(value: ScalewayContainersV1ListDomainsRequestOrderBy) -> json.Json {
+  json.string(scaleway_containers_v1_list_domains_request_order_by_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_domain_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1DomainStatus) {
+pub fn scaleway_containers_v1_list_domains_request_order_by_decoder() -> decode.Decoder(ScalewayContainersV1ListDomainsRequestOrderBy) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown" -> decode.success(ScalewayContainersV1beta1DomainStatusUnknown)
-    "ready" -> decode.success(ScalewayContainersV1beta1DomainStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1DomainStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1DomainStatusError)
-    "creating" -> decode.success(ScalewayContainersV1beta1DomainStatusCreating)
-    "pending" -> decode.success(ScalewayContainersV1beta1DomainStatusPending)
-    "locked" -> decode.success(ScalewayContainersV1beta1DomainStatusLocked)
-    "locking" -> decode.success(ScalewayContainersV1beta1DomainStatusLocking)
-    "upgrading" -> decode.success(ScalewayContainersV1beta1DomainStatusUpgrading)
-    _ -> decode.failure(ScalewayContainersV1beta1DomainStatusUnknown, "ScalewayContainersV1beta1DomainStatus")
+    "created_at_asc" -> decode.success(ScalewayContainersV1ListDomainsRequestOrderByCreatedAtAsc)
+    "created_at_desc" -> decode.success(ScalewayContainersV1ListDomainsRequestOrderByCreatedAtDesc)
+    "hostname_asc" -> decode.success(ScalewayContainersV1ListDomainsRequestOrderByHostnameAsc)
+    "hostname_desc" -> decode.success(ScalewayContainersV1ListDomainsRequestOrderByHostnameDesc)
+    _ -> decode.failure(ScalewayContainersV1ListDomainsRequestOrderByCreatedAtAsc, "ScalewayContainersV1ListDomainsRequestOrderBy")
   }
 }
 
-pub type ScalewayContainersV1beta1NamespaceStatus {
-  ScalewayContainersV1beta1NamespaceStatusUnknown
-  ScalewayContainersV1beta1NamespaceStatusReady
-  ScalewayContainersV1beta1NamespaceStatusDeleting
-  ScalewayContainersV1beta1NamespaceStatusError
-  ScalewayContainersV1beta1NamespaceStatusLocked
-  ScalewayContainersV1beta1NamespaceStatusCreating
-  ScalewayContainersV1beta1NamespaceStatusPending
-  ScalewayContainersV1beta1NamespaceStatusLocking
-  ScalewayContainersV1beta1NamespaceStatusUpgrading
+pub type ScalewayContainersV1ListNamespacesRequestOrderBy {
+  ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtAsc
+  ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtDesc
+  ScalewayContainersV1ListNamespacesRequestOrderByNameAsc
+  ScalewayContainersV1ListNamespacesRequestOrderByNameDesc
 }
 
-pub fn scaleway_containers_v1beta1_namespace_status_to_string(value: ScalewayContainersV1beta1NamespaceStatus) -> String {
+pub fn scaleway_containers_v1_list_namespaces_request_order_by_to_string(value: ScalewayContainersV1ListNamespacesRequestOrderBy) -> String {
   case value {
-    ScalewayContainersV1beta1NamespaceStatusUnknown -> "unknown"
-    ScalewayContainersV1beta1NamespaceStatusReady -> "ready"
-    ScalewayContainersV1beta1NamespaceStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1NamespaceStatusError -> "error"
-    ScalewayContainersV1beta1NamespaceStatusLocked -> "locked"
-    ScalewayContainersV1beta1NamespaceStatusCreating -> "creating"
-    ScalewayContainersV1beta1NamespaceStatusPending -> "pending"
-    ScalewayContainersV1beta1NamespaceStatusLocking -> "locking"
-    ScalewayContainersV1beta1NamespaceStatusUpgrading -> "upgrading"
+    ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtAsc -> "created_at_asc"
+    ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtDesc -> "created_at_desc"
+    ScalewayContainersV1ListNamespacesRequestOrderByNameAsc -> "name_asc"
+    ScalewayContainersV1ListNamespacesRequestOrderByNameDesc -> "name_desc"
   }
 }
 
-pub fn scaleway_containers_v1beta1_namespace_status_to_json(value: ScalewayContainersV1beta1NamespaceStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_namespace_status_to_string(value))
+pub fn scaleway_containers_v1_list_namespaces_request_order_by_to_json(value: ScalewayContainersV1ListNamespacesRequestOrderBy) -> json.Json {
+  json.string(scaleway_containers_v1_list_namespaces_request_order_by_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_namespace_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1NamespaceStatus) {
+pub fn scaleway_containers_v1_list_namespaces_request_order_by_decoder() -> decode.Decoder(ScalewayContainersV1ListNamespacesRequestOrderBy) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown" -> decode.success(ScalewayContainersV1beta1NamespaceStatusUnknown)
-    "ready" -> decode.success(ScalewayContainersV1beta1NamespaceStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1NamespaceStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1NamespaceStatusError)
-    "locked" -> decode.success(ScalewayContainersV1beta1NamespaceStatusLocked)
-    "creating" -> decode.success(ScalewayContainersV1beta1NamespaceStatusCreating)
-    "pending" -> decode.success(ScalewayContainersV1beta1NamespaceStatusPending)
-    "locking" -> decode.success(ScalewayContainersV1beta1NamespaceStatusLocking)
-    "upgrading" -> decode.success(ScalewayContainersV1beta1NamespaceStatusUpgrading)
-    _ -> decode.failure(ScalewayContainersV1beta1NamespaceStatusUnknown, "ScalewayContainersV1beta1NamespaceStatus")
+    "created_at_asc" -> decode.success(ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtAsc)
+    "created_at_desc" -> decode.success(ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtDesc)
+    "name_asc" -> decode.success(ScalewayContainersV1ListNamespacesRequestOrderByNameAsc)
+    "name_desc" -> decode.success(ScalewayContainersV1ListNamespacesRequestOrderByNameDesc)
+    _ -> decode.failure(ScalewayContainersV1ListNamespacesRequestOrderByCreatedAtAsc, "ScalewayContainersV1ListNamespacesRequestOrderBy")
   }
 }
 
-pub type ScalewayContainersV1beta1TokenStatus {
-  ScalewayContainersV1beta1TokenStatusUnknown
-  ScalewayContainersV1beta1TokenStatusReady
-  ScalewayContainersV1beta1TokenStatusDeleting
-  ScalewayContainersV1beta1TokenStatusError
-  ScalewayContainersV1beta1TokenStatusCreating
+pub type ScalewayContainersV1ListTriggersRequestOrderBy {
+  ScalewayContainersV1ListTriggersRequestOrderByCreatedAtAsc
+  ScalewayContainersV1ListTriggersRequestOrderByCreatedAtDesc
+  ScalewayContainersV1ListTriggersRequestOrderByNameAsc
+  ScalewayContainersV1ListTriggersRequestOrderByNameDesc
 }
 
-pub fn scaleway_containers_v1beta1_token_status_to_string(value: ScalewayContainersV1beta1TokenStatus) -> String {
+pub fn scaleway_containers_v1_list_triggers_request_order_by_to_string(value: ScalewayContainersV1ListTriggersRequestOrderBy) -> String {
   case value {
-    ScalewayContainersV1beta1TokenStatusUnknown -> "unknown"
-    ScalewayContainersV1beta1TokenStatusReady -> "ready"
-    ScalewayContainersV1beta1TokenStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1TokenStatusError -> "error"
-    ScalewayContainersV1beta1TokenStatusCreating -> "creating"
+    ScalewayContainersV1ListTriggersRequestOrderByCreatedAtAsc -> "created_at_asc"
+    ScalewayContainersV1ListTriggersRequestOrderByCreatedAtDesc -> "created_at_desc"
+    ScalewayContainersV1ListTriggersRequestOrderByNameAsc -> "name_asc"
+    ScalewayContainersV1ListTriggersRequestOrderByNameDesc -> "name_desc"
   }
 }
 
-pub fn scaleway_containers_v1beta1_token_status_to_json(value: ScalewayContainersV1beta1TokenStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_token_status_to_string(value))
+pub fn scaleway_containers_v1_list_triggers_request_order_by_to_json(value: ScalewayContainersV1ListTriggersRequestOrderBy) -> json.Json {
+  json.string(scaleway_containers_v1_list_triggers_request_order_by_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_token_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TokenStatus) {
+pub fn scaleway_containers_v1_list_triggers_request_order_by_decoder() -> decode.Decoder(ScalewayContainersV1ListTriggersRequestOrderBy) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown" -> decode.success(ScalewayContainersV1beta1TokenStatusUnknown)
-    "ready" -> decode.success(ScalewayContainersV1beta1TokenStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1TokenStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1TokenStatusError)
-    "creating" -> decode.success(ScalewayContainersV1beta1TokenStatusCreating)
-    _ -> decode.failure(ScalewayContainersV1beta1TokenStatusUnknown, "ScalewayContainersV1beta1TokenStatus")
+    "created_at_asc" -> decode.success(ScalewayContainersV1ListTriggersRequestOrderByCreatedAtAsc)
+    "created_at_desc" -> decode.success(ScalewayContainersV1ListTriggersRequestOrderByCreatedAtDesc)
+    "name_asc" -> decode.success(ScalewayContainersV1ListTriggersRequestOrderByNameAsc)
+    "name_desc" -> decode.success(ScalewayContainersV1ListTriggersRequestOrderByNameDesc)
+    _ -> decode.failure(ScalewayContainersV1ListTriggersRequestOrderByCreatedAtAsc, "ScalewayContainersV1ListTriggersRequestOrderBy")
   }
 }
 
-pub type ScalewayContainersV1beta1TriggerInputType {
-  ScalewayContainersV1beta1TriggerInputTypeUnknownInputType
-  ScalewayContainersV1beta1TriggerInputTypeSqs
-  ScalewayContainersV1beta1TriggerInputTypeScwSqs
-  ScalewayContainersV1beta1TriggerInputTypeNats
-  ScalewayContainersV1beta1TriggerInputTypeScwNats
+pub type ScalewayContainersV1NamespaceStatus {
+  ScalewayContainersV1NamespaceStatusUnknownStatus
+  ScalewayContainersV1NamespaceStatusUpdating
+  ScalewayContainersV1NamespaceStatusDeleting
+  ScalewayContainersV1NamespaceStatusLocking
+  ScalewayContainersV1NamespaceStatusReady
+  ScalewayContainersV1NamespaceStatusError
+  ScalewayContainersV1NamespaceStatusLocked
+  ScalewayContainersV1NamespaceStatusCreating
+  ScalewayContainersV1NamespaceStatusUpgrading
 }
 
-pub fn scaleway_containers_v1beta1_trigger_input_type_to_string(value: ScalewayContainersV1beta1TriggerInputType) -> String {
+pub fn scaleway_containers_v1_namespace_status_to_string(value: ScalewayContainersV1NamespaceStatus) -> String {
   case value {
-    ScalewayContainersV1beta1TriggerInputTypeUnknownInputType -> "unknown_input_type"
-    ScalewayContainersV1beta1TriggerInputTypeSqs -> "sqs"
-    ScalewayContainersV1beta1TriggerInputTypeScwSqs -> "scw_sqs"
-    ScalewayContainersV1beta1TriggerInputTypeNats -> "nats"
-    ScalewayContainersV1beta1TriggerInputTypeScwNats -> "scw_nats"
+    ScalewayContainersV1NamespaceStatusUnknownStatus -> "unknown_status"
+    ScalewayContainersV1NamespaceStatusUpdating -> "updating"
+    ScalewayContainersV1NamespaceStatusDeleting -> "deleting"
+    ScalewayContainersV1NamespaceStatusLocking -> "locking"
+    ScalewayContainersV1NamespaceStatusReady -> "ready"
+    ScalewayContainersV1NamespaceStatusError -> "error"
+    ScalewayContainersV1NamespaceStatusLocked -> "locked"
+    ScalewayContainersV1NamespaceStatusCreating -> "creating"
+    ScalewayContainersV1NamespaceStatusUpgrading -> "upgrading"
   }
 }
 
-pub fn scaleway_containers_v1beta1_trigger_input_type_to_json(value: ScalewayContainersV1beta1TriggerInputType) -> json.Json {
-  json.string(scaleway_containers_v1beta1_trigger_input_type_to_string(value))
+pub fn scaleway_containers_v1_namespace_status_to_json(value: ScalewayContainersV1NamespaceStatus) -> json.Json {
+  json.string(scaleway_containers_v1_namespace_status_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_trigger_input_type_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerInputType) {
+pub fn scaleway_containers_v1_namespace_status_decoder() -> decode.Decoder(ScalewayContainersV1NamespaceStatus) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_input_type" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeUnknownInputType)
-    "sqs" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeSqs)
-    "scw_sqs" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeScwSqs)
-    "nats" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeNats)
-    "scw_nats" -> decode.success(ScalewayContainersV1beta1TriggerInputTypeScwNats)
-    _ -> decode.failure(ScalewayContainersV1beta1TriggerInputTypeUnknownInputType, "ScalewayContainersV1beta1TriggerInputType")
+    "unknown_status" -> decode.success(ScalewayContainersV1NamespaceStatusUnknownStatus)
+    "updating" -> decode.success(ScalewayContainersV1NamespaceStatusUpdating)
+    "deleting" -> decode.success(ScalewayContainersV1NamespaceStatusDeleting)
+    "locking" -> decode.success(ScalewayContainersV1NamespaceStatusLocking)
+    "ready" -> decode.success(ScalewayContainersV1NamespaceStatusReady)
+    "error" -> decode.success(ScalewayContainersV1NamespaceStatusError)
+    "locked" -> decode.success(ScalewayContainersV1NamespaceStatusLocked)
+    "creating" -> decode.success(ScalewayContainersV1NamespaceStatusCreating)
+    "upgrading" -> decode.success(ScalewayContainersV1NamespaceStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1NamespaceStatusUnknownStatus, "ScalewayContainersV1NamespaceStatus")
   }
 }
 
-pub type ScalewayContainersV1beta1TriggerStatus {
-  ScalewayContainersV1beta1TriggerStatusUnknownStatus
-  ScalewayContainersV1beta1TriggerStatusReady
-  ScalewayContainersV1beta1TriggerStatusDeleting
-  ScalewayContainersV1beta1TriggerStatusError
-  ScalewayContainersV1beta1TriggerStatusCreating
-  ScalewayContainersV1beta1TriggerStatusPending
-  ScalewayContainersV1beta1TriggerStatusLocked
-  ScalewayContainersV1beta1TriggerStatusLocking
-  ScalewayContainersV1beta1TriggerStatusUpgrading
+pub type ScalewayContainersV1TriggerSourceType {
+  ScalewayContainersV1TriggerSourceTypeUnknownSourceType
+  ScalewayContainersV1TriggerSourceTypeCron
+  ScalewayContainersV1TriggerSourceTypeSqs
+  ScalewayContainersV1TriggerSourceTypeNats
 }
 
-pub fn scaleway_containers_v1beta1_trigger_status_to_string(value: ScalewayContainersV1beta1TriggerStatus) -> String {
+pub fn scaleway_containers_v1_trigger_source_type_to_string(value: ScalewayContainersV1TriggerSourceType) -> String {
   case value {
-    ScalewayContainersV1beta1TriggerStatusUnknownStatus -> "unknown_status"
-    ScalewayContainersV1beta1TriggerStatusReady -> "ready"
-    ScalewayContainersV1beta1TriggerStatusDeleting -> "deleting"
-    ScalewayContainersV1beta1TriggerStatusError -> "error"
-    ScalewayContainersV1beta1TriggerStatusCreating -> "creating"
-    ScalewayContainersV1beta1TriggerStatusPending -> "pending"
-    ScalewayContainersV1beta1TriggerStatusLocked -> "locked"
-    ScalewayContainersV1beta1TriggerStatusLocking -> "locking"
-    ScalewayContainersV1beta1TriggerStatusUpgrading -> "upgrading"
+    ScalewayContainersV1TriggerSourceTypeUnknownSourceType -> "unknown_source_type"
+    ScalewayContainersV1TriggerSourceTypeCron -> "cron"
+    ScalewayContainersV1TriggerSourceTypeSqs -> "sqs"
+    ScalewayContainersV1TriggerSourceTypeNats -> "nats"
   }
 }
 
-pub fn scaleway_containers_v1beta1_trigger_status_to_json(value: ScalewayContainersV1beta1TriggerStatus) -> json.Json {
-  json.string(scaleway_containers_v1beta1_trigger_status_to_string(value))
+pub fn scaleway_containers_v1_trigger_source_type_to_json(value: ScalewayContainersV1TriggerSourceType) -> json.Json {
+  json.string(scaleway_containers_v1_trigger_source_type_to_string(value))
 }
 
-pub fn scaleway_containers_v1beta1_trigger_status_decoder() -> decode.Decoder(ScalewayContainersV1beta1TriggerStatus) {
+pub fn scaleway_containers_v1_trigger_source_type_decoder() -> decode.Decoder(ScalewayContainersV1TriggerSourceType) {
   use value <- decode.then(decode.string)
   case value {
-    "unknown_status" -> decode.success(ScalewayContainersV1beta1TriggerStatusUnknownStatus)
-    "ready" -> decode.success(ScalewayContainersV1beta1TriggerStatusReady)
-    "deleting" -> decode.success(ScalewayContainersV1beta1TriggerStatusDeleting)
-    "error" -> decode.success(ScalewayContainersV1beta1TriggerStatusError)
-    "creating" -> decode.success(ScalewayContainersV1beta1TriggerStatusCreating)
-    "pending" -> decode.success(ScalewayContainersV1beta1TriggerStatusPending)
-    "locked" -> decode.success(ScalewayContainersV1beta1TriggerStatusLocked)
-    "locking" -> decode.success(ScalewayContainersV1beta1TriggerStatusLocking)
-    "upgrading" -> decode.success(ScalewayContainersV1beta1TriggerStatusUpgrading)
-    _ -> decode.failure(ScalewayContainersV1beta1TriggerStatusUnknownStatus, "ScalewayContainersV1beta1TriggerStatus")
+    "unknown_source_type" -> decode.success(ScalewayContainersV1TriggerSourceTypeUnknownSourceType)
+    "cron" -> decode.success(ScalewayContainersV1TriggerSourceTypeCron)
+    "sqs" -> decode.success(ScalewayContainersV1TriggerSourceTypeSqs)
+    "nats" -> decode.success(ScalewayContainersV1TriggerSourceTypeNats)
+    _ -> decode.failure(ScalewayContainersV1TriggerSourceTypeUnknownSourceType, "ScalewayContainersV1TriggerSourceType")
+  }
+}
+
+pub type ScalewayContainersV1TriggerStatus {
+  ScalewayContainersV1TriggerStatusUnknownStatus
+  ScalewayContainersV1TriggerStatusReady
+  ScalewayContainersV1TriggerStatusDeleting
+  ScalewayContainersV1TriggerStatusError
+  ScalewayContainersV1TriggerStatusUpdating
+  ScalewayContainersV1TriggerStatusCreating
+  ScalewayContainersV1TriggerStatusLocking
+  ScalewayContainersV1TriggerStatusLocked
+  ScalewayContainersV1TriggerStatusUpgrading
+}
+
+pub fn scaleway_containers_v1_trigger_status_to_string(value: ScalewayContainersV1TriggerStatus) -> String {
+  case value {
+    ScalewayContainersV1TriggerStatusUnknownStatus -> "unknown_status"
+    ScalewayContainersV1TriggerStatusReady -> "ready"
+    ScalewayContainersV1TriggerStatusDeleting -> "deleting"
+    ScalewayContainersV1TriggerStatusError -> "error"
+    ScalewayContainersV1TriggerStatusUpdating -> "updating"
+    ScalewayContainersV1TriggerStatusCreating -> "creating"
+    ScalewayContainersV1TriggerStatusLocking -> "locking"
+    ScalewayContainersV1TriggerStatusLocked -> "locked"
+    ScalewayContainersV1TriggerStatusUpgrading -> "upgrading"
+  }
+}
+
+pub fn scaleway_containers_v1_trigger_status_to_json(value: ScalewayContainersV1TriggerStatus) -> json.Json {
+  json.string(scaleway_containers_v1_trigger_status_to_string(value))
+}
+
+pub fn scaleway_containers_v1_trigger_status_decoder() -> decode.Decoder(ScalewayContainersV1TriggerStatus) {
+  use value <- decode.then(decode.string)
+  case value {
+    "unknown_status" -> decode.success(ScalewayContainersV1TriggerStatusUnknownStatus)
+    "ready" -> decode.success(ScalewayContainersV1TriggerStatusReady)
+    "deleting" -> decode.success(ScalewayContainersV1TriggerStatusDeleting)
+    "error" -> decode.success(ScalewayContainersV1TriggerStatusError)
+    "updating" -> decode.success(ScalewayContainersV1TriggerStatusUpdating)
+    "creating" -> decode.success(ScalewayContainersV1TriggerStatusCreating)
+    "locking" -> decode.success(ScalewayContainersV1TriggerStatusLocking)
+    "locked" -> decode.success(ScalewayContainersV1TriggerStatusLocked)
+    "upgrading" -> decode.success(ScalewayContainersV1TriggerStatusUpgrading)
+    _ -> decode.failure(ScalewayContainersV1TriggerStatusUnknownStatus, "ScalewayContainersV1TriggerStatus")
   }
 }
 
@@ -880,237 +794,11 @@ pub type ApiError(err) {
   ClientError(err)
 }
 
-/// Scaleway Serverless Containers is a «Container As A Service» product which gives users the ability to deploy atomic serverless workloads and only pay for resources used while containers are running.
+/// Easily run containers on the cloud with a single command.
 /// 
-/// It provides many advantages, such as:
-/// 
-/// - Containers are only executed when an event is triggered, which allows users to save money while code is not running
-/// - Auto-Scalability:
-/// - Automated `Scaling up and down` based on user configuration (e.g. min: 0, max: 100 replicas of my container).
-/// - Automated `Scaling to zero` when a container is not executed, which is cost-effective for the user and saves computing resources for the cloud provider.
-/// - Endpoint-only scaling
-/// 
-/// ### Serverless Framework
-/// 
-/// This page explains how to use the Scaleway Containers API, including a quickstart and the full API documentation. However, you may prefer to use the
-/// [Serverless Framework plugin](https://github.com/scaleway/serverless-scaleway-functions) enabling users to deploy their serverless workloads
-/// much more easily with a single `serverless deploy` command.
-/// 
-/// If what you are looking for is an easy way to deploy your code, you may prefer Serverless Framework.
-/// 
-/// Below, you will find a step-by-step guide on how to create a `namespace`, configure and deploy `containers`, and trigger your `containers` via HTTP and CRON.
-/// 
-/// ## Concepts
-/// 
-/// Refer to our [dedicated concepts page](https://www.scaleway.com/en/docs/serverless/containers/concepts/) to find definitions of the different terms referring to Serverless Containers.
-/// ## Quickstart
-/// 
-/// 
-/// 
-/// 
-/// 1. Configure your environment variables.
-/// ```bash
-/// export $SCW_SECRET_KEY="<Secret key of your token>"
-/// export SCW_DEFAULT_REGION="<Choose your location (pl-waw/nl-ams/fr-par)>"
-/// export SCW_PROJECT_ID="<Your Project ID>"
-/// ```
-/// <Message type="tip">
-/// This is an optional step that seeks to simplify your usage of the Serverless Containers API. See [Regions](#availability-zones) below for help choosing a region. You can find your Project ID in the [Scaleway console](https://console.scaleway.com/Project/settings).
-/// </Message>
-/// 
-/// 2. Set the name for your namespace and configure your Project ID:
-/// ```bash
-/// curl -X POST "https://api.scaleway.com/containers/v1beta1/regions/$SCW_DEFAULT_REGION/namespaces" \
-/// -H "accept: application/json" \
-/// -H "X-Auth-Token: $SCW_SECRET_KEY" \
-/// -H "Content-Type: application/json" \
-/// -d "{
-/// \"name\": \"your-namespace-name\", \
-/// \"project_id\": \"$SCW_PROJECT_ID\", \
-/// \"environment_variables\": {\"YOUR_VARIABLE\": \"content\"} \
-/// }"
-/// ```
-/// 
-/// 3. **Copy the response's `id` field**, you will need it for the next steps. For the sake of simplicity, we will save the ID to a variable, which will be used in the following examples:
-/// ```bash
-/// export NAMESPACE_ID="<your namespace id>"
-/// ```
-/// <Message type="note">
-/// We suppose you already have a working image here. It can be anything which listens on a env variable \$PORT variable. Note that we run your container as user 1000, not root, so it must be runnable under these conditions.
-/// For more information on how to push your image, refer to the [Container Registry documentation](https://www.scaleway.com/developers/api/registry/).
-/// </Message>
-/// 
-/// 4. **Edit the POST request payload** to use in the next step to create an Elastic Metal server. Modify the values in the example according to your requirements, using the information in the payload values section to help. For container resource criteria and default values, please refer to the [Containers Limitation documentation](https://www.scaleway.com/en/docs/serverless/containers/reference-content/containers-limitations/).
-/// ```json
-/// {
-/// "namespace_id": "string",
-/// "name": "string",
-/// "environment_variables": {
-/// "<key>": "string"
-/// },
-/// "min_scale": "integer",
-/// "max_scale": "integer",
-/// "memory_limit": "integer",
-/// "cpu_limit": "integer",
-/// "timeout": "integer",
-/// "privacy": "unknown_privacy",
-/// "description": "string",
-/// "registry_image": "string",
-/// "max_concurrency": "integer",
-/// "protocol": "unknown_protocol",
-/// "port": "integer",
-/// "secret_environment_variables": [
-/// {
-/// "key": "string",
-/// "value": "string"
-/// }
-/// ],
-/// "http_option": "enabled"
-/// }
-/// ```
-/// 
-/// | Parameter        | Description                                                        |
-/// | :--------------- | :----------------------------------------------------------------- |
-/// | `region` | The region you want to target. Possible values are fr-par, nl-ams and pl-waw. |
-/// | `namespace_id`| UUID of the namespace the container belongs to. |
-/// | `name`| Name of the container. |
-/// | `environment_variables` | **NULLABLE** Environment variables of the container. |
-/// | `min_scale` | **NULLABLE** Minimum number of instances to scale the container to. |
-/// | `max_scale` | **NULLABLE** Maximum number of instances to scale the container to. |
-/// | `memory_limit`| **NULLABLE** Memory limit of the container in MiB. |
-/// | `cpu_limit`| **NULLABLE** CPU limit of the container in mvCPU. |
-/// | `timeout` | **NULLABLE** Request processing time limit for the container. (in seconds). |
-/// | `privacy` | Privacy setting of the container. |
-/// | `description` | **NULLABLE** Description of the container. |
-/// | `registry_image`| **NULLABLE** Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag"). |
-/// | `max_concurrency` | **NULLABLE** Number of maximum concurrent executions of the container. |
-/// | `protocol` | Protocol the container uses. Possible values are unknown_protocol, http1 and h2c. The default value is unknown_protocol. |
-/// | `port` | **NULLABLE** Port the container listens on. |
-/// | `secret_environment_variables` | Secret environment variables of the container. |
-/// | `http_option` | Configure how HTTP and HTTPS requests are handled. Possible values:<br /> - `redirected`: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.<br /> - `enabled`: Serve both HTTP and HTTPS traffic. |
-/// 
-/// <Message type="important">
-/// All parameters are `required`, except for those marked as nullable.
-/// </Message>
-/// 
-/// 5.  Run the following command to create your container. Make sure you include the payload you edited in the previous step.
-/// ```bash
-/// export REGISTRY_IMAGE="rg.fr-par.scw.cloud/myregistrynamespace/mycontainer:latest"
-/// curl -X POST \
-/// -H "X-Auth-Token: $SCW_SECRET_KEY" \
-/// "https://api.scaleway.com/containers/v1beta1/regions/$SCW_DEFAULT_REGION/containers" \
-/// -d "{
-/// "name": MyContainer, \
-/// "registry_image": "$REGISTRY_IMAGE", \
-/// "namespace_id": "$NAMESPACE_ID", \
-/// "memory_limit": 300, \
-/// "cpu_limit": 200, \
-/// "min_scale": 0, \
-/// "max_scale": 20 \
-/// }"
-/// ```
-/// 
-/// 6. Run the following command to deploy your container:
-/// ```bash
-/// curl -X POST \
-/// -H "X-Auth-Token: $SCW_SECRET_KEY" \
-/// "https://api.scaleway.com/containers/v1beta1/regions/$SCW_DEFAULT_REGION/containers/$CONTAINER_ID/deploy" \
-/// -d "{}"
-/// ```
-/// 
-/// 7. Run the following command to trigger your container.
-/// ```bash
-/// curl -X GET \
-/// -H "X-Auth-Token: $SCW_SECRET_KEY" \
-/// "https://api.scaleway.com/containers/v1beta1/regions/$SCW_DEFAULT_REGION/containers/$CONTAINER_ID"
-/// export CONTAINER_ENDPOINT="<endpoint>"
-/// curl -X GET "$CONTAINER_ENDPOINT"
-/// ```
-/// 
-/// 8. (optional) Connect to your Cockpit (Serverless Containers Logs dashboard) to see your logs: https://www.scaleway.com/en/docs/observability/cockpit/how-to/access-grafana-and-managed-dashboards/.
-/// 
-/// 9. (optional) Use the following call to destroy a namespace (along with all containers and crons):
-/// ```bash
-/// curl -s \
-/// -H "X-Auth-Token: $SCW_SECRET_KEY" \
-/// -X DELETE "https://api.scaleway.com/containers/v1beta1/regions/$SCW_DEFAULT_REGION/namespaces/$NAMESPACE_ID"
-/// ```
-/// 
-/// 
-/// <Message type="requirement">
-/// To perform the following steps, you must first ensure that:
-/// - You have a [Scaleway account](https://console.scaleway.com/)
-/// - You have created an [API key](https://www.scaleway.com/en/docs/iam/how-to/create-api-keys/) and that the API key has sufficient [IAM permissions](https://www.scaleway.com/en/docs/iam/reference-content/permission-sets/) to perform the actions described on this page
-/// - You have [installed `curl`](https://curl.se/download.html)
-/// - You have [installed `jq`](https://stedolan.github.io/jq/) to improve readability of the API outputs
-/// </Message>
-/// 
-/// 
-/// ## Technical information
-/// 
-/// A **Container** in Scaleway Containers consists of multiple components:
-/// 
-/// - **Environment variables**: Users may configure specific environment variables (Database host/credentials for example) which are safely encrypted in our Database, and will be mounted inside your containers. **Note** that environment variables set at `namespace` level will also be mounted (in every container). Environment variables written at `container` level override the ones set at `namespace` level (if two of them bear the same name for example).
-/// - **Docker image**: A Docker image contains all the elements required to run your software: code, a runtime environment, tools, scripts, libraries, etc.
-/// - **Resources**: Users may decide how much computing resource to allocate to each container -> `Memory Limit` (in MB). We will then allocate the right amount of `CPU` based on Memory Limit choice. The right choice for your container's resources is very important, as you will be billed based on compute usage over time and the number of Containers executions.
-/// 
-/// ### Product features
-/// - Fully isolated environments
-/// - Scaling to zero (saves money and computing resources while the code is not executed)
-/// - High Availability and scalability (automated and configurable, each container may scale automatically according to incoming workloads)
-/// - Multiple event sources:
-/// - HTTP (request on our gateway will execute the container)
-/// - CRON (time-based job, runs according to configurable cron schedule)
-/// - Integrated to the Scaleway Container Registry product:
-/// - Deploy any docker image from one of your registry namespace
-/// - Flexible resources: you can choose values separately for your memory and CPU within a range in respect with maximum and minimum allowed values in [Containers Limitation documentation](https://www.scaleway.com/en/docs/serverless/containers/reference-content/containers-limitations/).
-/// 
-/// ### Regions
-/// 
-/// Serverless Containers is available in the Paris, Amsterdam and Warsaw regions, which are represented by the following path parameters:
-/// 
-/// * `fr-par`
-/// * `nl-ams`
-/// * `pl-waw`
-/// 
-/// ### CRON
-/// 
-/// A `CRON` is a type of event which triggers a Scaleway Container: it is an `add-on` to your container.
-/// 
-/// CRONs inside Scaleway Containers have the following properties:
-/// 
-/// - `schedule`: UNIX Formatted CRON schedule. Your container will be executed based on this schedule. For example, `5 4 * * 0` means "execute my container at 04:05 AM every Sunday" (see this [page from Ubuntu's official documentation](https://doc.ubuntu-fr.org/cron)). The timezone is UTC+0.
-/// - `args`: JSON object passed to your container. You can use this property to define data that will be passed to your container's `event.body` object. For Containers, you might handle these arguments as the HTTP request's body.
-/// 
-/// Under the hood, CRON Triggers are [Kubernetes JOBs](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) sending HTTP POST requests to your container.
-/// 
-/// ### Authentication
-/// 
-/// By default new containers are `public` meaning that no credentials are required to invoke them.
-/// 
-/// A container can be `private` or `public`. This can be configured through the `privacy` parameter.
-/// 
-/// Calling a `private` container without authentication will return HTTP code `403`.
-/// 
-/// ### Logs
-/// 
-/// Containers logs are sent to the project's [Cockpit](https://www.scaleway.com/en/developers/api/cockpit/regional-api/).
-/// 
-/// The **Serverless Containers Logs** dashboard in Grafana can be used to see containers logs. More complex queries can be done using the "Explore" section of Grafana, and LogQL queries:
-/// 
-/// ```logql
-/// {resource_type="serverless_container"}
-/// ```
-/// 
-/// Additionally, the loki endpoint (`https://logs.cockpit.fr-par.scw.cloud`) can be used to query programmatically the containers logs using a [token](https://www.scaleway.com/en/docs/observability/cockpit/how-to/create-token/).
-/// 
-/// ## Going further
-/// 
-/// For more help using Scaleway Serverless containers, check out the following resources:
-/// 
-/// * Our [main documentation](https://www.scaleway.com/en/docs/serverless/containers/)
-/// * The #serverless-containers channel on our [Slack Community](https://www.scaleway.com/en/docs/tutorials/scaleway-slack-community/)
-/// * Our [support ticketing system](https://www.scaleway.com/en/docs/console/account/how-to/open-a-support-ticket/).
+/// - **From containers to production in seconds**: With Serverless Containers, you can rapidly deploy your containers in any language you want. You only have to focus on the design of your applications. Serverless Containers takes care of the execution, responding to the triggers you define.
+/// - **Reduce operational costs**: Serverless Containers simplifies the management of your resources, only using them when they are needed. Reduce operational costs by removing the need for oversized or additional servers to manage traffic on your services.
+/// - **No infrastructure management**: Managing infrastructure can be complicated, especially when it comes to scaling to handle traffic spikes. Serverless Containers abstracts infrastructure management by adapting the resources according to the traffic, simplifying the operation of your apps.
 pub opaque type Client(err) {
   Client(
     http_client: fn(request.Request(String)) -> Result(response.Response(String), err),
@@ -1149,21 +837,52 @@ pub fn with_project_id(
   Client(..client, project_id:)
 }
 
+pub opaque type GetServiceInfoRequest {
+  GetServiceInfoRequest(
+    region: Option(String),
+  )
+}
+
+pub fn new_get_service_info_request() -> GetServiceInfoRequest {
+  GetServiceInfoRequest(region: None)
+}
+
+/// The region you want to target
+pub fn get_service_info_request_with_region(
+  get_service_info_request: GetServiceInfoRequest,
+  region region: String,
+) -> GetServiceInfoRequest {
+  GetServiceInfoRequest(..get_service_info_request, region: Some(region))
+}
+
+pub fn get_service_info(
+  request params: GetServiceInfoRequest,
+  client client: Client(err),
+) -> Result(ScalewayStdServiceInfo, ApiError(err)) {
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region)
+  let req = request.set_method(req, http.Get)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_std_service_info_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
 pub opaque type ListContainersRequest {
   ListContainersRequest(
     region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
-    order_by: Option(String),
-    namespace_id: Option(String),
-    name: Option(String),
+    order_by: Option(ScalewayContainersV1ListContainersRequestOrderBy),
     organization_id: Option(String),
     project_id: Option(String),
+    namespace_id: Option(String),
+    name: Option(String),
   )
 }
 
 pub fn new_list_containers_request() -> ListContainersRequest {
-  ListContainersRequest(region: None, page: None, page_size: None, order_by: None, namespace_id: None, name: None, organization_id: None, project_id: None)
+  ListContainersRequest(region: None, page: None, page_size: None, order_by: None, organization_id: None, project_id: None, namespace_id: None, name: None)
 }
 
 /// The region you want to target
@@ -1174,7 +893,6 @@ pub fn list_containers_request_with_region(
   ListContainersRequest(..list_containers_request, region: Some(region))
 }
 
-/// Page number.
 pub fn list_containers_request_with_page(
   list_containers_request: ListContainersRequest,
   page page: Int,
@@ -1182,7 +900,6 @@ pub fn list_containers_request_with_page(
   ListContainersRequest(..list_containers_request, page: Some(page))
 }
 
-/// Number of containers per page.
 pub fn list_containers_request_with_page_size(
   list_containers_request: ListContainersRequest,
   page_size page_size: Int,
@@ -1190,31 +907,13 @@ pub fn list_containers_request_with_page_size(
   ListContainersRequest(..list_containers_request, page_size: Some(page_size))
 }
 
-/// Order of the containers.
 pub fn list_containers_request_with_order_by(
   list_containers_request: ListContainersRequest,
-  order_by order_by: String,
+  order_by order_by: ScalewayContainersV1ListContainersRequestOrderBy,
 ) -> ListContainersRequest {
   ListContainersRequest(..list_containers_request, order_by: Some(order_by))
 }
 
-/// UUID of the namespace the container belongs to.
-pub fn list_containers_request_with_namespace_id(
-  list_containers_request: ListContainersRequest,
-  namespace_id namespace_id: String,
-) -> ListContainersRequest {
-  ListContainersRequest(..list_containers_request, namespace_id: Some(namespace_id))
-}
-
-/// Name of the container.
-pub fn list_containers_request_with_name(
-  list_containers_request: ListContainersRequest,
-  name name: String,
-) -> ListContainersRequest {
-  ListContainersRequest(..list_containers_request, name: Some(name))
-}
-
-/// UUID of the Organization the container belongs to.
 pub fn list_containers_request_with_organization_id(
   list_containers_request: ListContainersRequest,
   organization_id organization_id: String,
@@ -1222,7 +921,6 @@ pub fn list_containers_request_with_organization_id(
   ListContainersRequest(..list_containers_request, organization_id: Some(organization_id))
 }
 
-/// UUID of the Project the container belongs to.
 pub fn list_containers_request_with_project_id(
   list_containers_request: ListContainersRequest,
   project_id project_id: String,
@@ -1230,57 +928,43 @@ pub fn list_containers_request_with_project_id(
   ListContainersRequest(..list_containers_request, project_id: Some(project_id))
 }
 
-/// List all your containers
+pub fn list_containers_request_with_namespace_id(
+  list_containers_request: ListContainersRequest,
+  namespace_id namespace_id: String,
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, namespace_id: Some(namespace_id))
+}
+
+pub fn list_containers_request_with_name(
+  list_containers_request: ListContainersRequest,
+  name name: String,
+) -> ListContainersRequest {
+  ListContainersRequest(..list_containers_request, name: Some(name))
+}
+
+/// List all containers
 pub fn list_containers(
   request params: ListContainersRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListContainersResponse, ApiError(err)) {
+) -> Result(ScalewayContainersV1ListContainersResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
   let project_id = option.unwrap(params.project_id, client.project_id)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
+    option.map(params.order_by, fn(v) { #("order_by", scaleway_containers_v1_list_containers_request_order_by_to_string(v)) }),
+    option.map(params.organization_id, fn(v) { #("organization_id", v) }),
     option.map(params.namespace_id, fn(v) { #("namespace_id", v) }),
     option.map(params.name, fn(v) { #("name", v) }),
-    option.map(params.organization_id, fn(v) { #("organization_id", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_containers_response_decoder())
+  json.parse(resp.body, scaleway_containers_v1_list_containers_response_decoder())
   |> result.map_error(JsonDecodeError)
-}
-
-pub type CreateContainerRequestHttpOption {
-  CreateContainerRequestHttpOptionUnknownHttpOption
-  CreateContainerRequestHttpOptionEnabled
-  CreateContainerRequestHttpOptionRedirected
-}
-
-pub fn create_container_request_http_option_to_string(value: CreateContainerRequestHttpOption) -> String {
-  case value {
-    CreateContainerRequestHttpOptionUnknownHttpOption -> "unknown_http_option"
-    CreateContainerRequestHttpOptionEnabled -> "enabled"
-    CreateContainerRequestHttpOptionRedirected -> "redirected"
-  }
-}
-
-pub fn create_container_request_http_option_to_json(value: CreateContainerRequestHttpOption) -> json.Json {
-  json.string(create_container_request_http_option_to_string(value))
-}
-
-pub fn create_container_request_http_option_decoder() -> decode.Decoder(CreateContainerRequestHttpOption) {
-  use value <- decode.then(decode.string)
-  case value {
-    "unknown_http_option" -> decode.success(CreateContainerRequestHttpOptionUnknownHttpOption)
-    "enabled" -> decode.success(CreateContainerRequestHttpOptionEnabled)
-    "redirected" -> decode.success(CreateContainerRequestHttpOptionRedirected)
-    _ -> decode.failure(CreateContainerRequestHttpOptionUnknownHttpOption, "CreateContainerRequestHttpOption")
-  }
 }
 
 pub type CreateContainerRequestPrivacy {
@@ -1374,56 +1058,67 @@ pub opaque type CreateContainerRequest {
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: List(String),
     /// Container command.
-    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
+    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
     command: List(String),
-    /// CPU limit of the container in mvCPU.
-    cpu_limit: Option(Int),
-    /// Description of the container.
+    /// Container description.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
-    /// Health check configuration of the container.
-    health_check: Option(json.Json),
-    /// Configure how HTTP and HTTPS requests are handled.
-    /// Possible values:
-    /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
-    /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: CreateContainerRequestHttpOption,
-    /// Local storage limit of the container (in MB).
-    local_storage_limit: Option(Int),
-    /// Number of maximum concurrent executions of the container.
-    max_concurrency: Option(Int),
+    environment_variables: Option(Dict(String, String)),
+    /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+    https_connections_only: Option(Bool),
+    /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
+    image: String,
+    /// It defines how to check if the container is still running.
+    /// If the liveness probe fails, the container will be restarted.
+    /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    liveness_probe: Option(json.Json),
+    /// Local storage limit of the container (in bytes). (in bytes)
+    local_storage_limit_bytes: Option(Int),
     /// Maximum number of instances to scale the container to.
     max_scale: Option(Int),
-    /// Memory limit of the container in MB.
-    memory_limit: Option(Int),
+    /// Memory limit of the container in bytes. (in bytes)
+    memory_limit_bytes: Option(Int),
     /// Minimum number of instances to scale the container to.
     min_scale: Option(Int),
-    /// Name of the container.
+    /// CPU limit of the container in mvCPU.
+    mvcpu_limit: Option(Int),
+    /// Container name.
     name: String,
-    /// UUID of the namespace the container belongs to.
+    /// Unique ID of the namespace the container belongs to.
     namespace_id: String,
     /// Port the container listens on.
     port: Option(Int),
-    /// Privacy setting of the container.
+    /// Privacy policy of the container.
     privacy: CreateContainerRequestPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
     private_network_id: Option(String),
     /// Protocol the container uses.
     protocol: CreateContainerRequestProtocol,
-    /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-    registry_image: Option(String),
     /// Execution environment of the container.
     sandbox: CreateContainerRequestSandbox,
-    /// Configuration used to decide when to scale up or down.
-    /// Possible values:
-    /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
-    /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
-    /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
+    /// Parameter used to decide when to scale up or down.
     scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
-    secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
+    /// If the startup probe fails, the container will be restarted.
+    /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    startup_probe: Option(json.Json),
     /// Tags of the Serverless Container.
     tags: List(String),
     /// Processing time limit for the container. (in seconds)
@@ -1435,26 +1130,26 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
   json.object([
     #("args", json.array(value.args, fn(item) { json.string(item) })),
     #("command", json.array(value.command, fn(item) { json.string(item) })),
-    #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("health_check", json.nullable(value.health_check, fn(v) { v })),
-    #("http_option", json.string(create_container_request_http_option_to_string(value.http_option))),
-    #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
-    #("max_concurrency", json.nullable(value.max_concurrency, json.int)),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("https_connections_only", json.nullable(value.https_connections_only, json.bool)),
+    #("image", json.string(value.image)),
+    #("liveness_probe", json.nullable(value.liveness_probe, fn(v) { v })),
+    #("local_storage_limit_bytes", json.nullable(value.local_storage_limit_bytes, json.int)),
     #("max_scale", json.nullable(value.max_scale, json.int)),
-    #("memory_limit", json.nullable(value.memory_limit, json.int)),
+    #("memory_limit_bytes", json.nullable(value.memory_limit_bytes, json.int)),
     #("min_scale", json.nullable(value.min_scale, json.int)),
+    #("mvcpu_limit", json.nullable(value.mvcpu_limit, json.int)),
     #("name", json.string(value.name)),
     #("namespace_id", json.string(value.namespace_id)),
     #("port", json.nullable(value.port, json.int)),
     #("privacy", json.string(create_container_request_privacy_to_string(value.privacy))),
     #("private_network_id", json.nullable(value.private_network_id, json.string)),
     #("protocol", json.string(create_container_request_protocol_to_string(value.protocol))),
-    #("registry_image", json.nullable(value.registry_image, json.string)),
     #("sandbox", json.string(create_container_request_sandbox_to_string(value.sandbox))),
     #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("startup_probe", json.nullable(value.startup_probe, fn(v) { v })),
     #("tags", json.array(value.tags, fn(item) { json.string(item) })),
     #("timeout", json.nullable(value.timeout, json.string)),
   ])
@@ -1463,16 +1158,15 @@ pub fn create_container_request_to_json(value: CreateContainerRequest) -> json.J
 pub fn new_create_container_request(
   args args: List(String),
   command command: List(String),
-  http_option http_option: CreateContainerRequestHttpOption,
+  image image: String,
   name name: String,
   namespace_id namespace_id: String,
   privacy privacy: CreateContainerRequestPrivacy,
   protocol protocol: CreateContainerRequestProtocol,
   sandbox sandbox: CreateContainerRequestSandbox,
-  secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
   tags tags: List(String),
 ) -> CreateContainerRequest {
-  CreateContainerRequest(region: None, args:, command:, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags:, timeout: None)
+  CreateContainerRequest(region: None, args:, command:, description: None, environment_variables: None, https_connections_only: None, image:, liveness_probe: None, local_storage_limit_bytes: None, max_scale: None, memory_limit_bytes: None, min_scale: None, mvcpu_limit: None, name:, namespace_id:, port: None, privacy:, private_network_id: None, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags:, timeout: None)
 }
 
 /// The region you want to target
@@ -1483,15 +1177,7 @@ pub fn create_container_request_with_region(
   CreateContainerRequest(..create_container_request, region: Some(region))
 }
 
-/// CPU limit of the container in mvCPU.
-pub fn create_container_request_with_cpu_limit(
-  create_container_request: CreateContainerRequest,
-  cpu_limit cpu_limit: Int,
-) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, cpu_limit: Some(cpu_limit))
-}
-
-/// Description of the container.
+/// Container description.
 pub fn create_container_request_with_description(
   create_container_request: CreateContainerRequest,
   description description: String,
@@ -1502,33 +1188,42 @@ pub fn create_container_request_with_description(
 /// Environment variables of the container.
 pub fn create_container_request_with_environment_variables(
   create_container_request: CreateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, environment_variables: Some(environment_variables))
 }
 
-/// Health check configuration of the container.
-pub fn create_container_request_with_health_check(
+/// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+pub fn create_container_request_with_https_connections_only(
   create_container_request: CreateContainerRequest,
-  health_check health_check: json.Json,
+  https_connections_only https_connections_only: Bool,
 ) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, health_check: Some(health_check))
+  CreateContainerRequest(..create_container_request, https_connections_only: Some(https_connections_only))
 }
 
-/// Local storage limit of the container (in MB).
-pub fn create_container_request_with_local_storage_limit(
+/// It defines how to check if the container is still running.
+/// If the liveness probe fails, the container will be restarted.
+/// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
+/// Possible check types:
+/// - http: Perform HTTP check on the container with the specified path.
+/// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
+pub fn create_container_request_with_liveness_probe(
   create_container_request: CreateContainerRequest,
-  local_storage_limit local_storage_limit: Int,
+  liveness_probe liveness_probe: json.Json,
 ) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, local_storage_limit: Some(local_storage_limit))
+  CreateContainerRequest(..create_container_request, liveness_probe: Some(liveness_probe))
 }
 
-/// Number of maximum concurrent executions of the container.
-pub fn create_container_request_with_max_concurrency(
+/// Local storage limit of the container (in bytes). (in bytes)
+pub fn create_container_request_with_local_storage_limit_bytes(
   create_container_request: CreateContainerRequest,
-  max_concurrency max_concurrency: Int,
+  local_storage_limit_bytes local_storage_limit_bytes: Int,
 ) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, max_concurrency: Some(max_concurrency))
+  CreateContainerRequest(..create_container_request, local_storage_limit_bytes: Some(local_storage_limit_bytes))
 }
 
 /// Maximum number of instances to scale the container to.
@@ -1539,12 +1234,12 @@ pub fn create_container_request_with_max_scale(
   CreateContainerRequest(..create_container_request, max_scale: Some(max_scale))
 }
 
-/// Memory limit of the container in MB.
-pub fn create_container_request_with_memory_limit(
+/// Memory limit of the container in bytes. (in bytes)
+pub fn create_container_request_with_memory_limit_bytes(
   create_container_request: CreateContainerRequest,
-  memory_limit memory_limit: Int,
+  memory_limit_bytes memory_limit_bytes: Int,
 ) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, memory_limit: Some(memory_limit))
+  CreateContainerRequest(..create_container_request, memory_limit_bytes: Some(memory_limit_bytes))
 }
 
 /// Minimum number of instances to scale the container to.
@@ -1553,6 +1248,14 @@ pub fn create_container_request_with_min_scale(
   min_scale min_scale: Int,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, min_scale: Some(min_scale))
+}
+
+/// CPU limit of the container in mvCPU.
+pub fn create_container_request_with_mvcpu_limit(
+  create_container_request: CreateContainerRequest,
+  mvcpu_limit mvcpu_limit: Int,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, mvcpu_limit: Some(mvcpu_limit))
 }
 
 /// Port the container listens on.
@@ -1572,24 +1275,37 @@ pub fn create_container_request_with_private_network_id(
   CreateContainerRequest(..create_container_request, private_network_id: Some(private_network_id))
 }
 
-/// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-pub fn create_container_request_with_registry_image(
-  create_container_request: CreateContainerRequest,
-  registry_image registry_image: String,
-) -> CreateContainerRequest {
-  CreateContainerRequest(..create_container_request, registry_image: Some(registry_image))
-}
-
-/// Configuration used to decide when to scale up or down.
-/// Possible values:
-/// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
-/// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
-/// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
+/// Parameter used to decide when to scale up or down.
 pub fn create_container_request_with_scaling_option(
   create_container_request: CreateContainerRequest,
   scaling_option scaling_option: json.Json,
 ) -> CreateContainerRequest {
   CreateContainerRequest(..create_container_request, scaling_option: Some(scaling_option))
+}
+
+/// Secret environment variables of the container.
+pub fn create_container_request_with_secret_environment_variables(
+  create_container_request: CreateContainerRequest,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+/// It defines how to check if the container has started successfully.
+/// If the startup probe fails, the container will be restarted.
+/// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
+/// Possible check types:
+/// - http: Perform HTTP check on the container with the specified path.
+/// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
+pub fn create_container_request_with_startup_probe(
+  create_container_request: CreateContainerRequest,
+  startup_probe startup_probe: json.Json,
+) -> CreateContainerRequest {
+  CreateContainerRequest(..create_container_request, startup_probe: Some(startup_probe))
 }
 
 /// Processing time limit for the container. (in seconds)
@@ -1604,14 +1320,14 @@ pub fn create_container_request_with_timeout(
 pub fn create_container(
   request params: CreateContainerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+) -> Result(ScalewayContainersV1Container, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  json.parse(resp.body, scaleway_containers_v1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -1640,13 +1356,13 @@ pub fn get_container_request_with_region(
 pub fn get_container(
   request params: GetContainerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+) -> Result(ScalewayContainersV1Container, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  json.parse(resp.body, scaleway_containers_v1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -1671,46 +1387,18 @@ pub fn delete_container_request_with_region(
   DeleteContainerRequest(..delete_container_request, region: Some(region))
 }
 
-/// Delete a container
+/// Delete an existing container
 pub fn delete_container(
   request params: DeleteContainerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+) -> Result(ScalewayContainersV1Container, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  json.parse(resp.body, scaleway_containers_v1_container_decoder())
   |> result.map_error(JsonDecodeError)
-}
-
-pub type UpdateContainerRequestHttpOption {
-  UpdateContainerRequestHttpOptionUnknownHttpOption
-  UpdateContainerRequestHttpOptionEnabled
-  UpdateContainerRequestHttpOptionRedirected
-}
-
-pub fn update_container_request_http_option_to_string(value: UpdateContainerRequestHttpOption) -> String {
-  case value {
-    UpdateContainerRequestHttpOptionUnknownHttpOption -> "unknown_http_option"
-    UpdateContainerRequestHttpOptionEnabled -> "enabled"
-    UpdateContainerRequestHttpOptionRedirected -> "redirected"
-  }
-}
-
-pub fn update_container_request_http_option_to_json(value: UpdateContainerRequestHttpOption) -> json.Json {
-  json.string(update_container_request_http_option_to_string(value))
-}
-
-pub fn update_container_request_http_option_decoder() -> decode.Decoder(UpdateContainerRequestHttpOption) {
-  use value <- decode.then(decode.string)
-  case value {
-    "unknown_http_option" -> decode.success(UpdateContainerRequestHttpOptionUnknownHttpOption)
-    "enabled" -> decode.success(UpdateContainerRequestHttpOptionEnabled)
-    "redirected" -> decode.success(UpdateContainerRequestHttpOptionRedirected)
-    _ -> decode.failure(UpdateContainerRequestHttpOptionUnknownHttpOption, "UpdateContainerRequestHttpOption")
-  }
 }
 
 pub type UpdateContainerRequestPrivacy {
@@ -1805,70 +1493,63 @@ pub opaque type UpdateContainerRequest {
     /// Arguments passed to the command specified in the "command" field. These override the default arguments from the container image, and behave like command-line parameters.
     args: Option(List(String)),
     /// Container command.
-    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
+    /// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
     command: Option(List(String)),
-    /// CPU limit of the container in mvCPU.
-    cpu_limit: Option(Int),
     /// Description of the container.
     description: Option(String),
     /// Environment variables of the container.
-    environment_variables: Option(json.Json),
-    /// Health check configuration of the container.
-    health_check: Option(json.Json),
-    /// Configure how HTTP and HTTPS requests are handled.
-    /// Possible values:
-    /// - redirected: Responds to HTTP request with a 301 redirect to ask the clients to use HTTPS.
-    /// - enabled: Serve both HTTP and HTTPS traffic.
-    http_option: UpdateContainerRequestHttpOption,
-    /// Local storage limit of the container (in MB).
-    local_storage_limit: Option(Int),
-    /// Number of maximum concurrent executions of the container.
-    max_concurrency: Option(Int),
+    environment_variables: Option(Dict(String, String)),
+    /// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+    https_connection_only: Option(Bool),
+    /// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
+    image: Option(String),
+    /// It defines how to check if the container is still running.
+    /// If the liveness probe fails, the container will be restarted.
+    /// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    liveness_probe: Option(json.Json),
+    /// Local storage limit of the container (in bytes). (in bytes)
+    local_storage_limit_bytes: Option(Int),
     /// Maximum number of instances to scale the container to.
     max_scale: Option(Int),
-    /// Memory limit of the container in MB.
-    memory_limit: Option(Int),
+    /// Memory limit of the container in bytes. (in bytes)
+    memory_limit_bytes: Option(Int),
     /// Minimum number of instances to scale the container to.
     min_scale: Option(Int),
+    /// CPU limit of the container in mVCPU.
+    mvcpu_limit: Option(Int),
     /// Port the container listens on.
     port: Option(Int),
-    /// Privacy settings of the container.
+    /// Privacy policy of the container.
     privacy: UpdateContainerRequestPrivacy,
     /// ID of the Private Network the container is connected to.
     /// When connected to a Private Network, the container can access other Scaleway resources in this Private Network.
     private_network_id: Option(String),
     /// Protocol the container uses.
     protocol: UpdateContainerRequestProtocol,
-    /// Defines whether to redeploy failed containers.
-    /// Deprecated: future versions of this API will systematically redeploy containers when needed. As such,
-    /// passing `redeploy: false` will be ignored. Relying on this field is discouraged.
-    /// 
-    /// To force the redeployment of a container, even if no configuration has changed, use the `DeployContainer` method instead.
-    redeploy: Option(Bool),
-    /// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-    registry_image: Option(String),
     /// Execution environment of the container.
     sandbox: UpdateContainerRequestSandbox,
-    /// Configuration used to decide when to scale up or down.
-    /// Possible values:
-    /// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
-    /// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
-    /// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
+    /// Parameter used to decide when to scale up or down.
     scaling_option: Option(json.Json),
     /// Secret environment variables of the container.
-    /// During an update, secret environment variables that are not specified in this field will be kept unchanged.
-    /// 
-    /// In order to delete a specific secret environment variable, you must reference its key, but not provide any value for it.
-    /// For example, the following payload will delete the `TO_DELETE` secret environment variable:
-    /// 
-    /// ```json
-    /// {
-    /// "secret_environment_variables":[
-    /// {"key":"TO_DELETE"}
-    /// ]
-    /// }
-    /// ```.
-    secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+    secret_environment_variables: Option(Dict(String, String)),
+    /// It defines how to check if the container has started successfully.
+    /// If the startup probe fails, the container will be restarted.
+    /// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
+    /// Possible check types:
+    /// - http: Perform HTTP check on the container with the specified path.
+    /// - tcp: Perform TCP check on the container.
+    /// For each check type, you can also configure the following parameters:
+    /// - interval: Time interval between checks (in seconds).
+    /// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+    /// - timeout: Duration before the check times out (in seconds).
+    startup_probe: Option(json.Json),
     /// Tags of the Serverless Container.
     tags: Option(List(String)),
     /// Processing time limit for the container. (in seconds)
@@ -1880,25 +1561,24 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
   json.object([
     #("args", json.nullable(value.args, json.array(_, json.string))),
     #("command", json.nullable(value.command, json.array(_, json.string))),
-    #("cpu_limit", json.nullable(value.cpu_limit, json.int)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("health_check", json.nullable(value.health_check, fn(v) { v })),
-    #("http_option", json.string(update_container_request_http_option_to_string(value.http_option))),
-    #("local_storage_limit", json.nullable(value.local_storage_limit, json.int)),
-    #("max_concurrency", json.nullable(value.max_concurrency, json.int)),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("https_connection_only", json.nullable(value.https_connection_only, json.bool)),
+    #("image", json.nullable(value.image, json.string)),
+    #("liveness_probe", json.nullable(value.liveness_probe, fn(v) { v })),
+    #("local_storage_limit_bytes", json.nullable(value.local_storage_limit_bytes, json.int)),
     #("max_scale", json.nullable(value.max_scale, json.int)),
-    #("memory_limit", json.nullable(value.memory_limit, json.int)),
+    #("memory_limit_bytes", json.nullable(value.memory_limit_bytes, json.int)),
     #("min_scale", json.nullable(value.min_scale, json.int)),
+    #("mvcpu_limit", json.nullable(value.mvcpu_limit, json.int)),
     #("port", json.nullable(value.port, json.int)),
     #("privacy", json.string(update_container_request_privacy_to_string(value.privacy))),
     #("private_network_id", json.nullable(value.private_network_id, json.string)),
     #("protocol", json.string(update_container_request_protocol_to_string(value.protocol))),
-    #("redeploy", json.nullable(value.redeploy, json.bool)),
-    #("registry_image", json.nullable(value.registry_image, json.string)),
     #("sandbox", json.string(update_container_request_sandbox_to_string(value.sandbox))),
     #("scaling_option", json.nullable(value.scaling_option, fn(v) { v })),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
+    #("startup_probe", json.nullable(value.startup_probe, fn(v) { v })),
     #("tags", json.nullable(value.tags, json.array(_, json.string))),
     #("timeout", json.nullable(value.timeout, json.string)),
   ])
@@ -1906,13 +1586,11 @@ pub fn update_container_request_to_json(value: UpdateContainerRequest) -> json.J
 
 pub fn new_update_container_request(
   container_id container_id: String,
-  http_option http_option: UpdateContainerRequestHttpOption,
   privacy privacy: UpdateContainerRequestPrivacy,
   protocol protocol: UpdateContainerRequestProtocol,
   sandbox sandbox: UpdateContainerRequestSandbox,
-  secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(region: None, container_id:, args: None, command: None, cpu_limit: None, description: None, environment_variables: None, health_check: None, http_option:, local_storage_limit: None, max_concurrency: None, max_scale: None, memory_limit: None, min_scale: None, port: None, privacy:, private_network_id: None, protocol:, redeploy: None, registry_image: None, sandbox:, scaling_option: None, secret_environment_variables:, tags: None, timeout: None)
+  UpdateContainerRequest(region: None, container_id:, args: None, command: None, description: None, environment_variables: None, https_connection_only: None, image: None, liveness_probe: None, local_storage_limit_bytes: None, max_scale: None, memory_limit_bytes: None, min_scale: None, mvcpu_limit: None, port: None, privacy:, private_network_id: None, protocol:, sandbox:, scaling_option: None, secret_environment_variables: None, startup_probe: None, tags: None, timeout: None)
 }
 
 /// The region you want to target
@@ -1933,20 +1611,12 @@ pub fn update_container_request_with_args(
 }
 
 /// Container command.
-/// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or entry point script to run.
+/// Command executed when the container starts. This overrides the default command defined in the container image. This is usually the main executable, or ENTRYPOINT script to run.
 pub fn update_container_request_with_command(
   update_container_request: UpdateContainerRequest,
   command command: List(String),
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, command: Some(command))
-}
-
-/// CPU limit of the container in mvCPU.
-pub fn update_container_request_with_cpu_limit(
-  update_container_request: UpdateContainerRequest,
-  cpu_limit cpu_limit: Int,
-) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, cpu_limit: Some(cpu_limit))
 }
 
 /// Description of the container.
@@ -1960,33 +1630,50 @@ pub fn update_container_request_with_description(
 /// Environment variables of the container.
 pub fn update_container_request_with_environment_variables(
   update_container_request: UpdateContainerRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, environment_variables: Some(environment_variables))
 }
 
-/// Health check configuration of the container.
-pub fn update_container_request_with_health_check(
+/// If true, it will allow only HTTPS connections to access your container to prevent it from being triggered by insecure connections (HTTP).
+pub fn update_container_request_with_https_connection_only(
   update_container_request: UpdateContainerRequest,
-  health_check health_check: json.Json,
+  https_connection_only https_connection_only: Bool,
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, health_check: Some(health_check))
+  UpdateContainerRequest(..update_container_request, https_connection_only: Some(https_connection_only))
 }
 
-/// Local storage limit of the container (in MB).
-pub fn update_container_request_with_local_storage_limit(
+/// Image reference (e.g. "rg.fr-par.scw.cloud/my-registry-namespace/image:tag").
+pub fn update_container_request_with_image(
   update_container_request: UpdateContainerRequest,
-  local_storage_limit local_storage_limit: Int,
+  image image: String,
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, local_storage_limit: Some(local_storage_limit))
+  UpdateContainerRequest(..update_container_request, image: Some(image))
 }
 
-/// Number of maximum concurrent executions of the container.
-pub fn update_container_request_with_max_concurrency(
+/// It defines how to check if the container is still running.
+/// If the liveness probe fails, the container will be restarted.
+/// It is performed periodically during the container's lifetime. The liveness probe is not executed until the startup probe (if defined) is successful.
+/// Possible check types:
+/// - http: Perform HTTP check on the container with the specified path.
+/// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
+pub fn update_container_request_with_liveness_probe(
   update_container_request: UpdateContainerRequest,
-  max_concurrency max_concurrency: Int,
+  liveness_probe liveness_probe: json.Json,
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, max_concurrency: Some(max_concurrency))
+  UpdateContainerRequest(..update_container_request, liveness_probe: Some(liveness_probe))
+}
+
+/// Local storage limit of the container (in bytes). (in bytes)
+pub fn update_container_request_with_local_storage_limit_bytes(
+  update_container_request: UpdateContainerRequest,
+  local_storage_limit_bytes local_storage_limit_bytes: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, local_storage_limit_bytes: Some(local_storage_limit_bytes))
 }
 
 /// Maximum number of instances to scale the container to.
@@ -1997,12 +1684,12 @@ pub fn update_container_request_with_max_scale(
   UpdateContainerRequest(..update_container_request, max_scale: Some(max_scale))
 }
 
-/// Memory limit of the container in MB.
-pub fn update_container_request_with_memory_limit(
+/// Memory limit of the container in bytes. (in bytes)
+pub fn update_container_request_with_memory_limit_bytes(
   update_container_request: UpdateContainerRequest,
-  memory_limit memory_limit: Int,
+  memory_limit_bytes memory_limit_bytes: Int,
 ) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, memory_limit: Some(memory_limit))
+  UpdateContainerRequest(..update_container_request, memory_limit_bytes: Some(memory_limit_bytes))
 }
 
 /// Minimum number of instances to scale the container to.
@@ -2011,6 +1698,14 @@ pub fn update_container_request_with_min_scale(
   min_scale min_scale: Int,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, min_scale: Some(min_scale))
+}
+
+/// CPU limit of the container in mVCPU.
+pub fn update_container_request_with_mvcpu_limit(
+  update_container_request: UpdateContainerRequest,
+  mvcpu_limit mvcpu_limit: Int,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, mvcpu_limit: Some(mvcpu_limit))
 }
 
 /// Port the container listens on.
@@ -2030,36 +1725,37 @@ pub fn update_container_request_with_private_network_id(
   UpdateContainerRequest(..update_container_request, private_network_id: Some(private_network_id))
 }
 
-/// Defines whether to redeploy failed containers.
-/// Deprecated: future versions of this API will systematically redeploy containers when needed. As such,
-/// passing `redeploy: false` will be ignored. Relying on this field is discouraged.
-/// 
-/// To force the redeployment of a container, even if no configuration has changed, use the `DeployContainer` method instead.
-pub fn update_container_request_with_redeploy(
-  update_container_request: UpdateContainerRequest,
-  redeploy redeploy: Bool,
-) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, redeploy: Some(redeploy))
-}
-
-/// Name of the registry image (e.g. "rg.fr-par.scw.cloud/something/image:tag").
-pub fn update_container_request_with_registry_image(
-  update_container_request: UpdateContainerRequest,
-  registry_image registry_image: String,
-) -> UpdateContainerRequest {
-  UpdateContainerRequest(..update_container_request, registry_image: Some(registry_image))
-}
-
-/// Configuration used to decide when to scale up or down.
-/// Possible values:
-/// - concurrent_requests_threshold: Scale depending on the number of concurrent requests being processed per container instance.
-/// - cpu_usage_threshold: Scale depending on the CPU usage of a container instance.
-/// - memory_usage_threshold: Scale depending on the memory usage of a container instance.
+/// Parameter used to decide when to scale up or down.
 pub fn update_container_request_with_scaling_option(
   update_container_request: UpdateContainerRequest,
   scaling_option scaling_option: json.Json,
 ) -> UpdateContainerRequest {
   UpdateContainerRequest(..update_container_request, scaling_option: Some(scaling_option))
+}
+
+/// Secret environment variables of the container.
+pub fn update_container_request_with_secret_environment_variables(
+  update_container_request: UpdateContainerRequest,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
+/// It defines how to check if the container has started successfully.
+/// If the startup probe fails, the container will be restarted.
+/// This check is useful for applications that might take a long time to start. It is only performed when the container is starting.
+/// Possible check types:
+/// - http: Perform HTTP check on the container with the specified path.
+/// - tcp: Perform TCP check on the container.
+/// For each check type, you can also configure the following parameters:
+/// - interval: Time interval between checks (in seconds).
+/// - failure_threshold: Number of consecutive failures before considering the container has to be restarted.
+/// - timeout: Duration before the check times out (in seconds).
+pub fn update_container_request_with_startup_probe(
+  update_container_request: UpdateContainerRequest,
+  startup_probe startup_probe: json.Json,
+) -> UpdateContainerRequest {
+  UpdateContainerRequest(..update_container_request, startup_probe: Some(startup_probe))
 }
 
 /// Tags of the Serverless Container.
@@ -2082,354 +1778,54 @@ pub fn update_container_request_with_timeout(
 pub fn update_container(
   request params: UpdateContainerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+) -> Result(ScalewayContainersV1Container, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers/" <> params.container_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
+  json.parse(resp.body, scaleway_containers_v1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
-pub opaque type DeployContainerRequest {
-  DeployContainerRequest(
+pub opaque type RedeployContainerRequest {
+  RedeployContainerRequest(
     region: Option(String),
     container_id: String,
   )
 }
 
-pub fn deploy_container_request_to_json(value: DeployContainerRequest) -> json.Json {
+pub fn redeploy_container_request_to_json(value: RedeployContainerRequest) -> json.Json {
   json.object([])
 }
 
-pub fn new_deploy_container_request(
+pub fn new_redeploy_container_request(
   container_id container_id: String,
-) -> DeployContainerRequest {
-  DeployContainerRequest(region: None, container_id:)
+) -> RedeployContainerRequest {
+  RedeployContainerRequest(region: None, container_id:)
 }
 
 /// The region you want to target
-pub fn deploy_container_request_with_region(
-  deploy_container_request: DeployContainerRequest,
+pub fn redeploy_container_request_with_region(
+  redeploy_container_request: RedeployContainerRequest,
   region region: String,
-) -> DeployContainerRequest {
-  DeployContainerRequest(..deploy_container_request, region: Some(region))
+) -> RedeployContainerRequest {
+  RedeployContainerRequest(..redeploy_container_request, region: Some(region))
 }
 
-/// Deploy a container
-pub fn deploy_container(
-  request params: DeployContainerRequest,
+/// Redeploy a container
+pub fn redeploy_container(
+  request params: RedeployContainerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Container, ApiError(err)) {
+) -> Result(ScalewayContainersV1Container, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/containers/" <> params.container_id <> "/deploy")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/containers/" <> params.container_id <> "/redeploy")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(deploy_container_request_to_json(params)))
+  let req = request.set_body(req, json.to_string(redeploy_container_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_container_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type ListCronsRequest {
-  ListCronsRequest(
-    region: Option(String),
-    page: Option(Int),
-    page_size: Option(Int),
-    order_by: Option(String),
-    container_id: Option(String),
-  )
-}
-
-pub fn new_list_crons_request() -> ListCronsRequest {
-  ListCronsRequest(region: None, page: None, page_size: None, order_by: None, container_id: None)
-}
-
-/// The region you want to target
-pub fn list_crons_request_with_region(
-  list_crons_request: ListCronsRequest,
-  region region: String,
-) -> ListCronsRequest {
-  ListCronsRequest(..list_crons_request, region: Some(region))
-}
-
-/// Page number.
-pub fn list_crons_request_with_page(
-  list_crons_request: ListCronsRequest,
-  page page: Int,
-) -> ListCronsRequest {
-  ListCronsRequest(..list_crons_request, page: Some(page))
-}
-
-/// Number of crons per page.
-pub fn list_crons_request_with_page_size(
-  list_crons_request: ListCronsRequest,
-  page_size page_size: Int,
-) -> ListCronsRequest {
-  ListCronsRequest(..list_crons_request, page_size: Some(page_size))
-}
-
-/// Order of the crons.
-pub fn list_crons_request_with_order_by(
-  list_crons_request: ListCronsRequest,
-  order_by order_by: String,
-) -> ListCronsRequest {
-  ListCronsRequest(..list_crons_request, order_by: Some(order_by))
-}
-
-/// UUID of the container invoked by the cron.
-pub fn list_crons_request_with_container_id(
-  list_crons_request: ListCronsRequest,
-  container_id container_id: String,
-) -> ListCronsRequest {
-  ListCronsRequest(..list_crons_request, container_id: Some(container_id))
-}
-
-/// List all your crons
-pub fn list_crons(
-  request params: ListCronsRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListCronsResponse, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
-  let req = request.set_method(req, http.Get)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
-  let query = list.append(query, option.values([
-    option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
-    option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
-    option.map(params.container_id, fn(v) { #("container_id", v) }),
-  ]))
-  let req = request.set_query(req, query)
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_crons_response_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type CreateCronRequest {
-  CreateCronRequest(
-    region: Option(String),
-    /// Arguments to pass with the cron.
-    args: Option(json.Json),
-    /// UUID of the container to invoke by the cron.
-    container_id: String,
-    /// Name of the cron to create.
-    name: Option(String),
-    /// UNIX cron schedule.
-    schedule: String,
-  )
-}
-
-pub fn create_cron_request_to_json(value: CreateCronRequest) -> json.Json {
-  json.object([
-    #("args", json.nullable(value.args, fn(v) { v })),
-    #("container_id", json.string(value.container_id)),
-    #("name", json.nullable(value.name, json.string)),
-    #("schedule", json.string(value.schedule)),
-  ])
-}
-
-pub fn new_create_cron_request(
-  container_id container_id: String,
-  schedule schedule: String,
-) -> CreateCronRequest {
-  CreateCronRequest(region: None, args: None, container_id:, name: None, schedule:)
-}
-
-/// The region you want to target
-pub fn create_cron_request_with_region(
-  create_cron_request: CreateCronRequest,
-  region region: String,
-) -> CreateCronRequest {
-  CreateCronRequest(..create_cron_request, region: Some(region))
-}
-
-/// Arguments to pass with the cron.
-pub fn create_cron_request_with_args(
-  create_cron_request: CreateCronRequest,
-  args args: json.Json,
-) -> CreateCronRequest {
-  CreateCronRequest(..create_cron_request, args: Some(args))
-}
-
-/// Name of the cron to create.
-pub fn create_cron_request_with_name(
-  create_cron_request: CreateCronRequest,
-  name name: String,
-) -> CreateCronRequest {
-  CreateCronRequest(..create_cron_request, name: Some(name))
-}
-
-/// Create a new cron
-pub fn create_cron(
-  request params: CreateCronRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons")
-  let req = request.set_method(req, http.Post)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_cron_request_to_json(params)))
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type GetCronRequest {
-  GetCronRequest(
-    region: Option(String),
-    cron_id: String,
-  )
-}
-
-pub fn new_get_cron_request(
-  cron_id cron_id: String,
-) -> GetCronRequest {
-  GetCronRequest(region: None, cron_id:)
-}
-
-/// The region you want to target
-pub fn get_cron_request_with_region(
-  get_cron_request: GetCronRequest,
-  region region: String,
-) -> GetCronRequest {
-  GetCronRequest(..get_cron_request, region: Some(region))
-}
-
-/// Get a cron
-pub fn get_cron(
-  request params: GetCronRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
-  let req = request.set_method(req, http.Get)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type DeleteCronRequest {
-  DeleteCronRequest(
-    region: Option(String),
-    cron_id: String,
-  )
-}
-
-pub fn new_delete_cron_request(
-  cron_id cron_id: String,
-) -> DeleteCronRequest {
-  DeleteCronRequest(region: None, cron_id:)
-}
-
-/// The region you want to target
-pub fn delete_cron_request_with_region(
-  delete_cron_request: DeleteCronRequest,
-  region region: String,
-) -> DeleteCronRequest {
-  DeleteCronRequest(..delete_cron_request, region: Some(region))
-}
-
-/// Delete an existing cron
-pub fn delete_cron(
-  request params: DeleteCronRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
-  let req = request.set_method(req, http.Delete)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type UpdateCronRequest {
-  UpdateCronRequest(
-    region: Option(String),
-    cron_id: String,
-    /// Arguments to pass with the cron.
-    args: Option(json.Json),
-    /// UUID of the container invoked by the cron.
-    container_id: Option(String),
-    /// Name of the cron.
-    name: Option(String),
-    /// UNIX cron schedule.
-    schedule: Option(String),
-  )
-}
-
-pub fn update_cron_request_to_json(value: UpdateCronRequest) -> json.Json {
-  json.object([
-    #("args", json.nullable(value.args, fn(v) { v })),
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("name", json.nullable(value.name, json.string)),
-    #("schedule", json.nullable(value.schedule, json.string)),
-  ])
-}
-
-pub fn new_update_cron_request(
-  cron_id cron_id: String,
-) -> UpdateCronRequest {
-  UpdateCronRequest(region: None, cron_id:, args: None, container_id: None, name: None, schedule: None)
-}
-
-/// The region you want to target
-pub fn update_cron_request_with_region(
-  update_cron_request: UpdateCronRequest,
-  region region: String,
-) -> UpdateCronRequest {
-  UpdateCronRequest(..update_cron_request, region: Some(region))
-}
-
-/// Arguments to pass with the cron.
-pub fn update_cron_request_with_args(
-  update_cron_request: UpdateCronRequest,
-  args args: json.Json,
-) -> UpdateCronRequest {
-  UpdateCronRequest(..update_cron_request, args: Some(args))
-}
-
-/// UUID of the container invoked by the cron.
-pub fn update_cron_request_with_container_id(
-  update_cron_request: UpdateCronRequest,
-  container_id container_id: String,
-) -> UpdateCronRequest {
-  UpdateCronRequest(..update_cron_request, container_id: Some(container_id))
-}
-
-/// Name of the cron.
-pub fn update_cron_request_with_name(
-  update_cron_request: UpdateCronRequest,
-  name name: String,
-) -> UpdateCronRequest {
-  UpdateCronRequest(..update_cron_request, name: Some(name))
-}
-
-/// UNIX cron schedule.
-pub fn update_cron_request_with_schedule(
-  update_cron_request: UpdateCronRequest,
-  schedule schedule: String,
-) -> UpdateCronRequest {
-  UpdateCronRequest(..update_cron_request, schedule: Some(schedule))
-}
-
-/// Update an existing cron
-pub fn update_cron(
-  request params: UpdateCronRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Cron, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/crons/" <> params.cron_id)
-  let req = request.set_method(req, http.Patch)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(update_cron_request_to_json(params)))
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_cron_decoder())
+  json.parse(resp.body, scaleway_containers_v1_container_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2438,13 +1834,16 @@ pub opaque type ListDomainsRequest {
     region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
-    order_by: Option(String),
+    order_by: Option(ScalewayContainersV1ListDomainsRequestOrderBy),
+    organization_id: Option(String),
+    project_id: Option(String),
+    namespace_id: Option(String),
     container_id: Option(String),
   )
 }
 
 pub fn new_list_domains_request() -> ListDomainsRequest {
-  ListDomainsRequest(region: None, page: None, page_size: None, order_by: None, container_id: None)
+  ListDomainsRequest(region: None, page: None, page_size: None, order_by: None, organization_id: None, project_id: None, namespace_id: None, container_id: None)
 }
 
 /// The region you want to target
@@ -2455,7 +1854,6 @@ pub fn list_domains_request_with_region(
   ListDomainsRequest(..list_domains_request, region: Some(region))
 }
 
-/// Page number.
 pub fn list_domains_request_with_page(
   list_domains_request: ListDomainsRequest,
   page page: Int,
@@ -2463,7 +1861,6 @@ pub fn list_domains_request_with_page(
   ListDomainsRequest(..list_domains_request, page: Some(page))
 }
 
-/// Number of domains per page.
 pub fn list_domains_request_with_page_size(
   list_domains_request: ListDomainsRequest,
   page_size page_size: Int,
@@ -2471,15 +1868,34 @@ pub fn list_domains_request_with_page_size(
   ListDomainsRequest(..list_domains_request, page_size: Some(page_size))
 }
 
-/// Order of the domains.
 pub fn list_domains_request_with_order_by(
   list_domains_request: ListDomainsRequest,
-  order_by order_by: String,
+  order_by order_by: ScalewayContainersV1ListDomainsRequestOrderBy,
 ) -> ListDomainsRequest {
   ListDomainsRequest(..list_domains_request, order_by: Some(order_by))
 }
 
-/// UUID of the container the domain belongs to.
+pub fn list_domains_request_with_organization_id(
+  list_domains_request: ListDomainsRequest,
+  organization_id organization_id: String,
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, organization_id: Some(organization_id))
+}
+
+pub fn list_domains_request_with_project_id(
+  list_domains_request: ListDomainsRequest,
+  project_id project_id: String,
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, project_id: Some(project_id))
+}
+
+pub fn list_domains_request_with_namespace_id(
+  list_domains_request: ListDomainsRequest,
+  namespace_id namespace_id: String,
+) -> ListDomainsRequest {
+  ListDomainsRequest(..list_domains_request, namespace_id: Some(namespace_id))
+}
+
 pub fn list_domains_request_with_container_id(
   list_domains_request: ListDomainsRequest,
   container_id container_id: String,
@@ -2491,31 +1907,33 @@ pub fn list_domains_request_with_container_id(
 pub fn list_domains(
   request params: ListDomainsRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListDomainsResponse, ApiError(err)) {
+) -> Result(ScalewayContainersV1ListDomainsResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
+  let project_id = option.unwrap(params.project_id, client.project_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/domains")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
+  let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
+    option.map(params.order_by, fn(v) { #("order_by", scaleway_containers_v1_list_domains_request_order_by_to_string(v)) }),
+    option.map(params.organization_id, fn(v) { #("organization_id", v) }),
+    option.map(params.namespace_id, fn(v) { #("namespace_id", v) }),
     option.map(params.container_id, fn(v) { #("container_id", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_domains_response_decoder())
+  json.parse(resp.body, scaleway_containers_v1_list_domains_response_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 pub opaque type CreateDomainRequest {
   CreateDomainRequest(
     region: Option(String),
-    /// UUID of the container to assign the domain to.
     container_id: String,
-    /// Domain to assign.
     hostname: String,
+    tags: List(String),
   )
 }
 
@@ -2523,14 +1941,16 @@ pub fn create_domain_request_to_json(value: CreateDomainRequest) -> json.Json {
   json.object([
     #("container_id", json.string(value.container_id)),
     #("hostname", json.string(value.hostname)),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_create_domain_request(
   container_id container_id: String,
   hostname hostname: String,
+  tags tags: List(String),
 ) -> CreateDomainRequest {
-  CreateDomainRequest(region: None, container_id:, hostname:)
+  CreateDomainRequest(region: None, container_id:, hostname:, tags:)
 }
 
 /// The region you want to target
@@ -2541,18 +1961,18 @@ pub fn create_domain_request_with_region(
   CreateDomainRequest(..create_domain_request, region: Some(region))
 }
 
-/// Create a custom domain
+/// Create a new custom domain
 pub fn create_domain(
   request params: CreateDomainRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+) -> Result(ScalewayContainersV1Domain, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/domains")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_domain_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  json.parse(resp.body, scaleway_containers_v1_domain_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2581,13 +2001,13 @@ pub fn get_domain_request_with_region(
 pub fn get_domain(
   request params: GetDomainRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+) -> Result(ScalewayContainersV1Domain, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> params.domain_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  json.parse(resp.body, scaleway_containers_v1_domain_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2616,13 +2036,57 @@ pub fn delete_domain_request_with_region(
 pub fn delete_domain(
   request params: DeleteDomainRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Domain, ApiError(err)) {
+) -> Result(ScalewayContainersV1Domain, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/domains/" <> params.domain_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/domains/" <> params.domain_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_domain_decoder())
+  json.parse(resp.body, scaleway_containers_v1_domain_decoder())
+  |> result.map_error(JsonDecodeError)
+}
+
+pub opaque type UpdateDomainRequest {
+  UpdateDomainRequest(
+    region: Option(String),
+    domain_id: String,
+    tags: ScalewayStdStringsValue,
+  )
+}
+
+pub fn update_domain_request_to_json(value: UpdateDomainRequest) -> json.Json {
+  json.object([
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
+  ])
+}
+
+pub fn new_update_domain_request(
+  domain_id domain_id: String,
+  tags tags: ScalewayStdStringsValue,
+) -> UpdateDomainRequest {
+  UpdateDomainRequest(region: None, domain_id:, tags:)
+}
+
+/// The region you want to target
+pub fn update_domain_request_with_region(
+  update_domain_request: UpdateDomainRequest,
+  region region: String,
+) -> UpdateDomainRequest {
+  UpdateDomainRequest(..update_domain_request, region: Some(region))
+}
+
+/// Update an existing domain
+pub fn update_domain(
+  request params: UpdateDomainRequest,
+  client client: Client(err),
+) -> Result(ScalewayContainersV1Domain, ApiError(err)) {
+  let region = option.unwrap(params.region, client.region)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/domains/" <> params.domain_id)
+  let req = request.set_method(req, http.Patch)
+  let req = request.prepend_header(req, "content-type", "application/json")
+  let req = request.set_body(req, json.to_string(update_domain_request_to_json(params)))
+  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
+  json.parse(resp.body, scaleway_containers_v1_domain_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2631,15 +2095,15 @@ pub opaque type ListNamespacesRequest {
     region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
-    order_by: Option(String),
-    name: Option(String),
+    order_by: Option(ScalewayContainersV1ListNamespacesRequestOrderBy),
     organization_id: Option(String),
     project_id: Option(String),
+    name: Option(String),
   )
 }
 
 pub fn new_list_namespaces_request() -> ListNamespacesRequest {
-  ListNamespacesRequest(region: None, page: None, page_size: None, order_by: None, name: None, organization_id: None, project_id: None)
+  ListNamespacesRequest(region: None, page: None, page_size: None, order_by: None, organization_id: None, project_id: None, name: None)
 }
 
 /// The region you want to target
@@ -2650,7 +2114,6 @@ pub fn list_namespaces_request_with_region(
   ListNamespacesRequest(..list_namespaces_request, region: Some(region))
 }
 
-/// Page number.
 pub fn list_namespaces_request_with_page(
   list_namespaces_request: ListNamespacesRequest,
   page page: Int,
@@ -2658,7 +2121,6 @@ pub fn list_namespaces_request_with_page(
   ListNamespacesRequest(..list_namespaces_request, page: Some(page))
 }
 
-/// Number of namespaces per page.
 pub fn list_namespaces_request_with_page_size(
   list_namespaces_request: ListNamespacesRequest,
   page_size page_size: Int,
@@ -2666,23 +2128,13 @@ pub fn list_namespaces_request_with_page_size(
   ListNamespacesRequest(..list_namespaces_request, page_size: Some(page_size))
 }
 
-/// Order of the namespaces.
 pub fn list_namespaces_request_with_order_by(
   list_namespaces_request: ListNamespacesRequest,
-  order_by order_by: String,
+  order_by order_by: ScalewayContainersV1ListNamespacesRequestOrderBy,
 ) -> ListNamespacesRequest {
   ListNamespacesRequest(..list_namespaces_request, order_by: Some(order_by))
 }
 
-/// Name of the namespaces.
-pub fn list_namespaces_request_with_name(
-  list_namespaces_request: ListNamespacesRequest,
-  name name: String,
-) -> ListNamespacesRequest {
-  ListNamespacesRequest(..list_namespaces_request, name: Some(name))
-}
-
-/// UUID of the Organization the namespace belongs to.
 pub fn list_namespaces_request_with_organization_id(
   list_namespaces_request: ListNamespacesRequest,
   organization_id organization_id: String,
@@ -2690,7 +2142,6 @@ pub fn list_namespaces_request_with_organization_id(
   ListNamespacesRequest(..list_namespaces_request, organization_id: Some(organization_id))
 }
 
-/// UUID of the Project the namespace belongs to.
 pub fn list_namespaces_request_with_project_id(
   list_namespaces_request: ListNamespacesRequest,
   project_id project_id: String,
@@ -2698,70 +2149,65 @@ pub fn list_namespaces_request_with_project_id(
   ListNamespacesRequest(..list_namespaces_request, project_id: Some(project_id))
 }
 
-/// List all your namespaces
+pub fn list_namespaces_request_with_name(
+  list_namespaces_request: ListNamespacesRequest,
+  name name: String,
+) -> ListNamespacesRequest {
+  ListNamespacesRequest(..list_namespaces_request, name: Some(name))
+}
+
+/// List all namespaces
 pub fn list_namespaces(
   request params: ListNamespacesRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListNamespacesResponse, ApiError(err)) {
+) -> Result(ScalewayContainersV1ListNamespacesResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
   let project_id = option.unwrap(params.project_id, client.project_id)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
-    option.map(params.name, fn(v) { #("name", v) }),
+    option.map(params.order_by, fn(v) { #("order_by", scaleway_containers_v1_list_namespaces_request_order_by_to_string(v)) }),
     option.map(params.organization_id, fn(v) { #("organization_id", v) }),
+    option.map(params.name, fn(v) { #("name", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_namespaces_response_decoder())
+  json.parse(resp.body, scaleway_containers_v1_list_namespaces_response_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
 pub opaque type CreateNamespaceRequest {
   CreateNamespaceRequest(
     region: Option(String),
-    /// [DEPRECATED] By default, as of 2025/08/20, all namespaces are now compatible with VPC.
-    /// Setting this field to true doesn't matter anymore. It will be removed in a near future.
-    activate_vpc_integration: Bool,
-    /// Description of the namespace to create.
     description: Option(String),
-    /// Environment variables of the namespace to create.
-    environment_variables: Option(json.Json),
-    /// Name of the namespace to create.
+    environment_variables: Option(Dict(String, String)),
     name: String,
-    /// UUID of the Project in which the namespace will be created.
     project_id: Option(String),
-    /// Secret environment variables of the namespace to create.
-    secret_environment_variables: List(ScalewayContainersV1beta1Secret),
-    /// Tags of the Serverless Container Namespace.
+    secret_environment_variables: Option(Dict(String, String)),
     tags: List(String),
   )
 }
 
 pub fn create_namespace_request_to_json(value: CreateNamespaceRequest) -> json.Json {
   json.object([
-    #("activate_vpc_integration", json.bool(value.activate_vpc_integration)),
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
+    #("environment_variables", json.nullable(value.environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("name", json.string(value.name)),
     #("project_id", json.nullable(value.project_id, json.string)),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
+    #("secret_environment_variables", json.nullable(value.secret_environment_variables, json.dict(_, fn(k) { k }, json.string))),
     #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_create_namespace_request(
-  activate_vpc_integration activate_vpc_integration: Bool,
   name name: String,
-  secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
   tags tags: List(String),
 ) -> CreateNamespaceRequest {
-  CreateNamespaceRequest(region: None, activate_vpc_integration:, description: None, environment_variables: None, name:, project_id: None, secret_environment_variables:, tags:)
+  CreateNamespaceRequest(region: None, description: None, environment_variables: None, name:, project_id: None, secret_environment_variables: None, tags:)
 }
 
 /// The region you want to target
@@ -2772,7 +2218,6 @@ pub fn create_namespace_request_with_region(
   CreateNamespaceRequest(..create_namespace_request, region: Some(region))
 }
 
-/// Description of the namespace to create.
 pub fn create_namespace_request_with_description(
   create_namespace_request: CreateNamespaceRequest,
   description description: String,
@@ -2780,15 +2225,13 @@ pub fn create_namespace_request_with_description(
   CreateNamespaceRequest(..create_namespace_request, description: Some(description))
 }
 
-/// Environment variables of the namespace to create.
 pub fn create_namespace_request_with_environment_variables(
   create_namespace_request: CreateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
+  environment_variables environment_variables: Dict(String, String),
 ) -> CreateNamespaceRequest {
   CreateNamespaceRequest(..create_namespace_request, environment_variables: Some(environment_variables))
 }
 
-/// UUID of the Project in which the namespace will be created.
 pub fn create_namespace_request_with_project_id(
   create_namespace_request: CreateNamespaceRequest,
   project_id project_id: String,
@@ -2796,20 +2239,27 @@ pub fn create_namespace_request_with_project_id(
   CreateNamespaceRequest(..create_namespace_request, project_id: Some(project_id))
 }
 
+pub fn create_namespace_request_with_secret_environment_variables(
+  create_namespace_request: CreateNamespaceRequest,
+  secret_environment_variables secret_environment_variables: Dict(String, String),
+) -> CreateNamespaceRequest {
+  CreateNamespaceRequest(..create_namespace_request, secret_environment_variables: Some(secret_environment_variables))
+}
+
 /// Create a new namespace
 pub fn create_namespace(
   request params: CreateNamespaceRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+) -> Result(ScalewayContainersV1Namespace, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
   let project_id = option.unwrap(params.project_id, client.project_id)
   let params = CreateNamespaceRequest(..params, project_id: Some(project_id))
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/namespaces")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_namespace_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  json.parse(resp.body, scaleway_containers_v1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2838,13 +2288,13 @@ pub fn get_namespace_request_with_region(
 pub fn get_namespace(
   request params: GetNamespaceRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+) -> Result(ScalewayContainersV1Namespace, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  json.parse(resp.body, scaleway_containers_v1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2873,13 +2323,13 @@ pub fn delete_namespace_request_with_region(
 pub fn delete_namespace(
   request params: DeleteNamespaceRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+) -> Result(ScalewayContainersV1Namespace, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
+  json.parse(resp.body, scaleway_containers_v1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -2887,31 +2337,29 @@ pub opaque type UpdateNamespaceRequest {
   UpdateNamespaceRequest(
     region: Option(String),
     namespace_id: String,
-    /// Description of the namespace to update.
     description: Option(String),
-    /// Environment variables of the namespace to update.
-    environment_variables: Option(json.Json),
-    /// Secret environment variables of the namespace to update.
-    secret_environment_variables: List(ScalewayContainersV1beta1Secret),
-    /// Tags of the Serverless Container Namespace.
-    tags: Option(List(String)),
+    environment_variables: ScalewayStdMapStringStringValue,
+    secret_environment_variables: ScalewayStdMapStringStringValue,
+    tags: ScalewayStdStringsValue,
   )
 }
 
 pub fn update_namespace_request_to_json(value: UpdateNamespaceRequest) -> json.Json {
   json.object([
     #("description", json.nullable(value.description, json.string)),
-    #("environment_variables", json.nullable(value.environment_variables, fn(v) { v })),
-    #("secret_environment_variables", json.array(value.secret_environment_variables, fn(item) { scaleway_containers_v1beta1_secret_to_json(item) })),
-    #("tags", json.nullable(value.tags, json.array(_, json.string))),
+    #("environment_variables", json.dict(value.environment_variables, fn(k) { k }, json.string)),
+    #("secret_environment_variables", json.dict(value.secret_environment_variables, fn(k) { k }, json.string)),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_update_namespace_request(
   namespace_id namespace_id: String,
-  secret_environment_variables secret_environment_variables: List(ScalewayContainersV1beta1Secret),
+  environment_variables environment_variables: ScalewayStdMapStringStringValue,
+  secret_environment_variables secret_environment_variables: ScalewayStdMapStringStringValue,
+  tags tags: ScalewayStdStringsValue,
 ) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(region: None, namespace_id:, description: None, environment_variables: None, secret_environment_variables:, tags: None)
+  UpdateNamespaceRequest(region: None, namespace_id:, description: None, environment_variables:, secret_environment_variables:, tags:)
 }
 
 /// The region you want to target
@@ -2922,7 +2370,6 @@ pub fn update_namespace_request_with_region(
   UpdateNamespaceRequest(..update_namespace_request, region: Some(region))
 }
 
-/// Description of the namespace to update.
 pub fn update_namespace_request_with_description(
   update_namespace_request: UpdateNamespaceRequest,
   description description: String,
@@ -2930,272 +2377,18 @@ pub fn update_namespace_request_with_description(
   UpdateNamespaceRequest(..update_namespace_request, description: Some(description))
 }
 
-/// Environment variables of the namespace to update.
-pub fn update_namespace_request_with_environment_variables(
-  update_namespace_request: UpdateNamespaceRequest,
-  environment_variables environment_variables: json.Json,
-) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(..update_namespace_request, environment_variables: Some(environment_variables))
-}
-
-/// Tags of the Serverless Container Namespace.
-pub fn update_namespace_request_with_tags(
-  update_namespace_request: UpdateNamespaceRequest,
-  tags tags: List(String),
-) -> UpdateNamespaceRequest {
-  UpdateNamespaceRequest(..update_namespace_request, tags: Some(tags))
-}
-
 /// Update an existing namespace
 pub fn update_namespace(
   request params: UpdateNamespaceRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Namespace, ApiError(err)) {
+) -> Result(ScalewayContainersV1Namespace, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/namespaces/" <> params.namespace_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_namespace_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_namespace_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type ListTokensRequest {
-  ListTokensRequest(
-    region: Option(String),
-    page: Option(Int),
-    page_size: Option(Int),
-    order_by: Option(String),
-    container_id: Option(String),
-    namespace_id: Option(String),
-  )
-}
-
-pub fn new_list_tokens_request() -> ListTokensRequest {
-  ListTokensRequest(region: None, page: None, page_size: None, order_by: None, container_id: None, namespace_id: None)
-}
-
-/// The region you want to target
-pub fn list_tokens_request_with_region(
-  list_tokens_request: ListTokensRequest,
-  region region: String,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, region: Some(region))
-}
-
-/// Page number.
-pub fn list_tokens_request_with_page(
-  list_tokens_request: ListTokensRequest,
-  page page: Int,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, page: Some(page))
-}
-
-/// Number of tokens per page.
-pub fn list_tokens_request_with_page_size(
-  list_tokens_request: ListTokensRequest,
-  page_size page_size: Int,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, page_size: Some(page_size))
-}
-
-/// Order of the tokens.
-pub fn list_tokens_request_with_order_by(
-  list_tokens_request: ListTokensRequest,
-  order_by order_by: String,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, order_by: Some(order_by))
-}
-
-/// UUID of the container the token belongs to.
-pub fn list_tokens_request_with_container_id(
-  list_tokens_request: ListTokensRequest,
-  container_id container_id: String,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, container_id: Some(container_id))
-}
-
-/// UUID of the namespace the token belongs to.
-pub fn list_tokens_request_with_namespace_id(
-  list_tokens_request: ListTokensRequest,
-  namespace_id namespace_id: String,
-) -> ListTokensRequest {
-  ListTokensRequest(..list_tokens_request, namespace_id: Some(namespace_id))
-}
-
-/// List all tokens
-pub fn list_tokens(
-  request params: ListTokensRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListTokensResponse, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
-  let req = request.set_method(req, http.Get)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
-  let query = list.append(query, option.values([
-    option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
-    option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
-    option.map(params.container_id, fn(v) { #("container_id", v) }),
-    option.map(params.namespace_id, fn(v) { #("namespace_id", v) }),
-  ]))
-  let req = request.set_query(req, query)
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_tokens_response_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type CreateTokenRequest {
-  CreateTokenRequest(
-    region: Option(String),
-    /// UUID of the container to create the token for.
-    container_id: Option(String),
-    /// Description of the token.
-    description: Option(String),
-    /// Expiry date of the token. (RFC 3339 format)
-    expires_at: Option(String),
-    /// UUID of the namespace to create the token for.
-    namespace_id: Option(String),
-  )
-}
-
-pub fn create_token_request_to_json(value: CreateTokenRequest) -> json.Json {
-  json.object([
-    #("container_id", json.nullable(value.container_id, json.string)),
-    #("description", json.nullable(value.description, json.string)),
-    #("expires_at", json.nullable(value.expires_at, json.string)),
-    #("namespace_id", json.nullable(value.namespace_id, json.string)),
-  ])
-}
-
-pub fn new_create_token_request() -> CreateTokenRequest {
-  CreateTokenRequest(region: None, container_id: None, description: None, expires_at: None, namespace_id: None)
-}
-
-/// The region you want to target
-pub fn create_token_request_with_region(
-  create_token_request: CreateTokenRequest,
-  region region: String,
-) -> CreateTokenRequest {
-  CreateTokenRequest(..create_token_request, region: Some(region))
-}
-
-/// UUID of the container to create the token for.
-pub fn create_token_request_with_container_id(
-  create_token_request: CreateTokenRequest,
-  container_id container_id: String,
-) -> CreateTokenRequest {
-  CreateTokenRequest(..create_token_request, container_id: Some(container_id))
-}
-
-/// Description of the token.
-pub fn create_token_request_with_description(
-  create_token_request: CreateTokenRequest,
-  description description: String,
-) -> CreateTokenRequest {
-  CreateTokenRequest(..create_token_request, description: Some(description))
-}
-
-/// Expiry date of the token. (RFC 3339 format)
-pub fn create_token_request_with_expires_at(
-  create_token_request: CreateTokenRequest,
-  expires_at expires_at: String,
-) -> CreateTokenRequest {
-  CreateTokenRequest(..create_token_request, expires_at: Some(expires_at))
-}
-
-/// UUID of the namespace to create the token for.
-pub fn create_token_request_with_namespace_id(
-  create_token_request: CreateTokenRequest,
-  namespace_id namespace_id: String,
-) -> CreateTokenRequest {
-  CreateTokenRequest(..create_token_request, namespace_id: Some(namespace_id))
-}
-
-/// Create a new revocable token
-pub fn create_token(
-  request params: CreateTokenRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens")
-  let req = request.set_method(req, http.Post)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  let req = request.set_body(req, json.to_string(create_token_request_to_json(params)))
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type GetTokenRequest {
-  GetTokenRequest(
-    region: Option(String),
-    token_id: String,
-  )
-}
-
-pub fn new_get_token_request(
-  token_id token_id: String,
-) -> GetTokenRequest {
-  GetTokenRequest(region: None, token_id:)
-}
-
-/// The region you want to target
-pub fn get_token_request_with_region(
-  get_token_request: GetTokenRequest,
-  region region: String,
-) -> GetTokenRequest {
-  GetTokenRequest(..get_token_request, region: Some(region))
-}
-
-/// Get a token
-pub fn get_token(
-  request params: GetTokenRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> params.token_id)
-  let req = request.set_method(req, http.Get)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
-  |> result.map_error(JsonDecodeError)
-}
-
-pub opaque type DeleteTokenRequest {
-  DeleteTokenRequest(
-    region: Option(String),
-    token_id: String,
-  )
-}
-
-pub fn new_delete_token_request(
-  token_id token_id: String,
-) -> DeleteTokenRequest {
-  DeleteTokenRequest(region: None, token_id:)
-}
-
-/// The region you want to target
-pub fn delete_token_request_with_region(
-  delete_token_request: DeleteTokenRequest,
-  region region: String,
-) -> DeleteTokenRequest {
-  DeleteTokenRequest(..delete_token_request, region: Some(region))
-}
-
-/// Delete a token
-pub fn delete_token(
-  request params: DeleteTokenRequest,
-  client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Token, ApiError(err)) {
-  let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/tokens/" <> params.token_id)
-  let req = request.set_method(req, http.Delete)
-  let req = request.prepend_header(req, "content-type", "application/json")
-  use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_token_decoder())
+  json.parse(resp.body, scaleway_containers_v1_namespace_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -3204,12 +2397,16 @@ pub opaque type ListTriggersRequest {
     region: Option(String),
     page: Option(Int),
     page_size: Option(Int),
-    order_by: Option(String),
+    order_by: Option(ScalewayContainersV1ListTriggersRequestOrderBy),
+    organization_id: Option(String),
+    project_id: Option(String),
+    namespace_id: Option(String),
+    container_id: Option(String),
   )
 }
 
 pub fn new_list_triggers_request() -> ListTriggersRequest {
-  ListTriggersRequest(region: None, page: None, page_size: None, order_by: None)
+  ListTriggersRequest(region: None, page: None, page_size: None, order_by: None, organization_id: None, project_id: None, namespace_id: None, container_id: None)
 }
 
 /// The region you want to target
@@ -3220,7 +2417,6 @@ pub fn list_triggers_request_with_region(
   ListTriggersRequest(..list_triggers_request, region: Some(region))
 }
 
-/// Page number to return.
 pub fn list_triggers_request_with_page(
   list_triggers_request: ListTriggersRequest,
   page page: Int,
@@ -3228,7 +2424,6 @@ pub fn list_triggers_request_with_page(
   ListTriggersRequest(..list_triggers_request, page: Some(page))
 }
 
-/// Maximum number of triggers to return per page.
 pub fn list_triggers_request_with_page_size(
   list_triggers_request: ListTriggersRequest,
   page_size page_size: Int,
@@ -3236,32 +2431,63 @@ pub fn list_triggers_request_with_page_size(
   ListTriggersRequest(..list_triggers_request, page_size: Some(page_size))
 }
 
-/// Order in which to return results.
 pub fn list_triggers_request_with_order_by(
   list_triggers_request: ListTriggersRequest,
-  order_by order_by: String,
+  order_by order_by: ScalewayContainersV1ListTriggersRequestOrderBy,
 ) -> ListTriggersRequest {
   ListTriggersRequest(..list_triggers_request, order_by: Some(order_by))
+}
+
+pub fn list_triggers_request_with_organization_id(
+  list_triggers_request: ListTriggersRequest,
+  organization_id organization_id: String,
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, organization_id: Some(organization_id))
+}
+
+pub fn list_triggers_request_with_project_id(
+  list_triggers_request: ListTriggersRequest,
+  project_id project_id: String,
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, project_id: Some(project_id))
+}
+
+pub fn list_triggers_request_with_namespace_id(
+  list_triggers_request: ListTriggersRequest,
+  namespace_id namespace_id: String,
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, namespace_id: Some(namespace_id))
+}
+
+pub fn list_triggers_request_with_container_id(
+  list_triggers_request: ListTriggersRequest,
+  container_id container_id: String,
+) -> ListTriggersRequest {
+  ListTriggersRequest(..list_triggers_request, container_id: Some(container_id))
 }
 
 /// List all triggers
 pub fn list_triggers(
   request params: ListTriggersRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1ListTriggersResponse, ApiError(err)) {
+) -> Result(ScalewayContainersV1ListTriggersResponse, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
+  let project_id = option.unwrap(params.project_id, client.project_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/triggers")
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
-  let query = []
+  let query = [#("project_id", project_id)]
   let query = list.append(query, option.values([
     option.map(params.page, fn(v) { #("page", int.to_string(v)) }),
     option.map(params.page_size, fn(v) { #("page_size", int.to_string(v)) }),
-    option.map(params.order_by, fn(v) { #("order_by", v) }),
+    option.map(params.order_by, fn(v) { #("order_by", scaleway_containers_v1_list_triggers_request_order_by_to_string(v)) }),
+    option.map(params.organization_id, fn(v) { #("organization_id", v) }),
+    option.map(params.namespace_id, fn(v) { #("namespace_id", v) }),
+    option.map(params.container_id, fn(v) { #("container_id", v) }),
   ]))
   let req = request.set_query(req, query)
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_list_triggers_response_decoder())
+  json.parse(resp.body, scaleway_containers_v1_list_triggers_response_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -3270,32 +2496,42 @@ pub opaque type CreateTriggerRequest {
     region: Option(String),
     /// ID of the container to trigger.
     container_id: String,
+    /// Configuration for a Cron source.
+    cron_config: Option(json.Json),
     /// Description of the trigger.
     description: Option(String),
+    /// Configuration of the destination to trigger.
+    destination_config: Option(json.Json),
     /// Name of the trigger.
     name: String,
-    /// Configuration for a Scaleway Messaging and Queuing NATS subject.
-    scw_nats_config: Option(json.Json),
-    /// Configuration for a Scaleway Messaging and Queuing SQS queue.
-    scw_sqs_config: Option(json.Json),
+    /// Configuration for a NATS source.
+    nats_config: Option(json.Json),
+    /// Configuration for an SQS queue source.
+    sqs_config: Option(json.Json),
+    /// Tags of the trigger.
+    tags: List(String),
   )
 }
 
 pub fn create_trigger_request_to_json(value: CreateTriggerRequest) -> json.Json {
   json.object([
     #("container_id", json.string(value.container_id)),
+    #("cron_config", json.nullable(value.cron_config, fn(v) { v })),
     #("description", json.nullable(value.description, json.string)),
+    #("destination_config", json.nullable(value.destination_config, fn(v) { v })),
     #("name", json.string(value.name)),
-    #("scw_nats_config", json.nullable(value.scw_nats_config, fn(v) { v })),
-    #("scw_sqs_config", json.nullable(value.scw_sqs_config, fn(v) { v })),
+    #("nats_config", json.nullable(value.nats_config, fn(v) { v })),
+    #("sqs_config", json.nullable(value.sqs_config, fn(v) { v })),
+    #("tags", json.array(value.tags, fn(item) { json.string(item) })),
   ])
 }
 
 pub fn new_create_trigger_request(
   container_id container_id: String,
   name name: String,
+  tags tags: List(String),
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(region: None, container_id:, description: None, name:, scw_nats_config: None, scw_sqs_config: None)
+  CreateTriggerRequest(region: None, container_id:, cron_config: None, description: None, destination_config: None, name:, nats_config: None, sqs_config: None, tags:)
 }
 
 /// The region you want to target
@@ -3306,6 +2542,14 @@ pub fn create_trigger_request_with_region(
   CreateTriggerRequest(..create_trigger_request, region: Some(region))
 }
 
+/// Configuration for a Cron source.
+pub fn create_trigger_request_with_cron_config(
+  create_trigger_request: CreateTriggerRequest,
+  cron_config cron_config: json.Json,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, cron_config: Some(cron_config))
+}
+
 /// Description of the trigger.
 pub fn create_trigger_request_with_description(
   create_trigger_request: CreateTriggerRequest,
@@ -3314,34 +2558,42 @@ pub fn create_trigger_request_with_description(
   CreateTriggerRequest(..create_trigger_request, description: Some(description))
 }
 
-/// Configuration for a Scaleway Messaging and Queuing NATS subject.
-pub fn create_trigger_request_with_scw_nats_config(
+/// Configuration of the destination to trigger.
+pub fn create_trigger_request_with_destination_config(
   create_trigger_request: CreateTriggerRequest,
-  scw_nats_config scw_nats_config: json.Json,
+  destination_config destination_config: json.Json,
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(..create_trigger_request, scw_nats_config: Some(scw_nats_config))
+  CreateTriggerRequest(..create_trigger_request, destination_config: Some(destination_config))
 }
 
-/// Configuration for a Scaleway Messaging and Queuing SQS queue.
-pub fn create_trigger_request_with_scw_sqs_config(
+/// Configuration for a NATS source.
+pub fn create_trigger_request_with_nats_config(
   create_trigger_request: CreateTriggerRequest,
-  scw_sqs_config scw_sqs_config: json.Json,
+  nats_config nats_config: json.Json,
 ) -> CreateTriggerRequest {
-  CreateTriggerRequest(..create_trigger_request, scw_sqs_config: Some(scw_sqs_config))
+  CreateTriggerRequest(..create_trigger_request, nats_config: Some(nats_config))
 }
 
-/// Create a trigger
+/// Configuration for an SQS queue source.
+pub fn create_trigger_request_with_sqs_config(
+  create_trigger_request: CreateTriggerRequest,
+  sqs_config sqs_config: json.Json,
+) -> CreateTriggerRequest {
+  CreateTriggerRequest(..create_trigger_request, sqs_config: Some(sqs_config))
+}
+
+/// Create a new trigger
 pub fn create_trigger(
   request params: CreateTriggerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+) -> Result(ScalewayContainersV1Trigger, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers")
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/triggers")
   let req = request.set_method(req, http.Post)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(create_trigger_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  json.parse(resp.body, scaleway_containers_v1_trigger_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -3370,13 +2622,13 @@ pub fn get_trigger_request_with_region(
 pub fn get_trigger(
   request params: GetTriggerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+) -> Result(ScalewayContainersV1Trigger, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Get)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  json.parse(resp.body, scaleway_containers_v1_trigger_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -3405,13 +2657,13 @@ pub fn delete_trigger_request_with_region(
 pub fn delete_trigger(
   request params: DeleteTriggerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+) -> Result(ScalewayContainersV1Trigger, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Delete)
   let req = request.prepend_header(req, "content-type", "application/json")
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  json.parse(resp.body, scaleway_containers_v1_trigger_decoder())
   |> result.map_error(JsonDecodeError)
 }
 
@@ -3419,24 +2671,39 @@ pub opaque type UpdateTriggerRequest {
   UpdateTriggerRequest(
     region: Option(String),
     trigger_id: String,
+    /// Configuration for a cron source.
+    cron_config: Option(json.Json),
     /// Description of the trigger.
     description: Option(String),
+    /// Configuration of the destination to trigger.
+    destination_config: Option(json.Json),
     /// Name of the trigger.
     name: Option(String),
+    /// Configuration for a NATS source.
+    nats_config: Option(json.Json),
+    /// Configuration for an SQS queue source.
+    sqs_config: Option(json.Json),
+    /// Tags of the trigger.
+    tags: Option(List(String)),
   )
 }
 
 pub fn update_trigger_request_to_json(value: UpdateTriggerRequest) -> json.Json {
   json.object([
+    #("cron_config", json.nullable(value.cron_config, fn(v) { v })),
     #("description", json.nullable(value.description, json.string)),
+    #("destination_config", json.nullable(value.destination_config, fn(v) { v })),
     #("name", json.nullable(value.name, json.string)),
+    #("nats_config", json.nullable(value.nats_config, fn(v) { v })),
+    #("sqs_config", json.nullable(value.sqs_config, fn(v) { v })),
+    #("tags", json.nullable(value.tags, json.array(_, json.string))),
   ])
 }
 
 pub fn new_update_trigger_request(
   trigger_id trigger_id: String,
 ) -> UpdateTriggerRequest {
-  UpdateTriggerRequest(region: None, trigger_id:, description: None, name: None)
+  UpdateTriggerRequest(region: None, trigger_id:, cron_config: None, description: None, destination_config: None, name: None, nats_config: None, sqs_config: None, tags: None)
 }
 
 /// The region you want to target
@@ -3447,12 +2714,28 @@ pub fn update_trigger_request_with_region(
   UpdateTriggerRequest(..update_trigger_request, region: Some(region))
 }
 
+/// Configuration for a cron source.
+pub fn update_trigger_request_with_cron_config(
+  update_trigger_request: UpdateTriggerRequest,
+  cron_config cron_config: json.Json,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, cron_config: Some(cron_config))
+}
+
 /// Description of the trigger.
 pub fn update_trigger_request_with_description(
   update_trigger_request: UpdateTriggerRequest,
   description description: String,
 ) -> UpdateTriggerRequest {
   UpdateTriggerRequest(..update_trigger_request, description: Some(description))
+}
+
+/// Configuration of the destination to trigger.
+pub fn update_trigger_request_with_destination_config(
+  update_trigger_request: UpdateTriggerRequest,
+  destination_config destination_config: json.Json,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, destination_config: Some(destination_config))
 }
 
 /// Name of the trigger.
@@ -3463,17 +2746,41 @@ pub fn update_trigger_request_with_name(
   UpdateTriggerRequest(..update_trigger_request, name: Some(name))
 }
 
-/// Update a trigger
+/// Configuration for a NATS source.
+pub fn update_trigger_request_with_nats_config(
+  update_trigger_request: UpdateTriggerRequest,
+  nats_config nats_config: json.Json,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, nats_config: Some(nats_config))
+}
+
+/// Configuration for an SQS queue source.
+pub fn update_trigger_request_with_sqs_config(
+  update_trigger_request: UpdateTriggerRequest,
+  sqs_config sqs_config: json.Json,
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, sqs_config: Some(sqs_config))
+}
+
+/// Tags of the trigger.
+pub fn update_trigger_request_with_tags(
+  update_trigger_request: UpdateTriggerRequest,
+  tags tags: List(String),
+) -> UpdateTriggerRequest {
+  UpdateTriggerRequest(..update_trigger_request, tags: Some(tags))
+}
+
+/// Update an existing trigger
 pub fn update_trigger(
   request params: UpdateTriggerRequest,
   client client: Client(err),
-) -> Result(ScalewayContainersV1beta1Trigger, ApiError(err)) {
+) -> Result(ScalewayContainersV1Trigger, ApiError(err)) {
   let region = option.unwrap(params.region, client.region)
-  let assert Ok(req) = request.to(client.base_url <> "/containers/v1beta1/regions/" <> region <> "/triggers/" <> params.trigger_id)
+  let assert Ok(req) = request.to(client.base_url <> "/containers/v1/regions/" <> region <> "/triggers/" <> params.trigger_id)
   let req = request.set_method(req, http.Patch)
   let req = request.prepend_header(req, "content-type", "application/json")
   let req = request.set_body(req, json.to_string(update_trigger_request_to_json(params)))
   use resp <- result.try(client.http_client(req) |> result.map_error(ClientError))
-  json.parse(resp.body, scaleway_containers_v1beta1_trigger_decoder())
+  json.parse(resp.body, scaleway_containers_v1_trigger_decoder())
   |> result.map_error(JsonDecodeError)
 }
