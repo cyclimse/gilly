@@ -1681,12 +1681,37 @@ fn param_to_type(
 
 /// Returns the expression to convert a query param value `v` to a String.
 /// For String types, this is just "v". For Int types, "int.to_string(v)".
-fn query_param_to_string_expr(param: Parameter) -> String {
+fn query_param_to_string_expr(
+  param: Parameter,
+  all_schemas: List(#(String, Schema)),
+) -> String {
   case param.schema {
     Some(schema.Integer(_, _)) -> "int.to_string(v)"
     Some(schema.Number(_)) -> "float.to_string(v)"
     Some(schema.Boolean(_)) -> "bool.to_string(v)"
+    Some(schema.Ref(ref:)) -> {
+      case resolve_ref_schema(ref, all_schemas) {
+        Some(schema.String(_, schema.StringSchema(enum: Some(_), ..))) -> {
+          let type_name = ref_to_type_name(ref)
+          justin.snake_case(type_name) <> "_to_string(v)"
+        }
+        _ -> "v"
+      }
+    }
     _ -> "v"
+  }
+}
+
+/// Look up a $ref like "#/components/schemas/Foo" in the schema list.
+fn resolve_ref_schema(
+  ref: String,
+  all_schemas: List(#(String, Schema)),
+) -> Option(Schema) {
+  case ref_to_raw_name(ref) {
+    Some(name) ->
+      list.key_find(all_schemas, name)
+      |> option.from_result
+    None -> None
   }
 }
 
@@ -1930,7 +1955,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = case query_param_to_string_expr(param) {
+          let value_expr = case query_param_to_string_expr(param, all_schemas) {
             "v" -> pname
             conv -> string.replace(conv, "v", pname)
           }
@@ -1944,7 +1969,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "let query = list.append(query, list.map("
             <> pname
@@ -1963,7 +1988,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "option.map("
             <> pname
@@ -1982,7 +2007,7 @@ fn build_request_lines(
         })
         |> list.map(fn(param) {
           let pname = param_var_name(param)
-          let value_expr = query_param_to_string_expr(param)
+          let value_expr = query_param_to_string_expr(param, all_schemas)
           doc.from_string(
             "let query = list.append(query, "
             <> pname
@@ -2096,6 +2121,13 @@ fn schema_to_type_doc(
         config,
         usage,
       )
+    // Top-level string enums: register the enum (so enums_doc generates the
+    // real custom type) and emit nothing here to avoid a self-referencing
+    // type alias like `pub type X = X`.
+    schema.String(_, schema.StringSchema(enum: Some(variants), ..)) -> {
+      let state = register_enum(state, type_name, variants)
+      #(state, doc.empty)
+    }
     _ ->
       // For non-object top-level schemas, generate a type alias-like wrapper
       simple_type_doc(state, type_name, schema, all_schemas, config)

@@ -7,8 +7,7 @@ test_name: top_level_string_enum_test
 import gleam/dynamic/decode
 import gleam/json
 
-pub type OrderStatus =
-  OrderStatus
+
 
 
 // --- Enums -------------------------------------------------------------------
